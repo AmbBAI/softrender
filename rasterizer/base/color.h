@@ -41,6 +41,8 @@ struct Color32
 	Color32(const Color32& _color32);
 	Color32(const Color& _color);
 
+	static Color32 Lerp(const Color32& a, const Color32& b, float t);
+
 	static const Color32 white;
 	static const Color32 black;
 };

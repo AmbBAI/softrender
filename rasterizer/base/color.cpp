@@ -80,4 +80,15 @@ Color32::Color32(const Color& _color)
 {
 }
 
+rasterizer::Color32 Color32::Lerp(const Color32& a, const Color32& b, float t)
+{
+	t = Mathf::Clamp01(t);
+	return Color32(
+		255,
+		a.r * (1 - t) + b.r * t,
+		a.g * (1 - t) + b.g * t,
+		a.b * (1 - t) + b.b * t
+		);
+}
+
 }

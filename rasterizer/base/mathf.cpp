@@ -13,6 +13,12 @@ float Mathf::Abs(float f)
 {
 	return ::fabs(f);
 }
+
+int Mathf::Abs(int i)
+{
+	return ::abs(i);
+}
+
 float Mathf::Sign(float f)
 {
 	return f < 0.f ? -1.f : 1.f;

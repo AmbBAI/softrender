@@ -81,6 +81,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="base\application.cpp" />
+    <ClCompile Include="base\camera.cpp" />
     <ClCompile Include="base\canvas.cpp" />
     <ClCompile Include="base\color.cpp" />
     <ClCompile Include="main.cpp" />
@@ -94,6 +95,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="base\application.h" />
+    <ClInclude Include="base\camera.h" />
     <ClInclude Include="base\canvas.h" />
     <ClInclude Include="base\color.h" />
     <ClInclude Include="base\header.h" />

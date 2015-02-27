@@ -221,50 +221,48 @@ void Matrix4x4::AssignTranslation(const Vector3& translation)
 	m[14] = translation.z;
 	m[15] = 1.0f;
 }
-//
-//const Matrix4x4 Matrix4x4::Ortho(float left, float right, float bottom, float top, float z_near, float z_far)
-//{
-//	float tx = -((right + left) / (right - left));
-//	float ty = -((top + bottom) / (top - bottom));
-//	float tz = -((z_far + z_near) / (z_far - z_near));
-//
-//	Matrix4x4 mat;
-//	mat.Identity();
-//	mat.m[0] = 2 / (right - left);
-//	mat.m[5] = 2 / (top - bottom);
-//	mat.m[10] = -2 / (z_far - z_near);
-//	mat.m[12] = tx;
-//	mat.m[13] = ty;
-//	mat.m[14] = tz;
-//
-//	return mat;
-//}
-//
-//const Matrix4x4 Matrix4x4::Perspective(float fov, float aspect, float z_near, float z_far)
-//{
-//	float r = (fov / 2) * Mathf::deg2rad;
-//	float z_delta = z_far - z_near;
-//	float s = Mathf::sin(r);
-//	float cotangent = 0;
-//
-//	Matrix4x4 mat;
-//	if (z_delta == 0 || s == 0 || aspect == 0) {
-//		return mat;
-//	}
-//
-//	//cos(r) / sin(r) = cot(r)
-//	cotangent = Mathf::Cos(r) / s;
-//
-//	mat.Identity();
-//	mat.m[0] = cotangent / aspect;
-//	mat.m[5] = cotangent;
-//	mat.m[10] = -(z_far + z_near) / z_delta;
-//	mat.m[11] = -1;
-//	mat.m[14] = -2 * z_near * z_far / z_delta;
-//	mat.m[15] = 0;
-//
-//	return mat;
-//}
+
+const Matrix4x4 Matrix4x4::Ortho(float left, float right, float bottom, float top, float zNear, float zFar)
+{
+	float tx = -((right + left) / (right - left));
+	float ty = -((top + bottom) / (top - bottom));
+	float tz = -((zFar + zNear) / (zFar - zNear));
+
+	Matrix4x4 mat = Matrix4x4::identity;
+	mat.m[0] = 2 / (right - left);
+	mat.m[5] = 2 / (top - bottom);
+	mat.m[10] = -2 / (zFar - zNear);
+	mat.m[12] = tx;
+	mat.m[13] = ty;
+	mat.m[14] = tz;
+
+	return mat;
+}
+
+const Matrix4x4 Matrix4x4::Perspective(float fov, float aspect, float zNear, float zFar)
+{
+	float r = (fov / 2) * Mathf::deg2rad;
+	float zDelta = zFar - zNear;
+	float s = Mathf::Sin(r);
+	float cotangent = 0;
+
+	Matrix4x4 mat = Matrix4x4::identity;
+	if (zDelta == 0 || s == 0 || aspect == 0) {
+		return mat;
+	}
+
+	//cos(r) / sin(r) = cot(r)
+	cotangent = Mathf::Cos(r) / s;
+
+	mat.m[0] = cotangent / aspect;
+	mat.m[5] = cotangent;
+	mat.m[10] = -(zFar + zNear) / zDelta;
+	mat.m[11] = -1;
+	mat.m[14] = -2 * zNear * zFar / zDelta;
+	mat.m[15] = 0;
+
+	return mat;
+}
 
 const Matrix4x4 Matrix4x4::Inverse() const
 {

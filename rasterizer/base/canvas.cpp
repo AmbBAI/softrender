@@ -23,8 +23,10 @@ bool Canvas::SetPixel(int x, int y, const Color32& color)
 {
 	if (x < 0 || x >= width) return false;
 	if (y < 0 || y >= height) return false;
-
-	pixels[(height - y - 1) * width + x] = color.rgba;
+	if (color.a == 0) return true;
+	int offset = (height - y - 1) * width + x;
+	if (color.a == 255) pixels[offset] = color.rgba;
+	else pixels[offset] = Color32::Lerp(Color32(pixels[offset]), color, color.a / 255.f).rgba;
 	return true;
 }
 

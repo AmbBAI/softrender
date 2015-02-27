@@ -16,6 +16,7 @@ public:
 	static const float rad2deg;
 
 	static float Abs(float f);
+	static int Abs(int i);
 	static float Sign(float f);
 	static bool Approximately(float a, float b);
 
