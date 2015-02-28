@@ -1,5 +1,5 @@
 #include "quaternion.h"
-#include "base/mathf.h"
+#include "math/mathf.h"
 
 namespace rasterizer
 {

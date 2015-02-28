@@ -1,5 +1,5 @@
 #include "matrix4x4.h"
-#include "base/mathf.h"
+#include "math/mathf.h"
 
 namespace rasterizer
 {
@@ -256,9 +256,9 @@ const Matrix4x4 Matrix4x4::Perspective(float fov, float aspect, float zNear, flo
 
 	mat.m[0] = cotangent / aspect;
 	mat.m[5] = cotangent;
-	mat.m[10] = -(zFar + zNear) / zDelta;
+	mat.m[10] = -zFar / zDelta;
 	mat.m[11] = -1;
-	mat.m[14] = -2 * zNear * zFar / zDelta;
+	mat.m[14] = -zNear * zFar / zDelta;
 	mat.m[15] = 0;
 
 	return mat;

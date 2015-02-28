@@ -1,5 +1,5 @@
 #include "color.h"
-#include "mathf.h"
+#include "math/mathf.h"
 
 namespace rasterizer
 {

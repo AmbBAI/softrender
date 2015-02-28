@@ -1,8 +1,8 @@
 #ifndef _BASE_RAY3_H_
 #define _BASE_RAY3_H_
 
-#include "header.h"
-#include "vector3.h"
+#include "base/header.h"
+#include "math/vector3.h"
 
 namespace rasterizer
 {

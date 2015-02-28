@@ -1,7 +1,8 @@
 #ifndef _BASE_QUATERNION_H_
 #define _BASE_QUATERNION_H_
-#include "header.h"
-#include "vector3.h"
+
+#include "base/header.h"
+#include "math/vector3.h"
 
 namespace rasterizer
 {

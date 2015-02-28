@@ -1,5 +1,5 @@
 #include "vector3.h"
-#include "mathf.h"
+#include "math/mathf.h"
 
 namespace rasterizer
 {
@@ -82,6 +82,15 @@ const Vector3 Vector3::Cross(const Vector3& v) const
 		z * v.x - x * v.z,
 		x * v.y - y * v.x
 		);
+}
+
+std::string Vector3::ToString() const
+{
+	std::string str;
+	char tmp[1024];
+	sprintf(tmp, "(%.2f, %.2f, %.2f)", x, y, z);
+	str = tmp;
+	return str;
 }
 
 }

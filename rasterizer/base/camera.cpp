@@ -1,5 +1,5 @@
 #include "camera.h"
-#include "base/mathf.h"
+#include "math/mathf.h"
 
 namespace rasterizer
 {
@@ -25,7 +25,7 @@ void Camera::SetLookAtLH(const Vector3& pos, const Vector3& at, const Vector3& u
 	viewMatrix = mat;
 }
 
-const Matrix4x4* Camera::GetViewMatrix()
+const Matrix4x4* Camera::GetViewMatrix() const
 {
 	return &viewMatrix;
 }
@@ -35,7 +35,7 @@ void Camera::SetProjectionMatrix(const Matrix4x4& _projectionMatrix)
 	projectionMatrix = _projectionMatrix;
 }
 
-const Matrix4x4* Camera::GetProjectionMatrix()
+const Matrix4x4* Camera::GetProjectionMatrix() const
 {
 	return &projectionMatrix;
 }

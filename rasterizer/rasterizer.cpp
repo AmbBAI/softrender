@@ -116,7 +116,7 @@ int Rasterizer::IntPart(float v)
 	return Mathf::FloorToInt(v);
 }
 
-void Rasterizer::Plot(Canvas* canvas, int x, int y, const Color& color, float alpha /*= 1.0f*/, bool swapXY /*= false*/)
+void Rasterizer::Plot(Canvas* canvas, int x, int y, const Color& color, float alpha, bool swapXY /*= false*/)
 {
 	assert(canvas != nullptr);
 
@@ -125,12 +125,46 @@ void Rasterizer::Plot(Canvas* canvas, int x, int y, const Color& color, float al
 	Plot(canvas, x, y, drawColor, swapXY);
 }
 
-void Rasterizer::Plot(Canvas* canvas, int x, int y, const Color& color, bool swapXY /*= false*/)
+void Rasterizer::Plot(Canvas* canvas, int x, int y, const Color& color, bool swapXY)
 {
 	assert(canvas != nullptr);
 
-	if (swapXY) canvas->SetPixel(y, x, color);
-	else canvas->SetPixel(x, y, color);
+	if (swapXY) Plot(canvas, y, x, color);
+	else Plot(canvas, x, y, color);
+}
+
+void Rasterizer::Plot(Canvas* canvas, int x, int y, const Color& color)
+{
+	assert(canvas != nullptr);
+
+	canvas->SetPixel(x, y, color);
+}
+
+void Rasterizer::DrawMeshPoint(Canvas* canvas, const Camera& camera, const Mesh& mesh, const Matrix4x4& transform)
+{
+	assert(canvas != nullptr);
+
+	int width = canvas->GetWidth();
+	int height = canvas->GetHeight();
+
+	const Matrix4x4* view = camera.GetViewMatrix();
+	const Matrix4x4* projection = camera.GetProjectionMatrix();
+
+	//Matrix4x4 mvp = transform.Multiply(*view).Multiply(*projection);
+	//Matrix4x4 mvp = projection->Multiply(view->Multiply(transform));
+	Matrix4x4 mv = transform.Multiply(*view);
+
+	for (int i = 0; i < (int)mesh.vertices.size(); ++i)
+	{
+		Vector3 point = mv.MultiplyPoint(mesh.vertices[i]);
+		point = projection->MultiplyPoint(point);
+		float x = point.x / point.z;
+		float y = point.y / point.z;
+		x = (x + 1) * width / 2;
+		y = (y + 1) * height / 2;
+		Plot(canvas, Mathf::RoundToInt(x), Mathf::RoundToInt(y), Color::red);
+		//printf("%s => (%.2f %.2f)\n", mesh.vertices[i].ToString().c_str(), x, y);
+	}
 }
 
 }

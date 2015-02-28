@@ -1,7 +1,7 @@
 #ifndef _BASE_VECTOR3_H_
 #define _BASE_VECTOR3_H_
 
-#include "header.h"
+#include "base/header.h"
 
 namespace rasterizer
 {
@@ -26,6 +26,8 @@ struct Vector3
 	const Vector3 Divide(float f) const;
 	float Dot(const Vector3& v) const;
 	const Vector3 Cross(const Vector3& v) const;
+
+	std::string ToString() const;
 
 	static const Vector3 zero;
 	static const Vector3 one;

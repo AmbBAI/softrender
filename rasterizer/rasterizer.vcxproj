@@ -84,12 +84,14 @@
     <ClCompile Include="base\camera.cpp" />
     <ClCompile Include="base\canvas.cpp" />
     <ClCompile Include="base\color.cpp" />
+    <ClCompile Include="base\mesh.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="base\mathf.cpp" />
-    <ClCompile Include="base\matrix4x4.cpp" />
-    <ClCompile Include="base\quaternion.cpp" />
-    <ClCompile Include="base\ray3.cpp" />
-    <ClCompile Include="base\vector3.cpp" />
+    <ClCompile Include="math\mathf.cpp" />
+    <ClCompile Include="math\matrix4x4.cpp" />
+    <ClCompile Include="math\quaternion.cpp" />
+    <ClCompile Include="math\ray3.cpp" />
+    <ClCompile Include="math\vector2.cpp" />
+    <ClCompile Include="math\vector3.cpp" />
     <ClCompile Include="rasterizer.cpp" />
     <ClCompile Include="thirdpart\tinyobjloader\tiny_obj_loader.cc" />
   </ItemGroup>
@@ -99,12 +101,14 @@
     <ClInclude Include="base\canvas.h" />
     <ClInclude Include="base\color.h" />
     <ClInclude Include="base\header.h" />
-    <ClInclude Include="base\mathf.h" />
-    <ClInclude Include="base\matrix4x4.h" />
-    <ClInclude Include="base\quaternion.h" />
+    <ClInclude Include="base\mesh.h" />
+    <ClInclude Include="math\mathf.h" />
+    <ClInclude Include="math\matrix4x4.h" />
+    <ClInclude Include="math\quaternion.h" />
+    <ClInclude Include="math\vector2.h" />
     <ClInclude Include="rasterizer.h" />
-    <ClInclude Include="base\ray3.h" />
-    <ClInclude Include="base\vector3.h" />
+    <ClInclude Include="math\ray3.h" />
+    <ClInclude Include="math\vector3.h" />
     <ClInclude Include="thirdpart\glut\glut.h" />
     <ClInclude Include="thirdpart\tinyobjloader\tiny_obj_loader.h" />
   </ItemGroup>
