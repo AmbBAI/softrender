@@ -18,7 +18,7 @@ void TestColor(Canvas* canvas)
 	}
 }
 
-void Rasterizer::Line(Canvas* canvas, const Color& color, int x0, int x1, int y0, int y1)
+void Rasterizer::Line(Canvas* canvas, const Color32& color, int x0, int x1, int y0, int y1)
 {
 	bool steep = Mathf::Abs(y1 - y0) > Mathf::Abs(x1 - x0);
 	if (steep)
@@ -50,7 +50,7 @@ void Rasterizer::Line(Canvas* canvas, const Color& color, int x0, int x1, int y0
 	}
 }
 
-void Rasterizer::SmoothLine(Canvas* canvas, const Color& color, float x0, float x1, float y0, float y1)
+void Rasterizer::SmoothLine(Canvas* canvas, const Color32& color, float x0, float x1, float y0, float y1)
 {
 	float deltaX = x1 - x0;
 	float deltaY = y1 - y0;
@@ -116,16 +116,16 @@ int Rasterizer::IntPart(float v)
 	return Mathf::FloorToInt(v);
 }
 
-void Rasterizer::Plot(Canvas* canvas, int x, int y, const Color& color, float alpha, bool swapXY /*= false*/)
+void Rasterizer::Plot(Canvas* canvas, int x, int y, const Color32& color, float alpha, bool swapXY /*= false*/)
 {
 	assert(canvas != nullptr);
 
-	Color drawColor = color;
-	drawColor.a *= alpha;
+	Color32 drawColor = color;
+	drawColor.a *= Mathf::Clamp01(alpha);
 	Plot(canvas, x, y, drawColor, swapXY);
 }
 
-void Rasterizer::Plot(Canvas* canvas, int x, int y, const Color& color, bool swapXY)
+void Rasterizer::Plot(Canvas* canvas, int x, int y, const Color32& color, bool swapXY)
 {
 	assert(canvas != nullptr);
 
@@ -133,14 +133,14 @@ void Rasterizer::Plot(Canvas* canvas, int x, int y, const Color& color, bool swa
 	else Plot(canvas, x, y, color);
 }
 
-void Rasterizer::Plot(Canvas* canvas, int x, int y, const Color& color)
+void Rasterizer::Plot(Canvas* canvas, int x, int y, const Color32& color)
 {
 	assert(canvas != nullptr);
 
 	canvas->SetPixel(x, y, color);
 }
 
-void Rasterizer::DrawMeshPoint(Canvas* canvas, const Camera& camera, const Mesh& mesh, const Matrix4x4& transform, const Color& color)
+void Rasterizer::DrawMeshPoint(Canvas* canvas, const Camera& camera, const Mesh& mesh, const Matrix4x4& transform, const Color32& color)
 {
 	assert(canvas != nullptr);
 
@@ -164,6 +164,46 @@ void Rasterizer::DrawMeshPoint(Canvas* canvas, const Camera& camera, const Mesh&
 		//	posC.ToString().c_str(),
 		//	point.ToString().c_str(),
 		//	x, y);
+	}
+}
+
+void Rasterizer::DrawMeshWireFrame(Canvas* canvas, const Camera& camera, const Mesh& mesh, const Matrix4x4& transform, const Color32& color)
+{
+	assert(canvas != nullptr);
+
+	int width = canvas->GetWidth();
+	int height = canvas->GetHeight();
+
+	const Matrix4x4* view = camera.GetViewMatrix();
+	const Matrix4x4* projection = camera.GetProjectionMatrix();
+
+	std::vector<Vector2> points;
+	for (int i = 0; i < (int)mesh.vertices.size(); ++i)
+	{
+		Vector3 posW = transform.MultiplyPoint3x4(mesh.vertices[i]);
+		Vector3 posC = view->MultiplyPoint(posW);
+		Vector3 point = projection->MultiplyPoint(posC);
+		float x = (point.x + 1) * width / 2;
+		float y = (point.y + 1) * height / 2;
+		points.push_back(Vector2(x, y));
+	}
+
+	for (int i = 0; i + 2 < (int)mesh.indices.size(); i += 3)
+	{
+		int v0 = mesh.indices[i];
+		int v1 = mesh.indices[i+1];
+		int v2 = mesh.indices[i+2];
+
+		int x0 = Mathf::RoundToInt(points[v0].x);
+		int y0 = Mathf::RoundToInt(points[v0].y);
+		int x1 = Mathf::RoundToInt(points[v1].x);
+		int y1 = Mathf::RoundToInt(points[v1].y);
+		int x2 = Mathf::RoundToInt(points[v2].x);
+		int y2 = Mathf::RoundToInt(points[v2].y);
+
+		Line(canvas, color, x0, x1, y0, y1);
+		Line(canvas, color, x0, x2, y0, y2);
+		Line(canvas, color, x1, x2, y1, y2);
 	}
 }
 

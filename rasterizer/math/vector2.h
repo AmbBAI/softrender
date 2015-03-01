@@ -22,6 +22,7 @@ struct Vector2
 	const Vector2 Subtract(const Vector2& v) const;
 	const Vector2 Multiply(float f) const;
 	const Vector2 Divide(float f) const;
+	const float Dot(const Vector2& v) const;
 
 	static const Vector2 zero;
 	static const Vector2 one;

@@ -55,4 +55,9 @@ const Vector2 Vector2::Divide(float f) const
 	return Vector2(x * invf, y * invf);
 }
 
+const float Vector2::Dot(const Vector2& v) const
+{
+	return x * v.x + y * v.y;
+}
+
 }

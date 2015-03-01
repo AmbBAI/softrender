@@ -27,7 +27,7 @@ void MainLoop()
 	std::vector<Mesh> meshes;
 	//Mesh::LoadMesh(meshes, "resources/cube/cube.obj");
 	//position = Vector3(0, 0, 0);
-	//scale = Vector3(10, 10, 10);
+	//scale = Vector3(20, 20, 20);
 	Mesh::LoadMesh(meshes, "resources/teapot/teapot.obj");
 	position = Vector3(0, -50, 0);
 	scale = Vector3(1, 1, 1);
@@ -44,22 +44,21 @@ void MainLoop()
 
 		for (int i = 0; i < (int)meshes.size(); ++i)
 		{
-			Rasterizer::DrawMeshPoint(canvas, camera, meshes[i], trans, Color::green);
+			//Rasterizer::DrawMeshPoint(canvas, camera, meshes[i], trans, Color32(Color::green));
+			Rasterizer::DrawMeshWireFrame(canvas, camera, meshes[i], trans, Color32(Color::red));
 		}
 
-		//Rasterizer::Line(canvas, Color(1, 1, 1, 1), 300, 210, 10, 100);
-		//Rasterizer::Line(canvas, Color(0.6f, 0.5f, 1, 1), 400, 220, 10, 100);
-		//Rasterizer::Line(canvas, Color(0.2f, 1, 1, 1), 400, 220, 100, 100);
-		//Rasterizer::Line(canvas, Color(1, 1, 1, 1), 220, 399, -100, 400);
-		//Rasterizer::Line(canvas, Color(1, 1, 0.5f, 1), 270, 270, 150, 400);
+		//Rasterizer::Line(canvas, Color32::white, 300, 210, 10, 100);
+		//Rasterizer::Line(canvas, Color32(0x30ff00ff), 400, 220, 10, 100);
+		//Rasterizer::Line(canvas, Color32(0x60ffff00), 400, 220, 100, 100);
+		//Rasterizer::Line(canvas, Color32::white, 220, 399, -100, 400);
+		//Rasterizer::Line(canvas, Color32::white, 270, 270, 150, 400);
 
-		//Rasterizer::SmoothLine(canvas, Color(1, 1, 1, 1), 100, 10, 10, 100);
-		//Rasterizer::SmoothLine(canvas, Color(0.6f, 0.5f, 1, 1), 200, 20, 10, 100);
-		//Rasterizer::SmoothLine(canvas, Color(0.2f, 1, 1, 1), 200, 20, 100, 100);
-		//Rasterizer::SmoothLine(canvas, Color(1, 1, 1, 1), 20, 199, -100, 400);
-		//Rasterizer::SmoothLine(canvas, Color(1, 1, 0.5f, 1), 70, 70, 150, 400);
-
-
+		//Rasterizer::SmoothLine(canvas, Color32::white, 100, 10, 10, 100);
+		//Rasterizer::SmoothLine(canvas, Color32(0x30ff00ff), 200, 20, 10, 100);
+		//Rasterizer::SmoothLine(canvas, Color32(0x60ffff00), 200, 20, 100, 100);
+		//Rasterizer::SmoothLine(canvas, Color32::white, 20, 199, -100, 400);
+		//Rasterizer::SmoothLine(canvas, Color32::white, 70, 70, 150, 400);
 
 		canvas->EndDraw();
 	}

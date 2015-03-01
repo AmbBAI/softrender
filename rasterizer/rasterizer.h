@@ -15,17 +15,17 @@ void TestColor(Canvas* canvas);
 
 struct Rasterizer
 {
-	static void Line(Canvas* canvas, const Color& color, int x0, int x1, int y0, int y1);
-	static void SmoothLine(Canvas* canvas, const Color& color, float x0, float x1, float y0, float y1);
-	static void DrawMeshPoint(Canvas* canvas, const Camera& camera, const Mesh& mesh, const Matrix4x4& transform, const Color& color);
-	static void DrawMeshWireFrame(Canvas* canvas, const Camera& camera, const Mesh& mesh, const Matrix4x4& transform, const Color& color);
+	static void Line(Canvas* canvas, const Color32& color, int x0, int x1, int y0, int y1);
+	static void SmoothLine(Canvas* canvas, const Color32& color, float x0, float x1, float y0, float y1);
+	static void DrawMeshPoint(Canvas* canvas, const Camera& camera, const Mesh& mesh, const Matrix4x4& transform, const Color32& color);
+	static void DrawMeshWireFrame(Canvas* canvas, const Camera& camera, const Mesh& mesh, const Matrix4x4& transform, const Color32& color);
 
 private:
 	static float FloatPart(float v);
 	static int IntPart(float v);
-	static void Plot(Canvas* canvas, int x, int y, const Color& color);
-	static void Plot(Canvas* canvas, int x, int y, const Color& color, bool swapXY);
-	static void Plot(Canvas* canvas, int x, int y, const Color& color, float alpha, bool swapXY = false);
+	static void Plot(Canvas* canvas, int x, int y, const Color32& color);
+	static void Plot(Canvas* canvas, int x, int y, const Color32& color, bool swapXY);
+	static void Plot(Canvas* canvas, int x, int y, const Color32& color, float alpha, bool swapXY = false);
 };
 
 }
