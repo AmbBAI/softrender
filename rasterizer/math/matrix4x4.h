@@ -27,11 +27,8 @@ struct Matrix4x4
 	const Matrix4x4 operator*(const Matrix4x4& mat) const;
 
 	const Vector3 MultiplyPoint(const Vector3& p) const;
-	//const Vector3 MultiplyPoint3x4(const Vector3& p) const;
+	const Vector3 MultiplyPoint3x4(const Vector3& p) const;
 	const Vector3 MultiplyVector(const Vector3& p) const;
-
-	static const Matrix4x4 Ortho(float left, float right, float bottom, float top, float zNear, float zFar);
-	static const Matrix4x4 Perspective(float fov, float aspect, float zNear, float zFar);
 
 	static const Matrix4x4 identity;
 

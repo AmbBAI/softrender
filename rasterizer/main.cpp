@@ -19,22 +19,32 @@ int main(int argc, char *argv[])
 void MainLoop()
 {
 	Camera camera;
-	camera.SetLookAtLH(Vector3(0, -50, 100), Vector3(0, 0, 0), Vector3::up);
-	camera.SetProjectionMatrix(Matrix4x4::Perspective(90, 1, 0.3f, 100));
+	camera.SetLookAt(Vector3(0, 0, 100), Vector3(0, 0, 0), Vector3::up);
+	camera.SetPerspective(90, 1, 0.3f, 1000);
+	//camera.SetOrthographic(-100, 100, -100, 100, 0.3f, 1000);
+	Vector3 position = Vector3::zero;
+	Vector3 scale = Vector3::one;
 	std::vector<Mesh> meshes;
+	//Mesh::LoadMesh(meshes, "resources/cube/cube.obj");
+	//position = Vector3(0, 0, 0);
+	//scale = Vector3(10, 10, 10);
 	Mesh::LoadMesh(meshes, "resources/teapot/teapot.obj");
+	position = Vector3(0, -50, 0);
+	scale = Vector3(1, 1, 1);
 
 	float r = 0;
+	float s = 1;
 	while (true)
 	{
 		r += 0.1f;
+		//s *= 1.01f;
 		canvas->BeginDraw();
 
-		Matrix4x4 trans(Vector3(0, 0, 0), Quaternion(Vector3(r, r, 0)), Vector3(1, 1, 1));
+		Matrix4x4 trans(position, Quaternion(Vector3(r, r, 0)), scale);
 
 		for (int i = 0; i < (int)meshes.size(); ++i)
 		{
-			Rasterizer::DrawMeshPoint(canvas, camera, meshes[i], trans);
+			Rasterizer::DrawMeshPoint(canvas, camera, meshes[i], trans, Color::green);
 		}
 
 		//Rasterizer::Line(canvas, Color(1, 1, 1, 1), 300, 210, 10, 100);

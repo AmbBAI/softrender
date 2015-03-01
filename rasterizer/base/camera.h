@@ -10,12 +10,17 @@ namespace rasterizer
 
 struct Camera
 {
-	void SetLookAtLH(const Vector3& pos, const Vector3& at, const Vector3& up);
+	void SetLookAt(const Vector3& pos, const Vector3& at, const Vector3& up);
 	void SetViewMatrix(const Matrix4x4& _viewMatrix );
 	const Matrix4x4* GetViewMatrix() const;
 
+	bool SetPerspective(float fov, float aspect, float zNear, float zFar);
+	bool SetOrthographic(float left, float right, float bottom, float top, float zNear, float zFar);
 	void SetProjectionMatrix(const Matrix4x4& _projectionMatrix);
 	const Matrix4x4* GetProjectionMatrix() const;
+
+protected:
+	void SetView(const Vector3& pos, const Vector3& xAxis, const Vector3& yAxis, const Vector3& zAxis);
 
 protected:
 	Matrix4x4 viewMatrix;

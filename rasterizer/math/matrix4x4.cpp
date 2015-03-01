@@ -222,48 +222,6 @@ void Matrix4x4::AssignTranslation(const Vector3& translation)
 	m[15] = 1.0f;
 }
 
-const Matrix4x4 Matrix4x4::Ortho(float left, float right, float bottom, float top, float zNear, float zFar)
-{
-	float tx = -((right + left) / (right - left));
-	float ty = -((top + bottom) / (top - bottom));
-	float tz = -((zFar + zNear) / (zFar - zNear));
-
-	Matrix4x4 mat = Matrix4x4::identity;
-	mat.m[0] = 2 / (right - left);
-	mat.m[5] = 2 / (top - bottom);
-	mat.m[10] = -2 / (zFar - zNear);
-	mat.m[12] = tx;
-	mat.m[13] = ty;
-	mat.m[14] = tz;
-
-	return mat;
-}
-
-const Matrix4x4 Matrix4x4::Perspective(float fov, float aspect, float zNear, float zFar)
-{
-	float r = (fov / 2) * Mathf::deg2rad;
-	float zDelta = zFar - zNear;
-	float s = Mathf::Sin(r);
-	float cotangent = 0;
-
-	Matrix4x4 mat = Matrix4x4::identity;
-	if (zDelta == 0 || s == 0 || aspect == 0) {
-		return mat;
-	}
-
-	//cos(r) / sin(r) = cot(r)
-	cotangent = Mathf::Cos(r) / s;
-
-	mat.m[0] = cotangent / aspect;
-	mat.m[5] = cotangent;
-	mat.m[10] = -zFar / zDelta;
-	mat.m[11] = -1;
-	mat.m[14] = -zNear * zFar / zDelta;
-	mat.m[15] = 0;
-
-	return mat;
-}
-
 const Matrix4x4 Matrix4x4::Inverse() const
 {
 	Matrix4x4 mat;
@@ -413,22 +371,29 @@ const Matrix4x4 Matrix4x4::Transpose() const
 
 const Vector3 Matrix4x4::MultiplyPoint(const Vector3& p) const
 {
-	float px = p.x - m[12];
-	float py = p.y - m[13];
-	float pz = p.z - m[14];
+	float w = m[3] * p.x + m[7] * p.y + m[11] * p.z + m[15];
 
+	Vector3 ret = Vector3(
+		m[0] * p.x + m[4] * p.y + m[8] * p.z + m[12],
+		m[1] * p.x + m[5] * p.y + m[9] * p.z + m[13],
+		m[2] * p.x + m[6] * p.y + m[10] * p.z + m[14]);
+	return ret.Divide(w);
+}
+
+const Vector3 Matrix4x4::MultiplyPoint3x4(const Vector3& p) const
+{
 	return Vector3(
-		m[0] * px + m[1] * py + m[2] * pz,
-		m[4] * px + m[5] * py + m[6] * pz,
-		m[8] * px + m[9] * py + m[10] * pz);
+		m[0] * p.x + m[4] * p.y + m[8] * p.z + m[12],
+		m[1] * p.x + m[5] * p.y + m[9] * p.z + m[13],
+		m[2] * p.x + m[6] * p.y + m[10] * p.z + m[14]);
 }
 
 const Vector3 Matrix4x4::MultiplyVector(const Vector3& p) const
 {
 	return Vector3(
-		m[0] * p.x + m[1] * p.y + m[2] * p.z,
-		m[4] * p.x + m[5] * p.y + m[6] * p.z,
-		m[8] * p.x + m[9] * p.y + m[10] * p.z);
+		m[0] * p.x + m[4] * p.y + m[8] * p.z,
+		m[1] * p.x + m[5] * p.y + m[9] * p.z,
+		m[2] * p.x + m[6] * p.y + m[10] * p.z);
 }
 
 

@@ -17,8 +17,8 @@ struct Rasterizer
 {
 	static void Line(Canvas* canvas, const Color& color, int x0, int x1, int y0, int y1);
 	static void SmoothLine(Canvas* canvas, const Color& color, float x0, float x1, float y0, float y1);
-	static void DrawMeshPoint(Canvas* canvas, const Camera& camera, const Mesh& mesh, const Matrix4x4& transform);
-	static void DrawMeshWireFrame(Canvas* canvas, const Camera& camera, const Mesh& mesh, const Matrix4x4& transform);
+	static void DrawMeshPoint(Canvas* canvas, const Camera& camera, const Mesh& mesh, const Matrix4x4& transform, const Color& color);
+	static void DrawMeshWireFrame(Canvas* canvas, const Camera& camera, const Mesh& mesh, const Matrix4x4& transform, const Color& color);
 
 private:
 	static float FloatPart(float v);

@@ -140,7 +140,7 @@ void Rasterizer::Plot(Canvas* canvas, int x, int y, const Color& color)
 	canvas->SetPixel(x, y, color);
 }
 
-void Rasterizer::DrawMeshPoint(Canvas* canvas, const Camera& camera, const Mesh& mesh, const Matrix4x4& transform)
+void Rasterizer::DrawMeshPoint(Canvas* canvas, const Camera& camera, const Mesh& mesh, const Matrix4x4& transform, const Color& color)
 {
 	assert(canvas != nullptr);
 
@@ -150,20 +150,20 @@ void Rasterizer::DrawMeshPoint(Canvas* canvas, const Camera& camera, const Mesh&
 	const Matrix4x4* view = camera.GetViewMatrix();
 	const Matrix4x4* projection = camera.GetProjectionMatrix();
 
-	//Matrix4x4 mvp = transform.Multiply(*view).Multiply(*projection);
-	//Matrix4x4 mvp = projection->Multiply(view->Multiply(transform));
-	Matrix4x4 mv = transform.Multiply(*view);
-
 	for (int i = 0; i < (int)mesh.vertices.size(); ++i)
 	{
-		Vector3 point = mv.MultiplyPoint(mesh.vertices[i]);
-		point = projection->MultiplyPoint(point);
-		float x = point.x / point.z;
-		float y = point.y / point.z;
-		x = (x + 1) * width / 2;
-		y = (y + 1) * height / 2;
-		Plot(canvas, Mathf::RoundToInt(x), Mathf::RoundToInt(y), Color::red);
-		//printf("%s => (%.2f %.2f)\n", mesh.vertices[i].ToString().c_str(), x, y);
+		Vector3 posW = transform.MultiplyPoint3x4(mesh.vertices[i]);
+		Vector3 posC = view->MultiplyPoint(posW);
+		Vector3 point = projection->MultiplyPoint(posC);
+		float x = (point.x + 1) * width / 2;
+		float y = (point.y + 1) * height / 2;
+		Plot(canvas, Mathf::RoundToInt(x), Mathf::RoundToInt(y), color);
+		//printf("%s => %s => %s => %s => (%.2f %.2f)\n",
+		//	mesh.vertices[i].ToString().c_str(),
+		//	posW.ToString().c_str(),
+		//	posC.ToString().c_str(),
+		//	point.ToString().c_str(),
+		//	x, y);
 	}
 }
 
