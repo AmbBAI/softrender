@@ -18,7 +18,7 @@ void TestColor(Canvas* canvas)
 	}
 }
 
-void Rasterizer::Line(Canvas* canvas, const Color32& color, int x0, int x1, int y0, int y1)
+void Rasterizer::DrawLine(Canvas* canvas, const Color32& color, int x0, int x1, int y0, int y1)
 {
 	bool steep = Mathf::Abs(y1 - y0) > Mathf::Abs(x1 - x0);
 	if (steep)
@@ -50,7 +50,7 @@ void Rasterizer::Line(Canvas* canvas, const Color32& color, int x0, int x1, int 
 	}
 }
 
-void Rasterizer::SmoothLine(Canvas* canvas, const Color32& color, float x0, float x1, float y0, float y1)
+void Rasterizer::DrawSmoothLine(Canvas* canvas, const Color32& color, float x0, float x1, float y0, float y1)
 {
 	float deltaX = x1 - x0;
 	float deltaY = y1 - y0;
@@ -201,9 +201,95 @@ void Rasterizer::DrawMeshWireFrame(Canvas* canvas, const Camera& camera, const M
 		int x2 = Mathf::RoundToInt(points[v2].x);
 		int y2 = Mathf::RoundToInt(points[v2].y);
 
-		Line(canvas, color, x0, x1, y0, y1);
-		Line(canvas, color, x0, x2, y0, y2);
-		Line(canvas, color, x1, x2, y1, y2);
+		DrawLine(canvas, color, x0, x1, y0, y1);
+		DrawLine(canvas, color, x0, x2, y0, y2);
+		DrawLine(canvas, color, x1, x2, y1, y2);
+	}
+}
+
+void Rasterizer::DrawTriangle(Canvas* canvas, const Color32& color, const Vector2& v0, const Vector2& v1, const Vector2& v2)
+{
+	int minX = Mathf::FloorToInt(Mathf::Min(v0.x, v1.x, v2.x));
+	int minY = Mathf::FloorToInt(Mathf::Min(v0.y, v1.y, v2.y));
+	int maxX = Mathf::FloorToInt(Mathf::Max(v0.x, v1.x, v2.x));
+	int maxY = Mathf::FloorToInt(Mathf::Max(v0.y, v1.y, v2.y));
+
+	float deltaX01 = v0.x - v1.x;
+	float deltaX12 = v1.x - v2.x;
+	float deltaX20 = v2.x - v0.x;
+
+	float deltaY01 = v0.y - v1.y;
+	float deltaY12 = v1.y - v2.y;
+	float deltaY20 = v2.y - v0.y;
+
+	Vector2 topLeft(minX, minY);
+	float w0Row = Orient2D(v0, v1, topLeft);
+	float w1Row = Orient2D(v1, v2, topLeft);
+	float w2Row = Orient2D(v2, v0, topLeft);
+
+	//if (deltaY01 < 0 || (deltaY01 == 0 && deltaX01 < 0)) w0Row += 1.0f;
+	//if (deltaY12 < 0 || (deltaY12 == 0 && deltaX12 < 0)) w1Row += 1.0f;
+	//if (deltaY20 < 0 || (deltaY20 == 0 && deltaX20 < 0)) w2Row += 1.0f;
+
+	for (int y = minY; y <= maxY; ++y)
+	{
+		float w0 = w0Row;
+		float w1 = w1Row;
+		float w2 = w2Row;
+
+		for (int x = minX; x <= maxX; ++x)
+		{
+			if (w0 > 0 && w1 > 0 && w2 > 0)
+			{
+				Plot(canvas, x, y, color);
+			}
+
+			w0 += deltaY01;
+			w1 += deltaY12;
+			w2 += deltaY20;
+		}
+
+		w0Row -= deltaX01;
+		w1Row -= deltaX12;
+		w2Row -= deltaX20;
+	}
+}
+
+float Rasterizer::Orient2D(const Vector2& v1, const Vector2& v2, const Vector2& p)
+{
+	return (v2.x - v1.x) * (p.y - v1.y) - (v2.y - v1.y) * (p.x - v1.x);
+}
+
+void Rasterizer::DrawMeshColor(Canvas* canvas, const Camera& camera, const Mesh& mesh, const Matrix4x4& transform, const Color32& color)
+{
+	assert(canvas != nullptr);
+
+	int width = canvas->GetWidth();
+	int height = canvas->GetHeight();
+
+	const Matrix4x4* view = camera.GetViewMatrix();
+	const Matrix4x4* projection = camera.GetProjectionMatrix();
+
+	std::vector<Vector2> points;
+	for (int i = 0; i < (int)mesh.vertices.size(); ++i)
+	{
+		Vector3 posW = transform.MultiplyPoint3x4(mesh.vertices[i]);
+		Vector3 posC = view->MultiplyPoint(posW);
+		Vector3 point = projection->MultiplyPoint(posC);
+		float x = (point.x + 1) * width / 2;
+		float y = (point.y + 1) * height / 2;
+		points.push_back(Vector2(x, y));
+	}
+
+	for (int i = 0; i + 2 < (int)mesh.indices.size(); i += 3)
+	{
+		int v0 = mesh.indices[i];
+		int v1 = mesh.indices[i + 1];
+		int v2 = mesh.indices[i + 2];
+
+		//Color32 drawColor = ((i / 3) & 1) == 0 ? Color32(0x2088ffff) : Color32(0x20ff88ff);
+		//DrawTriangle(canvas, drawColor, points[v0], points[v1], points[v2]);
+		DrawTriangle(canvas, color, points[v0], points[v1], points[v2]);
 	}
 }
 

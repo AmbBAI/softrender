@@ -72,6 +72,10 @@ float Mathf::Min(float a, float b)
 {
 	return ::fmin(a, b);
 }
+float Mathf::Min(float a, float b, float c)
+{
+	return Mathf::Min(a, Mathf::Min(b, c));
+}
 float Mathf::Min(const float* values, int count) 
 {
 	if (values == nullptr) return 0.f;
@@ -83,9 +87,15 @@ float Mathf::Min(const std::vector<float>& values)
 {
 	return *std::min_element(values.begin(), values.end());
 }
+
+
 float Mathf::Max(float a, float b)
 {
 	return ::fmax(a, b);
+}
+float Mathf::Max(float a, float b, float c)
+{
+	return Mathf::Max(a, Mathf::Max(b, c));
 }
 float Mathf::Max(const float* values, int count)
 {

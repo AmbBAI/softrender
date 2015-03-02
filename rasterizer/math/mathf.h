@@ -32,9 +32,11 @@ public:
 	static float Clamp01(float value);
 
 	static float Min(float a, float b);
+	static float Min(float a, float b, float c);
 	static float Min(const float* values, int count);
 	static float Min(const std::vector<float>& values);
 	static float Max(float a, float b);
+	static float Max(float a, float b, float c);
 	static float Max(const float* values, int count);
 	static float Max(const std::vector<float>& values);
 
