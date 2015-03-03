@@ -25,13 +25,21 @@ struct Rasterizer
 		Point2D(int _x, int _y, float _depth) : x(_x), y(_y), depth(_depth) {}
 	};
 
+	struct Vertex
+	{
+		Vector3 normal = Vector3::up;
+		Point2D point = Point2D(0, 0);
+	};
+
 	static void DrawLine(Canvas* canvas, const Color32& color, int x0, int x1, int y0, int y1);
 	static void DrawSmoothLine(Canvas* canvas, const Color32& color, float x0, float x1, float y0, float y1);
 	static void DrawMeshPoint(Canvas* canvas, const Camera& camera, const Mesh& mesh, const Matrix4x4& transform, const Color32& color);
 	static void DrawMeshWireFrame(Canvas* canvas, const Camera& camera, const Mesh& mesh, const Matrix4x4& transform, const Color32& color);
-	static void DrawTriangle(Canvas* canvas, const Color32& color, const Vector2& v0, const Vector2& v1, const Vector2& v2);
+	//static void DrawTriangle(Canvas* canvas, const Color32& color, const Vector2& v0, const Vector2& v1, const Vector2& v2);
 	static void DrawTriangle(Canvas* canvas, const Color32& color, const Point2D& v0, const Point2D& v1, const Point2D& v2);
 	static void DrawMeshColor(Canvas* canvas, const Camera& camera, const Mesh& mesh, const Matrix4x4& transform, const Color32& color);
+	static void DrawTriangle(Canvas* canvas, const Color32& color, const Vertex& v0, const Vertex& v1, const Vertex& v2);
+	static void DrawMesh(Canvas* canvas, const Camera& camera, const Mesh& mesh, const Matrix4x4& transform, const Color32& color);
 
 private:
 	static float FloatPart(float v);

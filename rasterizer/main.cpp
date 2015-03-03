@@ -51,7 +51,7 @@ void MainLoop()
 		for (int i = 0; i < (int)meshes.size(); ++i)
 		{
 			//Rasterizer::DrawMeshPoint(canvas, camera, meshes[i], trans, Color32(Color::green));
-			Rasterizer::DrawMeshColor(canvas, camera, meshes[i], trans, Color32(0x20ff88ff));
+			Rasterizer::DrawMesh(canvas, camera, meshes[i], trans, Color32(0x20ff88ff));
 			//Rasterizer::DrawMeshWireFrame(canvas, camera, meshes[i], trans, Color32(0x209999ff));
 		}
 
