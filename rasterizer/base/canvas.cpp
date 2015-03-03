@@ -63,20 +63,6 @@ void Canvas::Clear()
 	depths.assign(width * height, 1.0f);
 }
 
-void Canvas::DrawDepthBuff()
-{
-	std::vector<u32> depthDeg;
-	for (int i = 0; i < depths.size(); ++i)
-	{
-		u32 val = (1 - depths[i]) * 100 * 255;
-		depthDeg.push_back(Color32(val, val, val, val).rgba);
-	}
-
-	glClear(GL_COLOR_BUFFER_BIT);
-	glDrawPixels(width, height, GL_RGBA, GL_UNSIGNED_BYTE, &depthDeg[0]);
-	glFlush();
-}
-
 void Canvas::Present()
 {
 	glClear(GL_COLOR_BUFFER_BIT);

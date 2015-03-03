@@ -23,7 +23,6 @@ public:
 	int GetHeight();
 
 	void Clear();
-	void DrawDepthBuff();
 	void Present();
 
 private:

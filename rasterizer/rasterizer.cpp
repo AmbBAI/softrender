@@ -284,7 +284,12 @@ void Rasterizer::DrawTriangle(Canvas* canvas, const Color32& color, const Point2
 			{
 				float depth = v0.depth * w1 + v1.depth * w2 + v2.depth * w0;
 				depth /= (w0 + w1 + w2);
+				//float depth = v0.depth;
 				canvas->SetPixel(x, y, depth, color);
+				//int depthColorVal = (1 - depth) * 80 * 255;
+				//Color32 depthColor = Color32(depthColorVal, depthColorVal, depthColorVal, depthColorVal);
+				//canvas->SetPixel(x, y, depth, depthColor);
+				
 			}
 
 			w0 += deltaY01;
