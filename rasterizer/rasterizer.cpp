@@ -324,6 +324,7 @@ void Rasterizer::DrawMeshColor(Canvas* canvas, const Camera& camera, const Mesh&
 	const Matrix4x4* projection = camera.GetProjectionMatrix();
 
 	std::vector<Point2D> points;
+	std::vector<Vector3> normals;
 	for (int i = 0; i < (int)mesh.vertices.size(); ++i)
 	{
 		Vector3 posW = transform.MultiplyPoint3x4(mesh.vertices[i]);
@@ -332,6 +333,9 @@ void Rasterizer::DrawMeshColor(Canvas* canvas, const Camera& camera, const Mesh&
 		int x = Mathf::RoundToInt((point.x + 1) * width / 2);
 		int y = Mathf::RoundToInt((point.y + 1) * height / 2);
 		points.push_back(Point2D(x, y, point.z));
+
+		Vector3 normal = transform.MultiplyVector(mesh.normals[i]);
+		normals.push_back(normal);
 	}
 
 	for (int i = 0; i + 2 < (int)mesh.indices.size(); i += 3)
@@ -340,7 +344,12 @@ void Rasterizer::DrawMeshColor(Canvas* canvas, const Camera& camera, const Mesh&
 		int v1 = mesh.indices[i + 1];
 		int v2 = mesh.indices[i + 2];
 
-		Color32 drawColor = ((i / 3) & 1) == 0 ? Color32(0x2088ffff) : Color32(0x20ff88ff);
+		//Color32 drawColor = ((i / 3) & 1) == 0 ? Color32(0x2088ffff) : Color32(0x20ff88ff);
+		Color32 drawColor = Color32::white;
+		//Vector3 normal = normals[v0].Add(normals[v1]).Add(normals[v2]).Normalize();
+		//drawColor.r = (normal.x + 1.f) / 2 * 255;
+		//drawColor.g = (normal.y + 1.f) / 2 * 255;
+		//drawColor.b = (normal.z + 1.f) / 2 * 255;
 		DrawTriangle(canvas, drawColor, points[v0], points[v1], points[v2]);
 		//DrawTriangle(canvas, color, points[v0], points[v1], points[v2]);
 	}

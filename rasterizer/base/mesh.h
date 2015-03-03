@@ -14,6 +14,8 @@ struct Mesh
 	
 	static bool LoadMesh(std::vector<Mesh>& meshes, const char* file);
 
+	void BuildNormal();
+
 	std::vector<Vector3> vertices;
 	std::vector<u32> indices;
 	std::vector<Vector3> normals;

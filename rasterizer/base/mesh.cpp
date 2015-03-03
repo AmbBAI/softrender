@@ -40,4 +40,36 @@ bool Mesh::LoadMesh(std::vector<Mesh>& meshes, const char* file)
 	return true;
 }
 
+void Mesh::BuildNormal()
+{
+	normals.assign(vertices.size(), Vector3::zero);
+	//std::vector < u32 > faceCount(vertices.size(), 0);
+	for (int i = 0; i + 2 < (int)indices.size(); i += 3)
+	{
+		int v0 = indices[i];
+		int v1 = indices[i + 1];
+		int v2 = indices[i + 2];
+
+		Vector3 edge1 = vertices[v1].Subtract(vertices[v0]);
+		Vector3 edge2 = vertices[v2].Subtract(vertices[v0]);
+
+		Vector3 normal = edge1.Cross(edge2);
+		normals[v0] = normals[v0].Add(normal);
+		normals[v1] = normals[v1].Add(normal);
+		normals[v2] = normals[v2].Add(normal);
+
+		//faceCount[v0] += 1;
+		//faceCount[v1] += 1;
+		//faceCount[v2] += 1;
+	}
+
+	for (int i = 0; i < (int)normals.size(); ++i)
+	{
+		//if (faceCount[i] > 0)
+		//{
+			normals[i] = normals[i].Normalize();
+		//}
+	}
+}
+
 }

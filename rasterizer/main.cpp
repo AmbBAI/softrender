@@ -32,6 +32,11 @@ void MainLoop()
 	position = Vector3(0, -50, 0);
 	scale = Vector3(1, 1, 1);
 
+	for (int i = 0; i < (int)meshes.size(); ++i)
+	{
+		meshes[i].BuildNormal();
+	}
+
 	float r = 0;
 	float s = 1;
 	while (true)
