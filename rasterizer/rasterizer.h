@@ -31,6 +31,8 @@ struct Rasterizer
 		Point2D point = Point2D(0, 0);
 	};
 
+	static Vector3 lightDir;
+
 	static void DrawLine(Canvas* canvas, const Color32& color, int x0, int x1, int y0, int y1);
 	static void DrawSmoothLine(Canvas* canvas, const Color32& color, float x0, float x1, float y0, float y1);
 	static void DrawMeshPoint(Canvas* canvas, const Camera& camera, const Mesh& mesh, const Matrix4x4& transform, const Color32& color);

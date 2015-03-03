@@ -3,6 +3,8 @@
 namespace rasterizer
 {
 
+rasterizer::Vector3 Rasterizer::lightDir = Vector3(-1.f, -1.f, -1.f).Normalize();
+
 void TestColor(Canvas* canvas)
 {
 	int w = canvas->GetWidth();
@@ -393,8 +395,11 @@ void Rasterizer::DrawTriangle(Canvas* canvas, const Color32& color, const Vertex
 				float depth = v0.point.depth * w1 + v1.point.depth * w2 + v2.point.depth * w0;
 				depth /= (w0 + w1 + w2);
 				Vector3 normal = v0.normal.Multiply(w1).Add(v1.normal.Multiply(w2)).Add(v2.normal.Multiply(w0)).Normalize();
-				Color32 normalColor(255, (normal.x + 1) / 2 * 255, (normal.y + 1) / 2 * 255, (normal.z + 1) / 2 * 255);
-				canvas->SetPixel(x, y, depth, normalColor);
+				//Color32 normalColor(255, (normal.x + 1) / 2 * 255, (normal.y + 1) / 2 * 255, (normal.z + 1) / 2 * 255);
+				//canvas->SetPixel(x, y, depth, normalColor);
+				float lightVal = Mathf::Max(0, normal.Dot(lightDir.Negate()));
+				Color32 drawColor = Color32(255, color.r * lightVal, color.g * lightVal, color.b * lightVal);
+				canvas->SetPixel(x, y, depth, drawColor);
 				//canvas->SetPixel(x, y, depth, color);
 				//int depthColorVal = (1 - depth) * 80 * 255;
 				//Color32 depthColor = Color32(depthColorVal, depthColorVal, depthColorVal, depthColorVal);
