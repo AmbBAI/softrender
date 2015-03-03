@@ -16,18 +16,22 @@ public:
 
 public:
 	bool SetPixel(int x, int y, const Color32& color);
+	bool SetPixel(int x, int y, float depth, const Color32& color);
+
 	bool SetPixel(int x, int y, const Color& color);
 	int GetWidth();
 	int GetHeight();
 
-	void BeginDraw();
-	void EndDraw();
+	void Clear();
+	void DrawDepthBuff();
+	void Present();
 
 private:
 	int width;
 	int height;
 
 	std::vector<u32> pixels;
+	std::vector<float> depths;
 };
 
 }

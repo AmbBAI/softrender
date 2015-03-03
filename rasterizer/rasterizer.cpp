@@ -177,15 +177,15 @@ void Rasterizer::DrawMeshWireFrame(Canvas* canvas, const Camera& camera, const M
 	const Matrix4x4* view = camera.GetViewMatrix();
 	const Matrix4x4* projection = camera.GetProjectionMatrix();
 
-	std::vector<Vector2> points;
+	std::vector<Point2D> points;
 	for (int i = 0; i < (int)mesh.vertices.size(); ++i)
 	{
 		Vector3 posW = transform.MultiplyPoint3x4(mesh.vertices[i]);
 		Vector3 posC = view->MultiplyPoint(posW);
 		Vector3 point = projection->MultiplyPoint(posC);
-		float x = (point.x + 1) * width / 2;
-		float y = (point.y + 1) * height / 2;
-		points.push_back(Vector2(x, y));
+		int x = Mathf::RoundToInt((point.x + 1) * width / 2);
+		int y = Mathf::RoundToInt((point.y + 1) * height / 2);
+		points.push_back(Point2D(x, y));
 	}
 
 	for (int i = 0; i + 2 < (int)mesh.indices.size(); i += 3)
@@ -194,16 +194,9 @@ void Rasterizer::DrawMeshWireFrame(Canvas* canvas, const Camera& camera, const M
 		int v1 = mesh.indices[i+1];
 		int v2 = mesh.indices[i+2];
 
-		int x0 = Mathf::RoundToInt(points[v0].x);
-		int y0 = Mathf::RoundToInt(points[v0].y);
-		int x1 = Mathf::RoundToInt(points[v1].x);
-		int y1 = Mathf::RoundToInt(points[v1].y);
-		int x2 = Mathf::RoundToInt(points[v2].x);
-		int y2 = Mathf::RoundToInt(points[v2].y);
-
-		DrawLine(canvas, color, x0, x1, y0, y1);
-		DrawLine(canvas, color, x0, x2, y0, y2);
-		DrawLine(canvas, color, x1, x2, y1, y2);
+		DrawLine(canvas, color, points[v0].x, points[v1].x, points[v0].y, points[v1].y);
+		DrawLine(canvas, color, points[v1].x, points[v2].x, points[v1].y, points[v2].y);
+		DrawLine(canvas, color, points[v2].x, points[v0].x, points[v2].y, points[v0].y);
 	}
 }
 
@@ -255,7 +248,62 @@ void Rasterizer::DrawTriangle(Canvas* canvas, const Color32& color, const Vector
 	}
 }
 
+void Rasterizer::DrawTriangle(Canvas* canvas, const Color32& color, const Point2D& v0, const Point2D& v1, const Point2D& v2)
+{
+	int minX = Mathf::Min(v0.x, v1.x, v2.x);
+	int minY = Mathf::Min(v0.y, v1.y, v2.y);
+	int maxX = Mathf::Max(v0.x, v1.x, v2.x);
+	int maxY = Mathf::Max(v0.y, v1.y, v2.y);
+
+	int deltaX01 = v0.x - v1.x;
+	int deltaX12 = v1.x - v2.x;
+	int deltaX20 = v2.x - v0.x;
+
+	int deltaY01 = v0.y - v1.y;
+	int deltaY12 = v1.y - v2.y;
+	int deltaY20 = v2.y - v0.y;
+
+	Point2D topLeft(minX, minY);
+	int w0Row = Orient2D(v0, v1, topLeft);
+	int w1Row = Orient2D(v1, v2, topLeft);
+	int w2Row = Orient2D(v2, v0, topLeft);
+
+	if (deltaY01 < 0 || (deltaY01 == 0 && deltaX01 < 0)) w0Row += 1.0f;
+	if (deltaY12 < 0 || (deltaY12 == 0 && deltaX12 < 0)) w1Row += 1.0f;
+	if (deltaY20 < 0 || (deltaY20 == 0 && deltaX20 < 0)) w2Row += 1.0f;
+
+	for (int y = minY; y <= maxY; ++y)
+	{
+		int w0 = w0Row;
+		int w1 = w1Row;
+		int w2 = w2Row;
+
+		for (int x = minX; x <= maxX; ++x)
+		{
+			if (w0 > 0 && w1 > 0 && w2 > 0)
+			{
+				float depth = v0.depth * w1 + v1.depth * w2 + v2.depth * w0;
+				depth /= (w0 + w1 + w2);
+				canvas->SetPixel(x, y, depth, color);
+			}
+
+			w0 += deltaY01;
+			w1 += deltaY12;
+			w2 += deltaY20;
+		}
+
+		w0Row -= deltaX01;
+		w1Row -= deltaX12;
+		w2Row -= deltaX20;
+	}
+}
+
 float Rasterizer::Orient2D(const Vector2& v1, const Vector2& v2, const Vector2& p)
+{
+	return (v2.x - v1.x) * (p.y - v1.y) - (v2.y - v1.y) * (p.x - v1.x);
+}
+
+float Rasterizer::Orient2D(const Point2D& v1, const Point2D& v2, const Point2D& p)
 {
 	return (v2.x - v1.x) * (p.y - v1.y) - (v2.y - v1.y) * (p.x - v1.x);
 }
@@ -270,15 +318,15 @@ void Rasterizer::DrawMeshColor(Canvas* canvas, const Camera& camera, const Mesh&
 	const Matrix4x4* view = camera.GetViewMatrix();
 	const Matrix4x4* projection = camera.GetProjectionMatrix();
 
-	std::vector<Vector2> points;
+	std::vector<Point2D> points;
 	for (int i = 0; i < (int)mesh.vertices.size(); ++i)
 	{
 		Vector3 posW = transform.MultiplyPoint3x4(mesh.vertices[i]);
 		Vector3 posC = view->MultiplyPoint(posW);
 		Vector3 point = projection->MultiplyPoint(posC);
-		float x = (point.x + 1) * width / 2;
-		float y = (point.y + 1) * height / 2;
-		points.push_back(Vector2(x, y));
+		int x = Mathf::RoundToInt((point.x + 1) * width / 2);
+		int y = Mathf::RoundToInt((point.y + 1) * height / 2);
+		points.push_back(Point2D(x, y, point.z));
 	}
 
 	for (int i = 0; i + 2 < (int)mesh.indices.size(); i += 3)
@@ -287,9 +335,9 @@ void Rasterizer::DrawMeshColor(Canvas* canvas, const Camera& camera, const Mesh&
 		int v1 = mesh.indices[i + 1];
 		int v2 = mesh.indices[i + 2];
 
-		//Color32 drawColor = ((i / 3) & 1) == 0 ? Color32(0x2088ffff) : Color32(0x20ff88ff);
-		//DrawTriangle(canvas, drawColor, points[v0], points[v1], points[v2]);
-		DrawTriangle(canvas, color, points[v0], points[v1], points[v2]);
+		Color32 drawColor = ((i / 3) & 1) == 0 ? Color32(0x2088ffff) : Color32(0x20ff88ff);
+		DrawTriangle(canvas, drawColor, points[v0], points[v1], points[v2]);
+		//DrawTriangle(canvas, color, points[v0], points[v1], points[v2]);
 	}
 }
 

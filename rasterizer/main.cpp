@@ -20,7 +20,7 @@ void MainLoop()
 {
 	Camera camera;
 	camera.SetLookAt(Vector3(0, 0, 100), Vector3(0, 0, 0), Vector3::up);
-	camera.SetPerspective(90, 1, 0.3f, 1000);
+	camera.SetPerspective(90, 1, 0.3f, 100);
 	//camera.SetOrthographic(-100, 100, -100, 100, 0.3f, 1000);
 	Vector3 position = Vector3::zero;
 	Vector3 scale = Vector3::one;
@@ -38,7 +38,8 @@ void MainLoop()
 	{
 		r += 0.1f;
 		//s *= 1.01f;
-		canvas->BeginDraw();
+		clock_t startTime = clock();
+		canvas->Clear();
 
 		Matrix4x4 trans(position, Quaternion(Vector3(r, r, 0)), scale);
 
@@ -46,7 +47,7 @@ void MainLoop()
 		{
 			//Rasterizer::DrawMeshPoint(canvas, camera, meshes[i], trans, Color32(Color::green));
 			Rasterizer::DrawMeshColor(canvas, camera, meshes[i], trans, Color32(0x20ff88ff));
-			//Rasterizer::DrawMeshWireFrame(canvas, camera, meshes[i], trans, Color32(0x20ff88ff));
+			//Rasterizer::DrawMeshWireFrame(canvas, camera, meshes[i], trans, Color32(0x209999ff));
 		}
 
 		//Rasterizer::DrawLine(canvas, Color32::white, 300, 210, 10, 100);
@@ -64,7 +65,9 @@ void MainLoop()
 		//Rasterizer::DrawTriangle(canvas, Color32(0xffff88ff), Vector2(0, 0), Vector2(100, 0), Vector2(0, 100));
 		//Rasterizer::DrawTriangle(canvas, Color32(0xffffff88), Vector2(100, 0), Vector2(100, 100), Vector2(0, 100));
 
-		canvas->EndDraw();
+		canvas->Present();
+		clock_t endTime = clock();
+		printf("%ld\n", endTime - startTime);
 	}
 
 }
