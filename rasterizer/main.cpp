@@ -32,6 +32,9 @@ void MainLoop()
 	position = Vector3(0, -50, 0);
 	scale = Vector3(1, 1, 1);
 
+	Texture texture;
+	Texture::LoadTexture(texture, "resources/teapot/default.png");
+
 	for (int i = 0; i < (int)meshes.size(); ++i)
 	{
 		meshes[i].BuildNormal();
@@ -45,6 +48,18 @@ void MainLoop()
 		//s *= 1.01f;
 		clock_t startTime = clock();
 		canvas->Clear();
+
+		int width = texture.GetWidth();
+		int height = texture.GetHeight();
+		for (int y = 0; y < height; ++y)
+		{
+			for (int x = 0; x < width; ++x)
+			{
+				Color32 color = texture.GetColor(x, y);
+				canvas->SetPixel(x, y, color);
+			}
+		}
+
 
 		Matrix4x4 trans(position, Quaternion(Vector3(r, r, 0)), scale);
 

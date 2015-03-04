@@ -56,7 +56,7 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>opengl32.lib;glu32.lib;./thirdpart/glut/glut32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;glu32.lib;./thirdpart/glut/glut32.lib;./thirdpart/freeimage/freeimage.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -75,7 +75,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>opengl32.lib;glu32.lib;./thirdpart/glut/glut32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;glu32.lib;./thirdpart/glut/glut32.lib;./thirdpart/freeimage/freeimage.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/SAFESEH:NO %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
@@ -85,6 +85,7 @@
     <ClCompile Include="base\canvas.cpp" />
     <ClCompile Include="base\color.cpp" />
     <ClCompile Include="base\mesh.cpp" />
+    <ClCompile Include="base\texture.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="math\mathf.cpp" />
     <ClCompile Include="math\matrix4x4.cpp" />
@@ -102,6 +103,7 @@
     <ClInclude Include="base\color.h" />
     <ClInclude Include="base\header.h" />
     <ClInclude Include="base\mesh.h" />
+    <ClInclude Include="base\texture.h" />
     <ClInclude Include="math\mathf.h" />
     <ClInclude Include="math\matrix4x4.h" />
     <ClInclude Include="math\quaternion.h" />
@@ -109,6 +111,7 @@
     <ClInclude Include="rasterizer.h" />
     <ClInclude Include="math\ray3.h" />
     <ClInclude Include="math\vector3.h" />
+    <ClInclude Include="thirdpart\freeimage\FreeImage.h" />
     <ClInclude Include="thirdpart\glut\glut.h" />
     <ClInclude Include="thirdpart\tinyobjloader\tiny_obj_loader.h" />
   </ItemGroup>

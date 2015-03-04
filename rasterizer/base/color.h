@@ -10,6 +10,7 @@ struct Color32;
 struct Color
 {
 	float a, r, g, b;
+	Color() = default;
 	Color(float _a, float _r, float _g, float _b);
 	Color(const Color& _color);
 	Color(const Color32& _color32);
@@ -36,6 +37,7 @@ struct Color32
 		};
 	};
 
+	Color32() = default;
 	Color32(u32 _argb);
 	Color32(u32 _a, u32 _r, u32 _g, u32 _b);
 	Color32(const Color32& _color32);

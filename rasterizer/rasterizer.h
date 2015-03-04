@@ -6,6 +6,7 @@
 #include "base/canvas.h"
 #include "base/camera.h"
 #include "base/mesh.h"
+#include "base/texture.h"
 #include "math/mathf.h"
 
 namespace rasterizer
