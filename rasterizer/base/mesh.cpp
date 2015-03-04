@@ -24,6 +24,7 @@ bool Mesh::LoadMesh(std::vector<Mesh>& meshes, const char* file)
 		std::vector<float>& positions = subMesh.positions;
 		std::vector<float>& normals = subMesh.normals;
 		std::vector<u32>& indices = subMesh.indices;
+		std::vector<float>& texcoords = subMesh.texcoords;
 
 		Mesh mesh;
 		for (int i = 0; i + 2 < (int)positions.size(); i += 3)
@@ -34,6 +35,10 @@ bool Mesh::LoadMesh(std::vector<Mesh>& meshes, const char* file)
 		for (int i = 0; i + 2 < (int)normals.size(); i += 3)
 		{
 			mesh.normals.push_back(Vector3(normals[i], normals[i + 1], normals[i + 2]));
+		}
+		for (int i = 0; i + 1 < (int)texcoords.size(); i += 2)
+		{
+			mesh.texcoords.push_back(Vector2(texcoords[i], texcoords[i + 1]));
 		}
 		meshes.push_back(mesh);
 	}

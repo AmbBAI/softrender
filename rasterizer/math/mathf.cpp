@@ -68,6 +68,24 @@ float Mathf::Clamp01(float value)
 	return Mathf::Clamp(value, 0.f, 1.f);
 }
 
+float Mathf::Repeat(float t, float length)
+{
+	assert(length != 0.f);
+
+	float ret = ::fmod(t, length);
+	if (ret * length < 0.f) ret += length;
+	return ret;
+}
+
+float Mathf::PingPong(float t, float length)
+{
+	assert(length != 0.f);
+
+	float ret = Repeat(t, length);
+	if (Mathf::FloorToInt(t / length) & 1) return ret;
+	else return length - ret;
+}
+
 float Mathf::Min(float a, float b)
 {
 	return ::fmin(a, b);
@@ -78,8 +96,8 @@ float Mathf::Min(float a, float b, float c)
 }
 float Mathf::Min(const float* values, int count) 
 {
-	if (values == nullptr) return 0.f;
-	if (count <= 0) return 0.f;
+	assert(values != nullptr);
+	assert(count > 0);
 
 	return *std::min_element(values, values + count);
 }
@@ -99,8 +117,8 @@ float Mathf::Max(float a, float b, float c)
 }
 float Mathf::Max(const float* values, int count)
 {
-	if (values == nullptr) return 0.f;
-	if (count <= 0) return 0.f;
+	assert(values != nullptr);
+	assert(count > 0);
 
 	return *std::max_element(values, values + count);
 }

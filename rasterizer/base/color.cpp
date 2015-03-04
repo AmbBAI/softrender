@@ -84,11 +84,21 @@ rasterizer::Color32 Color32::Lerp(const Color32& a, const Color32& b, float t)
 {
 	t = Mathf::Clamp01(t);
 	return Color32(
-		255,
+		a.a * (1 - t) + b.a * t,
 		a.r * (1 - t) + b.r * t,
 		a.g * (1 - t) + b.g * t,
 		a.b * (1 - t) + b.b * t
 		);
+}
+
+const Color32 Color32::Multiply(float s) const
+{
+	return Color32(a * s, r * s, g * s, b * s);
+}
+
+const Color32 Color32::Modulate(const Color32& c) const
+{
+	return Color32(a * c.a / 255, r * c.r / 255, g * c.g / 255, b * c.b / 255);
 }
 
 }

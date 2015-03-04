@@ -27,9 +27,12 @@ public:
 	static float Round(float f);
 	static int RoundToInt(float f);
 
+
 	static int Clamp(int value, int min, int max);
 	static float Clamp(float value, float min, float max);
 	static float Clamp01(float value);
+	static float Repeat(float t, float length);
+	static float PingPong(float t, float length);
 
 	static float Min(float a, float b);
 	static float Min(float a, float b, float c);

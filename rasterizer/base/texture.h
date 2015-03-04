@@ -15,7 +15,7 @@ struct Texture
 	static bool LoadTexture(Texture& texture, const char* file);
 	static void UnloadTexture(Texture& texture);
 
-	enum WarpMode
+	enum AddressMode
 	{
 		Warp,
 		Clamp,
@@ -25,7 +25,7 @@ struct Texture
 	int GetWidth();
 	int GetHeight();
 	const Color32 GetColor(int x, int y) const;
-	const Color32 Sample(float u, float v, WarpMode mode) const;
+	const Color32 Sample(float u, float v, AddressMode mode) const;
 
 protected:
 	int width = 0;

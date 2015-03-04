@@ -29,29 +29,33 @@ struct Rasterizer
 	struct Vertex
 	{
 		Vector3 normal = Vector3::up;
+		Vector2 texcoord = Vector2::zero;
 		Point2D point = Point2D(0, 0);
 	};
 
 	static Vector3 lightDir;
+	static Canvas* canvas;
+	static Camera* camera;
+	static Texture* texture;
 
-	static void DrawLine(Canvas* canvas, const Color32& color, int x0, int x1, int y0, int y1);
-	static void DrawSmoothLine(Canvas* canvas, const Color32& color, float x0, float x1, float y0, float y1);
-	static void DrawMeshPoint(Canvas* canvas, const Camera& camera, const Mesh& mesh, const Matrix4x4& transform, const Color32& color);
-	static void DrawMeshWireFrame(Canvas* canvas, const Camera& camera, const Mesh& mesh, const Matrix4x4& transform, const Color32& color);
-	//static void DrawTriangle(Canvas* canvas, const Color32& color, const Vector2& v0, const Vector2& v1, const Vector2& v2);
-	static void DrawTriangle(Canvas* canvas, const Color32& color, const Point2D& v0, const Point2D& v1, const Point2D& v2);
-	static void DrawMeshColor(Canvas* canvas, const Camera& camera, const Mesh& mesh, const Matrix4x4& transform, const Color32& color);
-	static void DrawTriangle(Canvas* canvas, const Color32& color, const Vertex& v0, const Vertex& v1, const Vertex& v2);
-	static void DrawMesh(Canvas* canvas, const Camera& camera, const Mesh& mesh, const Matrix4x4& transform, const Color32& color);
+	static void DrawLine(int x0, int x1, int y0, int y1, const Color32& color);
+	static void DrawSmoothLine(float x0, float x1, float y0, float y1, const Color32& color);
+	static void DrawMeshPoint(const Mesh& mesh, const Matrix4x4& transform, const Color32& color);
+	static void DrawMeshWireFrame(const Mesh& mesh, const Matrix4x4& transform, const Color32& color);
+	//static void DrawTriangle(const Vector2& v0, const Vector2& v1, const Vector2& v2, const Color32& color);
+	static void DrawTriangle(const Point2D& v0, const Point2D& v1, const Point2D& v2, const Color32& color);
+	static void DrawMeshColor(const Mesh& mesh, const Matrix4x4& transform, const Color32& color);
+	static void DrawTriangle(const Vertex& v0, const Vertex& v1, const Vertex& v2, const Color32& color);
+	static void DrawMesh(const Mesh& mesh, const Matrix4x4& transform, const Color32& color);
 
 private:
 	static float FloatPart(float v);
 	static int IntPart(float v);
 	static float Orient2D(const Vector2& v1, const Vector2& v2, const Vector2& p);
 	static float Orient2D(const Point2D& v1, const Point2D& v2, const Point2D& p);
-	static void Plot(Canvas* canvas, int x, int y, const Color32& color);
-	static void Plot(Canvas* canvas, int x, int y, const Color32& color, bool swapXY);
-	static void Plot(Canvas* canvas, int x, int y, const Color32& color, float alpha, bool swapXY = false);
+	static void Plot(int x, int y, const Color32& color);
+	static void Plot(int x, int y, const Color32& color, bool swapXY);
+	static void Plot(int x, int y, const Color32& color, float alpha, bool swapXY = false);
 };
 
 }

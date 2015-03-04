@@ -43,6 +43,8 @@ struct Color32
 	Color32(const Color32& _color32);
 	Color32(const Color& _color);
 
+	const Color32 Multiply(float s) const;
+	const Color32 Modulate(const Color32& c) const;
 	static Color32 Lerp(const Color32& a, const Color32& b, float t);
 
 	static const Color32 white;

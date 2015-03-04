@@ -31,14 +31,21 @@ void MainLoop()
 	Mesh::LoadMesh(meshes, "resources/teapot/teapot.obj");
 	position = Vector3(0, -50, 0);
 	scale = Vector3(1, 1, 1);
+	//Mesh::LoadMesh(meshes, "resources/head/head.obj");
+	//position = Vector3(0, 0, 0);
+	//scale = Vector3(400, 400, 400);
 
 	Texture texture;
 	Texture::LoadTexture(texture, "resources/teapot/default.png");
 
 	for (int i = 0; i < (int)meshes.size(); ++i)
 	{
-		meshes[i].BuildNormal();
+		if (meshes[i].normals.size() <= 0) meshes[i].BuildNormal();
 	}
+
+	Rasterizer::canvas = canvas;
+	Rasterizer::camera = &camera;
+	Rasterizer::texture = &texture;
 
 	float r = 0;
 	float s = 1;
@@ -49,41 +56,54 @@ void MainLoop()
 		clock_t startTime = clock();
 		canvas->Clear();
 
-		int width = texture.GetWidth();
-		int height = texture.GetHeight();
-		for (int y = 0; y < height; ++y)
-		{
-			for (int x = 0; x < width; ++x)
-			{
-				Color32 color = texture.GetColor(x, y);
-				canvas->SetPixel(x, y, color);
-			}
-		}
+		//int width = texture.GetWidth();
+		//int height = texture.GetHeight();
+		//for (int y = 0; y < height; ++y)
+		//{
+		//	for (int x = 0; x < width; ++x)
+		//	{
+		//		Color32 color = texture.GetColor(x, y);
+		//		canvas->SetPixel(x, y, color);
+		//	}
+		//}
+		//for (int y = 0; y < height * 4; ++y)
+		//{
+		//	for (int x = 0; x < width * 4; ++x)
+		//	{
+		//		Color32 color = texture.Sample((x - width * 2) * 1.0f / width, (y - height * 2) * 1.0f / height, Texture::Mirror);
+		//		canvas->SetPixel(x, y, color);
+		//	}
+		//}
 
+		//for (int i = 0; i < 512; ++i)
+		//{
+		//	float p = Mathf::PingPong(i * 0.1, 10);
+		//	canvas->SetPixel(i, Mathf::RoundToInt(p * 10), Color32(0xffff0000));
+		//}
 
 		Matrix4x4 trans(position, Quaternion(Vector3(r, r, 0)), scale);
 
 		for (int i = 0; i < (int)meshes.size(); ++i)
 		{
-			//Rasterizer::DrawMeshPoint(canvas, camera, meshes[i], trans, Color32(Color::green));
-			Rasterizer::DrawMesh(canvas, camera, meshes[i], trans, Color32(0x20ff88ff));
-			//Rasterizer::DrawMeshWireFrame(canvas, camera, meshes[i], trans, Color32(0x209999ff));
+			//Rasterizer::DrawMeshPoint(meshes[i], trans, Color32(Color::green));
+			Rasterizer::DrawMesh(meshes[i], trans, Color32::white);
+			//Rasterizer::DrawMeshWireFrame(meshes[i], trans, Color32(0x209999ff));
 		}
 
-		//Rasterizer::DrawLine(canvas, Color32::white, 300, 210, 10, 100);
-		//Rasterizer::DrawLine(canvas, Color32(0x30ff00ff), 400, 220, 10, 100);
-		//Rasterizer::DrawLine(canvas, Color32(0x60ffff00), 400, 220, 100, 100);
-		//Rasterizer::DrawLine(canvas, Color32::white, 220, 399, -100, 400);
-		//Rasterizer::DrawLine(canvas, Color32::white, 270, 270, 150, 400);
+		//Rasterizer::DrawLine(300, 210, 10, 100, Color32::white);
+		//Rasterizer::DrawLine(400, 220, 10, 100, Color32(0x30ff00ff));
+		//Rasterizer::DrawLine(400, 220, 100, 100, Color32(0x60ffff00));
+		//Rasterizer::DrawLine(220, 399, -100, 400, Color32::white);
+		//Rasterizer::DrawLine(270, 270, 150, 400, Color32::white);
 
-		//Rasterizer::DrawSmoothLine(canvas, Color32::white, 100, 10, 10, 100);
-		//Rasterizer::DrawSmoothLine(canvas, Color32(0x30ff00ff), 200, 20, 10, 100);
-		//Rasterizer::DrawSmoothLine(canvas, Color32(0x60ffff00), 200, 20, 100, 100);
-		//Rasterizer::DrawSmoothLine(canvas, Color32::white, 20, 199, -100, 400);
-		//Rasterizer::DrawSmoothLine(canvas, Color32::white, 70, 70, 150, 400);
+		//Rasterizer::DrawSmoothLine(100, 10, 10, 100, Color32::white);
+		//Rasterizer::DrawSmoothLine(200, 20, 10, 100, Color32(0x30ff00ff));
+		//Rasterizer::DrawSmoothLine(200, 20, 100, 100, Color32(0x60ffff00));
+		//Rasterizer::DrawSmoothLine(20, 199, -100, 400, Color32::white);
+		//Rasterizer::DrawSmoothLine(70, 70, 150, 400, Color32::white);
 
-		//Rasterizer::DrawTriangle(canvas, Color32(0xffff88ff), Vector2(0, 0), Vector2(100, 0), Vector2(0, 100));
-		//Rasterizer::DrawTriangle(canvas, Color32(0xffffff88), Vector2(100, 0), Vector2(100, 100), Vector2(0, 100));
+		//Rasterizer::DrawTriangle(Vector2(0, 0), Vector2(100, 0), Vector2(0, 100), Color32(0xffff88ff));
+		//Rasterizer::DrawTriangle(Vector2(100, 0), Vector2(100, 100), Vector2(0, 100), Color32(0xffffff88));
 
 		canvas->Present();
 		clock_t endTime = clock();
