@@ -28,15 +28,18 @@ void MainLoop()
 	//Mesh::LoadMesh(meshes, "resources/cube/cube.obj");
 	//position = Vector3(0, 0, 0);
 	//scale = Vector3(20, 20, 20);
-	Mesh::LoadMesh(meshes, "resources/teapot/teapot.obj");
-	position = Vector3(0, -50, 0);
-	scale = Vector3(1, 1, 1);
-	//Mesh::LoadMesh(meshes, "resources/head/head.obj");
-	//position = Vector3(0, 0, 0);
-	//scale = Vector3(400, 400, 400);
+	//Mesh::LoadMesh(meshes, "resources/teapot/teapot.obj");
+	//position = Vector3(0, -50, 0);
+	//scale = Vector3(1, 1, 1);
+	Mesh::LoadMesh(meshes, "resources/head/head.obj");
+	position = Vector3(0, 0, 0);
+	scale = Vector3(400, 400, 400);
 
+	Texture::Initialize();
 	Texture texture;
-	Texture::LoadTexture(texture, "resources/teapot/default.png");
+	Texture::LoadTexture(texture, "resources/head/lambertian.jpg");
+	//Texture bump;
+	//Texture::LoadTexture(bump, "resources/head/bump-lowRes.png");
 
 	for (int i = 0; i < (int)meshes.size(); ++i)
 	{

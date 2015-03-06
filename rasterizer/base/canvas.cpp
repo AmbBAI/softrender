@@ -47,6 +47,24 @@ bool Canvas::SetPixel(int x, int y, const Color& color)
 	return SetPixel(x, y, Color32(color));
 }
 
+float Canvas::GetDepth(int x, int y)
+{
+	if (x < 0 || x >= width) return 1.f;
+	if (y < 0 || y >= height) return 1.f;
+
+	int offset = y * width + x;
+	return depths[offset];
+}
+
+void Canvas::SetDepth(int x, int y, float depth)
+{
+	if (x < 0 || x >= width) return;
+	if (y < 0 || y >= height) return;
+
+	int offset = y * width + x;
+	depths[offset] = depth;
+}
+
 int Canvas::GetWidth()
 {
 	return width;
@@ -69,6 +87,7 @@ void Canvas::Present()
 	glDrawPixels(width, height, GL_RGBA, GL_UNSIGNED_BYTE, &pixels[0]);
 	glFlush();
 }
+
 
 
 

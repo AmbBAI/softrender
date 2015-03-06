@@ -5,9 +5,15 @@
 namespace rasterizer
 {
 
+void _stdcall FreeImagePrint(FREE_IMAGE_FORMAT fmt, const char* msg)
+{
+	puts(msg);
+}
+
 void Texture::Initialize()
 {
 	FreeImage_Initialise();
+	FreeImage_SetOutputMessageStdCall(FreeImagePrint);
 }
 
 void Texture::Finalize()
@@ -24,6 +30,28 @@ bool Texture::LoadTexture(Texture& texture, const char* file)
 	texture.width = FreeImage_GetWidth(fiBitmap);
 	texture.height = FreeImage_GetHeight(fiBitmap);
 	texture.imageHandle = fiBitmap;
+	//FREE_IMAGE_COLOR_TYPE colorType = FreeImage_GetColorType(fiBitmap);
+	//FREE_IMAGE_TYPE imageType = FreeImage_GetImageType(fiBitmap);
+	//u32 pitch = FreeImage_GetPitch(fiBitmap);
+
+	texture.colors.assign(texture.width * texture.height, Color32::black);
+	for (int y = 0; y < texture.height; ++y)
+	{
+		for (int x = 0; x < texture.width; ++x)
+		{
+			RGBQUAD rgbQuad;
+			BOOL ret = FreeImage_GetPixelColor(fiBitmap, (u32)x, (u32)y, &rgbQuad);
+			if (ret)
+			{
+				Color32& color = texture.colors[y * texture.width + x];
+				color.r = rgbQuad.rgbRed;
+				color.g = rgbQuad.rgbGreen;
+				color.b = rgbQuad.rgbBlue;
+				color.a = 255; // ..
+			}
+		}
+	}
+
 	return true;
 }
 
@@ -52,16 +80,18 @@ const Color32 Texture::GetColor(int x, int y) const
 	if (x < 0 || x >= width) return Color32::black;
 	if (y < 0 || y >= height) return Color32::black;
 
-	RGBQUAD rgbQuad;
-	BOOL ret = FreeImage_GetPixelColor(fiBitmap, (u32)x, (u32)y, &rgbQuad);
-	if (ret == FALSE) return Color32::black;
-	
-	Color32 color;
-	color.r = rgbQuad.rgbRed;
-	color.g = rgbQuad.rgbGreen;
-	color.b = rgbQuad.rgbBlue;
-	color.a = 255; // ..
-	return color;
+	return colors[y * width + x];
+
+	//RGBQUAD rgbQuad;
+	//BOOL ret = FreeImage_GetPixelColor(fiBitmap, (u32)x, (u32)y, &rgbQuad);
+	//if (ret == FALSE) return Color32::black;
+	//
+	//Color32 color;
+	//color.r = rgbQuad.rgbRed;
+	//color.g = rgbQuad.rgbGreen;
+	//color.b = rgbQuad.rgbBlue;
+	//color.a = 255; // ..
+	//return color;
 }
 
 const Color32 Texture::Sample(float u, float v, AddressMode mode) const

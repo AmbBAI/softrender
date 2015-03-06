@@ -28,9 +28,16 @@ struct Rasterizer
 
 	struct Vertex
 	{
+		Vector3 position = Vector3::zero;
 		Vector3 normal = Vector3::up;
 		Vector2 texcoord = Vector2::zero;
-		Point2D point = Point2D(0, 0);
+		Vector3 projection = Vector3::zero;
+		Point2D vpPoint = Point2D(0, 0);
+	};
+
+	struct Face
+	{
+		Vertex v[3];
 	};
 
 	static Vector3 lightDir;

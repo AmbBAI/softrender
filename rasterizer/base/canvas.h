@@ -17,6 +17,8 @@ public:
 public:
 	bool SetPixel(int x, int y, const Color32& color);
 	bool SetPixel(int x, int y, float depth, const Color32& color);
+	float GetDepth(int x, int y);
+	void SetDepth(int x, int y, float depth);
 
 	bool SetPixel(int x, int y, const Color& color);
 	int GetWidth();

@@ -368,23 +368,23 @@ void Rasterizer::DrawMeshColor(const Mesh& mesh, const Matrix4x4& transform, con
 
 void Rasterizer::DrawTriangle(const Vertex& v0, const Vertex& v1, const Vertex& v2, const Color32& color)
 {
-	int minX = Mathf::Min(v0.point.x, v1.point.x, v2.point.x);
-	int minY = Mathf::Min(v0.point.y, v1.point.y, v2.point.y);
-	int maxX = Mathf::Max(v0.point.x, v1.point.x, v2.point.x);
-	int maxY = Mathf::Max(v0.point.y, v1.point.y, v2.point.y);
+	int minX = Mathf::Min(v0.vpPoint.x, v1.vpPoint.x, v2.vpPoint.x);
+	int minY = Mathf::Min(v0.vpPoint.y, v1.vpPoint.y, v2.vpPoint.y);
+	int maxX = Mathf::Max(v0.vpPoint.x, v1.vpPoint.x, v2.vpPoint.x);
+	int maxY = Mathf::Max(v0.vpPoint.y, v1.vpPoint.y, v2.vpPoint.y);
 
-	int deltaX01 = v0.point.x - v1.point.x;
-	int deltaX12 = v1.point.x - v2.point.x;
-	int deltaX20 = v2.point.x - v0.point.x;
+	int deltaX01 = v0.vpPoint.x - v1.vpPoint.x;
+	int deltaX12 = v1.vpPoint.x - v2.vpPoint.x;
+	int deltaX20 = v2.vpPoint.x - v0.vpPoint.x;
 
-	int deltaY01 = v0.point.y - v1.point.y;
-	int deltaY12 = v1.point.y - v2.point.y;
-	int deltaY20 = v2.point.y - v0.point.y;
+	int deltaY01 = v0.vpPoint.y - v1.vpPoint.y;
+	int deltaY12 = v1.vpPoint.y - v2.vpPoint.y;
+	int deltaY20 = v2.vpPoint.y - v0.vpPoint.y;
 
 	Point2D topLeft(minX, minY);
-	int w0Row = Orient2D(v0.point, v1.point, topLeft);
-	int w1Row = Orient2D(v1.point, v2.point, topLeft);
-	int w2Row = Orient2D(v2.point, v0.point, topLeft);
+	int w0Row = Orient2D(v0.vpPoint, v1.vpPoint, topLeft);
+	int w1Row = Orient2D(v1.vpPoint, v2.vpPoint, topLeft);
+	int w2Row = Orient2D(v2.vpPoint, v0.vpPoint, topLeft);
 
 	if (deltaY01 < 0 || (deltaY01 == 0 && deltaX01 < 0)) w0Row += 1.0f;
 	if (deltaY12 < 0 || (deltaY12 == 0 && deltaX12 < 0)) w1Row += 1.0f;
@@ -400,28 +400,32 @@ void Rasterizer::DrawTriangle(const Vertex& v0, const Vertex& v1, const Vertex& 
 		{
 			if (w0 > 0 && w1 > 0 && w2 > 0)
 			{
-				float depth = v0.point.depth * w1 + v1.point.depth * w2 + v2.point.depth * w0;
+				float depth = v0.vpPoint.depth * w1 + v1.vpPoint.depth * w2 + v2.vpPoint.depth * w0;
 				depth /= (w0 + w1 + w2);
-				Vector3 normal = v0.normal.Multiply(w1).Add(v1.normal.Multiply(w2)).Add(v2.normal.Multiply(w0)).Normalize();
-				//Color32 normalColor(255, (normal.x + 1) / 2 * 255, (normal.y + 1) / 2 * 255, (normal.z + 1) / 2 * 255);
-				//canvas->SetPixel(x, y, depth, normalColor);
-				float lightVal = Mathf::Max(0, normal.Dot(lightDir.Negate()));
-				Color32 drawColor = color.Multiply(lightVal);
-
-				if (texture)
+				if (depth < canvas->GetDepth(x, y))
 				{
-					Vector2 uv = v0.texcoord.Multiply(w1).Add(v1.texcoord.Multiply(w2)).Add(v2.texcoord.Multiply(w0));
-					uv = uv.Divide(w0 + w1 + w2);
-					Color32 texColor = texture->Sample(uv.x, uv.y, Texture::Warp);
-					drawColor = drawColor.Modulate(texColor);
+					canvas->SetDepth(x, y, depth);
+
+					Vector3 normal = v0.normal.Multiply(w1).Add(v1.normal.Multiply(w2)).Add(v2.normal.Multiply(w0)).Normalize();
+					//Color32 normalColor(255, (normal.x + 1) / 2 * 255, (normal.y + 1) / 2 * 255, (normal.z + 1) / 2 * 255);
+					//canvas->SetPixel(x, y, depth, normalColor);
+					float lightVal = Mathf::Max(0, normal.Dot(lightDir.Negate()));
+					Color32 drawColor = color.Multiply(lightVal);
+
+					if (texture)
+					{
+						Vector2 uv = v0.texcoord.Multiply(w1).Add(v1.texcoord.Multiply(w2)).Add(v2.texcoord.Multiply(w0));
+						uv = uv.Divide(w0 + w1 + w2);
+						Color32 texColor = texture->Sample(uv.x, uv.y, Texture::Warp);
+						drawColor = drawColor.Modulate(texColor);
+					}
+
+					canvas->SetPixel(x, y, drawColor);
+					//canvas->SetPixel(x, y, depth, color);
+					//int depthColorVal = (1 - depth) * 80 * 255;
+					//Color32 depthColor = Color32(depthColorVal, depthColorVal, depthColorVal, depthColorVal);
+					//canvas->SetPixel(x, y, depth, depthColor);
 				}
-
-				canvas->SetPixel(x, y, depth, drawColor);
-				//canvas->SetPixel(x, y, depth, color);
-				//int depthColorVal = (1 - depth) * 80 * 255;
-				//Color32 depthColor = Color32(depthColorVal, depthColorVal, depthColorVal, depthColorVal);
-				//canvas->SetPixel(x, y, depth, depthColor);
-
 			}
 
 			w0 += deltaY01;
@@ -446,33 +450,53 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform, const Co
 	const Matrix4x4* view = camera->GetViewMatrix();
 	const Matrix4x4* projection = camera->GetProjectionMatrix();
 
-	std::vector<Vertex> points;
-	for (int i = 0; i < (int)mesh.vertices.size(); ++i)
+	// MVP
+	int vertexN = (int)mesh.vertices.size();
+	std::vector<Vertex> vertices;
+	vertices.resize(vertexN);
+
+	int i = 0;
+//#pragma omp parallel for private(i)
+	for (i = 0; i < vertexN; ++i)
 	{
 		Vertex vertex;
 
 		Vector3 posW = transform.MultiplyPoint3x4(mesh.vertices[i]);
 		Vector3 posC = view->MultiplyPoint(posW);
-		Vector3 point = projection->MultiplyPoint(posC);
-		int x = Mathf::RoundToInt((point.x + 1) * width / 2);
-		int y = Mathf::RoundToInt((point.y + 1) * height / 2);
-		vertex.point = Point2D(x, y, point.z);
+		vertex.position = posC;
 
-		Vector3 normal = transform.MultiplyVector(mesh.normals[i]);
+		Vector3 normal = transform.MultiplyVector(mesh.normals[i]).Normalize();
 		vertex.normal = normal;
 
 		vertex.texcoord = mesh.texcoords[i];
 
-		points.push_back(vertex);
+		Vector3 posP = projection->MultiplyPoint(posC);
+		vertex.projection = posP;
+
+		vertex.vpPoint.x = Mathf::RoundToInt((posP.x + 1) * width / 2);
+		vertex.vpPoint.y = Mathf::RoundToInt((posP.y + 1) * height / 2);
+		vertex.vpPoint.depth = posP.z;
+
+		vertices[i] = vertex;
 	}
 
-	for (int i = 0; i + 2 < (int)mesh.indices.size(); i += 3)
+	// Primitive Assembly
+	int faceN = (int)mesh.indices.size() / 3;
+//#pragma omp parallel for private(i)
+	for (i = 0; i < faceN; ++i)
 	{
-		int v0 = mesh.indices[i];
-		int v1 = mesh.indices[i + 1];
-		int v2 = mesh.indices[i + 2];
+		int i0 = mesh.indices[i * 3];
+		int i1 = mesh.indices[i * 3 + 1];
+		int i2 = mesh.indices[i * 3 + 2];
 
-		DrawTriangle(points[v0], points[v1], points[v2], color);
+		//if (IsBackFace(vertices[i0], vertices[i1], vertices[i2])) continue;
+		//if (IsOutOfCamera(vertices[i0], vertices[i1], vertices[i2])) continue;
+
+		Face face;
+		face.v[0] = vertices[i0];
+		face.v[1] = vertices[i1];
+		face.v[2] = vertices[i2];
+		DrawTriangle(face.v[0], face.v[1], face.v[2], color);
 	}
 }
 

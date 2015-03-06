@@ -3,6 +3,7 @@
 
 #include "base/header.h"
 #include "base/color.h"
+#include "math/vector3.h"
 
 namespace rasterizer
 {
@@ -24,13 +25,21 @@ struct Texture
 
 	int GetWidth();
 	int GetHeight();
+
+	void UnparkColor();
+	void UnparkBump();
+
 	const Color32 GetColor(int x, int y) const;
 	const Color32 Sample(float u, float v, AddressMode mode) const;
+
+	//const u8 GetHeight(int x, int y) const;
+	//const Vector3 SampleNormal(float u, float v, AddressMode mode) const;
 
 protected:
 	int width = 0;
 	int height = 0;
 	void* imageHandle = nullptr;
+	std::vector<Color32> colors;
 };
 
 }
