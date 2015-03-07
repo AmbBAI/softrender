@@ -18,22 +18,6 @@ Color::Color(float _a, float _r, float _g, float _b)
 {
 }
 
-Color::Color(const Color& _color)
-	: a(_color.a)
-	, r(_color.r)
-	, g(_color.g)
-	, b(_color.b)
-{
-}
-
-Color::Color(const Color32& _color32)
-	: a(_color32.a / 255.f)
-	, r(_color32.r / 255.f)
-	, g(_color32.g / 255.f)
-	, b(_color32.b / 255.f)
-{
-}
-
 const Color Color::Add(const Color& c) const
 {
 	return Color(a + c.a, r + c.r, g + c.g, b + c.b);
@@ -60,6 +44,16 @@ const Color Color::Lerp(const Color& a, const Color& b, float t)
 	return color;
 }
 
+Color::operator Color32() const
+{
+	Color32 color;
+	color.a = (u8)(a * 255);
+	color.r = (u8)(r * 255);
+	color.g = (u8)(g * 255);
+	color.b = (u8)(b * 255);
+	return color;
+}
+
 const Color32 Color32::white = Color32(0xffffffff);
 const Color32 Color32::black = Color32(0xff000000);
 
@@ -77,17 +71,14 @@ Color32::Color32(u8 _a, u8 _r, u8 _g, u8 _b)
 	//printf("%x %x %x %x %x - %d\n", a, r, g, b, argb, sizeof(Color));
 }
 
-Color32::Color32(const Color32& _color32)
-	: rgba(_color32.rgba)
+Color32::operator Color() const
 {
-}
-
-Color32::Color32(const Color& _color)
-	: a((u8)(_color.a * 255))
-	, r((u8)(_color.r * 255))
-	, g((u8)(_color.g * 255))
-	, b((u8)(_color.b * 255))
-{
+	Color color;
+	color.a = a / 255.f;
+	color.r = r / 255.f;
+	color.g = g / 255.f;
+	color.b = b / 255.f;
+	return color;
 }
 
 }

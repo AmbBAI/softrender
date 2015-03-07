@@ -20,14 +20,6 @@ Vector3::Vector3(float _x, float _y, float _z)
 	//printf("Vector3:ctor(x,y,z)\n");
 }
 
-Vector3::Vector3(const Vector3& v)
-	: x(v.x)
-	, y(v.y)
-	, z(v.z)
-{
-	//printf("Vector3:copy\n");
-}
-
 float Vector3::Length() const
 {
 	return Mathf::Sqrt(x * x + y * y + z * z);

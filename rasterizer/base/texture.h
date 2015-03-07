@@ -27,19 +27,23 @@ struct Texture
 	int GetHeight();
 
 	void UnparkColor();
-	void UnparkBump();
+	void UnparkBump(float strength = 2.0f);
 
 	const Color32 GetColor(int x, int y) const;
-	const Color Sample(float u, float v, AddressMode mode) const;
+	const Color Sample(float u, float v) const;
 
 	//const u8 GetHeight(int x, int y) const;
 	//const Vector3 SampleNormal(float u, float v, AddressMode mode) const;
+
+
+	AddressMode addressMode = Warp;
 
 protected:
 	int width = 0;
 	int height = 0;
 	void* imageHandle = nullptr;
 	std::vector<Color32> colors;
+	std::vector<Vector3> normals;
 };
 
 }

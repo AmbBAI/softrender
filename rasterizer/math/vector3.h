@@ -14,7 +14,6 @@ struct Vector3
 
 	Vector3() = default;
 	Vector3(float _x, float _y, float _z);
-	Vector3(const Vector3& v);
 
 	float Length() const;
 	float SqrLength() const;
@@ -26,6 +25,11 @@ struct Vector3
 	const Vector3 Divide(float f) const;
 	float Dot(const Vector3& v) const;
 	const Vector3 Cross(const Vector3& v) const;
+
+	const Vector3 operator +(const Vector3& v) const { return Add(v); }
+	const Vector3 operator -(const Vector3& v) const { return Subtract(v); }
+	const Vector3 operator *(float f) const { return Multiply(f); }
+	const Vector3 operator /(float f) const { return Divide(f); }
 
 	std::string ToString() const;
 

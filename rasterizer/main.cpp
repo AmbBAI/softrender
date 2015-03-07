@@ -28,28 +28,30 @@ void MainLoop()
 	//Mesh::LoadMesh(meshes, "resources/cube/cube.obj");
 	//position = Vector3(0, 0, 0);
 	//scale = Vector3(20, 20, 20);
-	//Mesh::LoadMesh(meshes, "resources/teapot/teapot.obj");
-	//position = Vector3(0, -50, 0);
-	//scale = Vector3(1, 1, 1);
-	Mesh::LoadMesh(meshes, "resources/head/head.obj");
-	position = Vector3(0, 0, 0);
-	scale = Vector3(400, 400, 400);
+	Mesh::LoadMesh(meshes, "resources/teapot/teapot.obj");
+	position = Vector3(0, -50, 0);
+	scale = Vector3(1, 1, 1);
+	//Mesh::LoadMesh(meshes, "resources/head/head.obj");
+	//position = Vector3(0, 0, 0);
+	//scale = Vector3(400, 400, 400);
 
 	Texture::Initialize();
 	Texture texture;
 	//Texture::LoadTexture(texture, "resources/teapot/default.png");
 	Texture::LoadTexture(texture, "resources/head/lambertian.jpg");
-	//Texture bump;
-	//Texture::LoadTexture(bump, "resources/head/bump-lowRes.png");
+	texture.UnparkColor();
+	Texture bump;
+	Texture::LoadTexture(bump, "resources/head/bump-lowRes.png");
+	bump.UnparkBump();
 
 	for (int i = 0; i < (int)meshes.size(); ++i)
 	{
-		if (meshes[i].normals.size() <= 0) meshes[i].BuildNormal();
+		if (meshes[i].normals.size() <= 0) meshes[i].RecalculateNormals();
 	}
 
 	Rasterizer::canvas = canvas;
 	Rasterizer::camera = &camera;
-	Rasterizer::texture = &texture;
+	Rasterizer::texture = &bump;
 
 	float r = 0;
 	float s = 1;
@@ -60,21 +62,21 @@ void MainLoop()
 		clock_t startTime = clock();
 		canvas->Clear();
 
-		//int width = texture.GetWidth();
-		//int height = texture.GetHeight();
+		int width = bump.GetWidth();
+		int height = bump.GetHeight();
 		//for (int y = 0; y < height; ++y)
 		//{
 		//	for (int x = 0; x < width; ++x)
 		//	{
-		//		Color32 color = texture.GetColor(x, y);
+		//		Color32 color = bump.GetColor(x, y);
 		//		canvas->SetPixel(x, y, color);
 		//	}
 		//}
-		//for (int y = 0; y < height * 4; ++y)
+		//for (int y = 0; y < height / 2; ++y)
 		//{
-		//	for (int x = 0; x < width * 4; ++x)
+		//	for (int x = 0; x < width / 2; ++x)
 		//	{
-		//		Color32 color = texture.Sample((x - width * 2) * 1.0f / width, (y - height * 2) * 1.0f / height, Texture::Mirror);
+		//		Color32 color = bump.Sample(x * 2.0f / width, y * 2.0f / height);
 		//		canvas->SetPixel(x, y, color);
 		//	}
 		//}

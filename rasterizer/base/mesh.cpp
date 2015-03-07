@@ -45,10 +45,13 @@ bool Mesh::LoadMesh(std::vector<Mesh>& meshes, const char* file)
 	return true;
 }
 
-void Mesh::BuildNormal()
+void Mesh::RecalculateNormals()
 {
-	normals.assign(vertices.size(), Vector3::zero);
-	//std::vector < u32 > faceCount(vertices.size(), 0);
+	u32 vertexCount = vertices.size();
+	normals.assign(vertexCount, Vector3::zero);
+	tangents.assign(vertexCount, Vector4());
+	std::vector<Vector3> tan1(vertexCount, Vector3::zero);
+	std::vector<Vector3> tan2(vertexCount, Vector3::zero);
 	for (int i = 0; i + 2 < (int)indices.size(); i += 3)
 	{
 		int v0 = indices[i];
@@ -63,17 +66,34 @@ void Mesh::BuildNormal()
 		normals[v1] = normals[v1].Add(normal);
 		normals[v2] = normals[v2].Add(normal);
 
-		//faceCount[v0] += 1;
-		//faceCount[v1] += 1;
-		//faceCount[v2] += 1;
+		Vector2 st1 = texcoords[v1].Subtract(texcoords[v0]);
+		Vector2 st2 = texcoords[v2].Subtract(texcoords[v0]);
+
+		float r = 1.f / (st1.x * st2.y - st2.x * st1.y);
+		Vector3 dir1 = Vector3(
+			(st2.y * edge1.x - st1.y * edge2.x) * r,
+			(st2.y * edge1.y - st1.y * edge2.y) * r,
+			(st2.y * edge1.z - st1.y * edge2.z) * r);
+
+		Vector3 dir2 = Vector3(
+			(st1.x * edge2.x - st2.x * edge1.x) * r,
+			(st1.x * edge2.y - st2.x * edge1.y) * r,
+			(st1.x * edge2.z - st2.x * edge1.z) * r);
+
+		tan1[v0] = tan1[v0] + dir1;
+		tan1[v1] = tan1[v1] + dir1;
+		tan1[v2] = tan1[v2] + dir1;
+
+		tan2[v0] = tan2[v0] + dir2;
+		tan2[v1] = tan2[v1] + dir2;
+		tan2[v2] = tan2[v2] + dir2;
 	}
 
-	for (int i = 0; i < (int)normals.size(); ++i)
+	for (int i = 0; i < (int)vertexCount; ++i)
 	{
-		//if (faceCount[i] > 0)
-		//{
-			normals[i] = normals[i].Normalize();
-		//}
+		normals[i] = normals[i].Normalize();
+		tangents[i] = (tan1[i] - normals[i] * normals[i].Dot(tan1[i])).Normalize();
+		tangents[i].w = normals[i].Cross(tan1[i]).Dot(tan2[i]) < 0.f ? -1.f : 1.f ;
 	}
 }
 

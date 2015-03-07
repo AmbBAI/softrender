@@ -30,6 +30,7 @@ struct Rasterizer
 	{
 		Vector3 position = Vector3::zero;
 		Vector3 normal = Vector3::up;
+		Vector3 tangent = Vector3::right;
 		Vector2 texcoord = Vector2::zero;
 		Vector3 projection = Vector3::zero;
 		Point2D vpPoint = Point2D(0, 0);
@@ -44,6 +45,7 @@ struct Rasterizer
 	static Canvas* canvas;
 	static Camera* camera;
 	static Texture* texture;
+	static Texture* normalMap;
 
 	static void DrawLine(int x0, int x1, int y0, int y1, const Color32& color);
 	static void DrawSmoothLine(float x0, float x1, float y0, float y1, const Color32& color);

@@ -95,6 +95,7 @@
     <ClCompile Include="math\ray3.cpp" />
     <ClCompile Include="math\vector2.cpp" />
     <ClCompile Include="math\vector3.cpp" />
+    <ClCompile Include="math\vector4.cpp" />
     <ClCompile Include="rasterizer.cpp" />
     <ClCompile Include="thirdpart\tinyobjloader\tiny_obj_loader.cc" />
   </ItemGroup>
@@ -110,6 +111,7 @@
     <ClInclude Include="math\matrix4x4.h" />
     <ClInclude Include="math\quaternion.h" />
     <ClInclude Include="math\vector2.h" />
+    <ClInclude Include="math\vector4.h" />
     <ClInclude Include="rasterizer.h" />
     <ClInclude Include="math\ray3.h" />
     <ClInclude Include="math\vector3.h" />

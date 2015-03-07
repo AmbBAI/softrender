@@ -4,6 +4,7 @@
 #include "base/header.h"
 #include "math/vector2.h"
 #include "math/vector3.h"
+#include "math/vector4.h"
 
 namespace rasterizer
 {
@@ -14,11 +15,12 @@ struct Mesh
 	
 	static bool LoadMesh(std::vector<Mesh>& meshes, const char* file);
 
-	void BuildNormal();
+	void RecalculateNormals();
 
 	std::vector<Vector3> vertices;
 	std::vector<u32> indices;
 	std::vector<Vector3> normals;
+	std::vector<Vector4> tangents;
 	std::vector<Vector2> texcoords;
 };
 

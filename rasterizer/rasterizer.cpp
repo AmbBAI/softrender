@@ -309,7 +309,6 @@ void Rasterizer::DrawTriangle(const Point2D& v0, const Point2D& v1, const Point2
 				//int depthColorVal = (1 - depth) * 80 * 255;
 				//Color32 depthColor = Color32(depthColorVal, depthColorVal, depthColorVal, depthColorVal);
 				//canvas->SetPixel(x, y, depth, depthColor);
-
 			}
 
 			w0 += deltaY01;
@@ -407,19 +406,27 @@ void Rasterizer::DrawTriangle(const Vertex& v0, const Vertex& v1, const Vertex& 
 					canvas->SetDepth(x, y, depth);
 
 					Vector3 normal = v0.normal.Multiply(w1).Add(v1.normal.Multiply(w2)).Add(v2.normal.Multiply(w0)).Normalize();
-					//Color32 normalColor(255, (normal.x + 1) / 2 * 255, (normal.y + 1) / 2 * 255, (normal.z + 1) / 2 * 255);
+					/*Vector3 tangent = v0.tangent.Multiply(w1).Add(v1.tangent.Multiply(w2)).Add(v2.tangent.Multiply(w0)).Normalize();
+
+					float tw = 1;
+					Vector3 binormal = tangent.Cross(normal).Multiply(tw).Normalize();
+					tangent = normal.Cross(binormal).Normalize();*/
+
+					Color32 normalColor(255, (normal.x + 1) / 2 * 255, (normal.y + 1) / 2 * 255, (normal.z + 1) / 2 * 255);
+					//Color32 tangentColor(255, (tangent.x + 1) / 2 * 255, (tangent.y + 1) / 2 * 255, (tangent.z + 1) / 2 * 255);
 					//canvas->SetPixel(x, y, depth, normalColor);
-					float lightVal = Mathf::Max(0, normal.Dot(lightDir.Negate()));
-					Color drawColor = color.Multiply(lightVal);
+					canvas->SetPixel(x, y, depth, normalColor);
+					//float lightVal = Mathf::Max(0, normal.Dot(lightDir.Negate()));
+					//Color drawColor = color;// color.Multiply(lightVal);
 
-					if (texture)
-					{
-						Vector2 uv = v0.texcoord.Multiply(w1).Add(v1.texcoord.Multiply(w2)).Add(v2.texcoord.Multiply(w0));
-						uv = uv.Divide(w0 + w1 + w2);
-						drawColor = drawColor.Modulate(texture->Sample(uv.x, uv.y, Texture::Warp));
-					}
+					//if (texture)
+					//{
+					//	Vector2 uv = v0.texcoord.Multiply(w1).Add(v1.texcoord.Multiply(w2)).Add(v2.texcoord.Multiply(w0));
+					//	uv = uv.Divide(w0 + w1 + w2);
+					//	drawColor = drawColor.Modulate(texture->Sample(uv.x, uv.y));
+					//}
 
-					canvas->SetPixel(x, y, drawColor);
+					//canvas->SetPixel(x, y, drawColor);
 					//canvas->SetPixel(x, y, depth, color);
 					//int depthColorVal = (1 - depth) * 80 * 255;
 					//Color32 depthColor = Color32(depthColorVal, depthColorVal, depthColorVal, depthColorVal);
@@ -466,6 +473,9 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform, const Co
 
 		Vector3 normal = transform.MultiplyVector(mesh.normals[i]).Normalize();
 		vertex.normal = normal;
+
+		Vector3 tangent = transform.MultiplyVector(mesh.tangents[i]).Normalize();
+		vertex.tangent = tangent;
 
 		vertex.texcoord = mesh.texcoords[i];
 
