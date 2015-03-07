@@ -37,6 +37,7 @@ void MainLoop()
 
 	Texture::Initialize();
 	Texture texture;
+	//Texture::LoadTexture(texture, "resources/teapot/default.png");
 	Texture::LoadTexture(texture, "resources/head/lambertian.jpg");
 	//Texture bump;
 	//Texture::LoadTexture(bump, "resources/head/bump-lowRes.png");
@@ -89,7 +90,7 @@ void MainLoop()
 		for (int i = 0; i < (int)meshes.size(); ++i)
 		{
 			//Rasterizer::DrawMeshPoint(meshes[i], trans, Color32(Color::green));
-			Rasterizer::DrawMesh(meshes[i], trans, Color32::white);
+			Rasterizer::DrawMesh(meshes[i], trans, Color::white);
 			//Rasterizer::DrawMeshWireFrame(meshes[i], trans, Color32(0x209999ff));
 		}
 

@@ -52,8 +52,8 @@ struct Rasterizer
 	//static void DrawTriangle(const Vector2& v0, const Vector2& v1, const Vector2& v2, const Color32& color);
 	static void DrawTriangle(const Point2D& v0, const Point2D& v1, const Point2D& v2, const Color32& color);
 	static void DrawMeshColor(const Mesh& mesh, const Matrix4x4& transform, const Color32& color);
-	static void DrawTriangle(const Vertex& v0, const Vertex& v1, const Vertex& v2, const Color32& color);
-	static void DrawMesh(const Mesh& mesh, const Matrix4x4& transform, const Color32& color);
+	static void DrawTriangle(const Vertex& v0, const Vertex& v1, const Vertex& v2, const Color& color);
+	static void DrawMesh(const Mesh& mesh, const Matrix4x4& transform, const Color& color);
 
 private:
 	static float FloatPart(float v);

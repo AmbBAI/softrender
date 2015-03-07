@@ -27,10 +27,10 @@ Color::Color(const Color& _color)
 }
 
 Color::Color(const Color32& _color32)
-	: a(Mathf::Clamp01(_color32.a / 255.f))
-	, r(Mathf::Clamp01(_color32.r / 255.f))
-	, g(Mathf::Clamp01(_color32.g / 255.f))
-	, b(Mathf::Clamp01(_color32.b / 255.f))
+	: a(_color32.a / 255.f)
+	, r(_color32.r / 255.f)
+	, g(_color32.g / 255.f)
+	, b(_color32.b / 255.f)
 {
 }
 
@@ -49,6 +49,16 @@ const Color Color::Modulate(const Color& c) const
 	return Color(a * c.a, r * c.r, g * c.g, b * c.b);
 }
 
+const Color Color::Lerp(const Color& a, const Color& b, float t)
+{
+	t = Mathf::Clamp01(t);
+	Color color = Color();
+	color.a = a.a * (1 - t) + b.a * t;
+	color.r = a.r * (1 - t) + b.r * t;
+	color.g = a.g * (1 - t) + b.g * t;
+	color.b = a.b * (1 - t) + b.b * t;
+	return color;
+}
 
 const Color32 Color32::white = Color32(0xffffffff);
 const Color32 Color32::black = Color32(0xff000000);
@@ -58,11 +68,11 @@ Color32::Color32(u32 _argb)
 {
 }
 
-Color32::Color32(u32 _a, u32 _r, u32 _g, u32 _b)
-	: a(Mathf::Clamp(_a, 0, 255))
-	, r(Mathf::Clamp(_r, 0, 255))
-	, g(Mathf::Clamp(_g, 0, 255))
-	, b(Mathf::Clamp(_b, 0, 255))
+Color32::Color32(u8 _a, u8 _r, u8 _g, u8 _b)
+	: a(_a)
+	, r(_r)
+	, g(_g)
+	, b(_b)
 {
 	//printf("%x %x %x %x %x - %d\n", a, r, g, b, argb, sizeof(Color));
 }
@@ -73,32 +83,11 @@ Color32::Color32(const Color32& _color32)
 }
 
 Color32::Color32(const Color& _color)
-	: a((u8)(Mathf::Clamp((u32)(_color.a * 255), 0, 255)))
-	, r((u8)(Mathf::Clamp((u32)(_color.r * 255), 0, 255)))
-	, g((u8)(Mathf::Clamp((u32)(_color.g * 255), 0, 255)))
-	, b((u8)(Mathf::Clamp((u32)(_color.b * 255), 0, 255)))
+	: a((u8)(_color.a * 255))
+	, r((u8)(_color.r * 255))
+	, g((u8)(_color.g * 255))
+	, b((u8)(_color.b * 255))
 {
-}
-
-rasterizer::Color32 Color32::Lerp(const Color32& a, const Color32& b, float t)
-{
-	t = Mathf::Clamp01(t);
-	return Color32(
-		a.a * (1 - t) + b.a * t,
-		a.r * (1 - t) + b.r * t,
-		a.g * (1 - t) + b.g * t,
-		a.b * (1 - t) + b.b * t
-		);
-}
-
-const Color32 Color32::Multiply(float s) const
-{
-	return Color32(a * s, r * s, g * s, b * s);
-}
-
-const Color32 Color32::Modulate(const Color32& c) const
-{
-	return Color32(a * c.a / 255, r * c.r / 255, g * c.g / 255, b * c.b / 255);
 }
 
 }

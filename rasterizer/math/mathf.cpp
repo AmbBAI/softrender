@@ -72,18 +72,35 @@ float Mathf::Repeat(float t, float length)
 {
 	assert(length != 0.f);
 
-	float ret = ::fmod(t, length);
-	if (ret * length < 0.f) ret += length;
-	return ret;
+	bool negative = false;
+	if (length < 0.f)
+	{
+		negative = true;
+		length = -length;
+		t = -t;
+	}
+
+	float ret = t - Mathf::Floor(t / length) * length;
+	return negative ? -ret : ret ;
 }
 
 float Mathf::PingPong(float t, float length)
 {
 	assert(length != 0.f);
 
-	float ret = Repeat(t, length);
-	if (Mathf::FloorToInt(t / length) & 1) return ret;
-	else return length - ret;
+	bool negative = false;
+	if (length < 0.f)
+	{
+		negative = true;
+		length = -length;
+		t = -t;
+	}
+
+	float fTDivL = t / length;
+	int ifTDivL = Mathf::FloorToInt(fTDivL);
+	float ret = t - Mathf::Floor(fTDivL) * length;
+	if (ifTDivL & 1) return negative ? -ret : ret ;
+	else return negative ? ret - length : length - ret;
 }
 
 float Mathf::Min(float a, float b)

@@ -30,7 +30,7 @@ struct Texture
 	void UnparkBump();
 
 	const Color32 GetColor(int x, int y) const;
-	const Color32 Sample(float u, float v, AddressMode mode) const;
+	const Color Sample(float u, float v, AddressMode mode) const;
 
 	//const u8 GetHeight(int x, int y) const;
 	//const Vector3 SampleNormal(float u, float v, AddressMode mode) const;

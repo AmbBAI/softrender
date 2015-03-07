@@ -11,13 +11,34 @@ Canvas::Canvas(int width, int height)
 
 	if (width > 0 && height > 0)
 	{
-		pixels.assign(width * height, Color32::black.rgba);
+		pixels.assign(width * height, 0);
 		depths.assign(width * height, 1.0f);
 	}
 }
 
 Canvas::~Canvas()
 {
+}
+
+bool Canvas::SetPixel(int x, int y, const Color& color)
+{
+	if (x < 0 || x >= width) return false;
+	if (y < 0 || y >= height) return false;
+
+	SetPixel(x, y, Color32(color));
+	return true;
+}
+
+bool Canvas::SetPixel(int x, int y, float depth, const Color& color)
+{
+	if (x < 0 || x >= width) return false;
+	if (y < 0 || y >= height) return false;
+
+	int offset = y * width + x;
+	if (depths[offset] < depth) return true;
+	depths[offset] = depth;
+	SetPixel(x, y, Color32(color));
+	return true;
 }
 
 bool Canvas::SetPixel(int x, int y, const Color32& color)
@@ -28,23 +49,6 @@ bool Canvas::SetPixel(int x, int y, const Color32& color)
 	int offset = y * width + x;
 	pixels[offset] = color.rgba;
 	return true;
-}
-
-bool Canvas::SetPixel(int x, int y, float depth, const Color32& color)
-{
-	if (x < 0 || x >= width) return false;
-	if (y < 0 || y >= height) return false;
-
-	int offset = y * width + x;
-	if (depths[offset] < depth) return true;
-	depths[offset] = depth;
-	pixels[offset] = color.rgba;
-	return true;
-}
-
-bool Canvas::SetPixel(int x, int y, const Color& color)
-{
-	return SetPixel(x, y, Color32(color));
 }
 
 float Canvas::GetDepth(int x, int y)
@@ -77,7 +81,7 @@ int Canvas::GetHeight()
 
 void Canvas::Clear()
 {
-	pixels.assign(width * height, Color32::black.rgba);
+	pixels.assign(width * height, 0);
 	depths.assign(width * height, 1.0f);
 }
 

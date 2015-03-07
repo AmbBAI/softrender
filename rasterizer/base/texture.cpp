@@ -34,7 +34,7 @@ bool Texture::LoadTexture(Texture& texture, const char* file)
 	//FREE_IMAGE_TYPE imageType = FreeImage_GetImageType(fiBitmap);
 	//u32 pitch = FreeImage_GetPitch(fiBitmap);
 
-	texture.colors.assign(texture.width * texture.height, Color32::black);
+	texture.colors.assign(texture.width * texture.height, Color());
 	for (int y = 0; y < texture.height; ++y)
 	{
 		for (int x = 0; x < texture.width; ++x)
@@ -94,7 +94,7 @@ const Color32 Texture::GetColor(int x, int y) const
 	//return color;
 }
 
-const Color32 Texture::Sample(float u, float v, AddressMode mode) const
+const Color Texture::Sample(float u, float v, AddressMode mode) const
 {
 	assert(imageHandle != nullptr);
 	assert(height > 0 && width > 0);
@@ -136,12 +136,12 @@ const Color32 Texture::Sample(float u, float v, AddressMode mode) const
 		break;
 	}
 
-	Color32 c0 = GetColor(x, y);
-	Color32 c1 = GetColor(x2, y);
-	Color32 c2 = GetColor(x, y2);
-	Color32 c3 = GetColor(x2, y2);
+	Color c0 = GetColor(x, y);
+	Color c1 = GetColor(x2, y);
+	Color c2 = GetColor(x, y2);
+	Color c3 = GetColor(x2, y2);
 
-	return Color32::Lerp(Color32::Lerp(c0, c1, fpartX), Color32::Lerp(c2, c3, fpartX), fpartY);
+	return Color::Lerp(Color::Lerp(c0, c1, fpartX), Color::Lerp(c2, c3, fpartX), fpartY);
 }
 
 }

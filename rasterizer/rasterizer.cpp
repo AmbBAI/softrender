@@ -366,7 +366,7 @@ void Rasterizer::DrawMeshColor(const Mesh& mesh, const Matrix4x4& transform, con
 	}
 }
 
-void Rasterizer::DrawTriangle(const Vertex& v0, const Vertex& v1, const Vertex& v2, const Color32& color)
+void Rasterizer::DrawTriangle(const Vertex& v0, const Vertex& v1, const Vertex& v2, const Color& color)
 {
 	int minX = Mathf::Min(v0.vpPoint.x, v1.vpPoint.x, v2.vpPoint.x);
 	int minY = Mathf::Min(v0.vpPoint.y, v1.vpPoint.y, v2.vpPoint.y);
@@ -410,14 +410,13 @@ void Rasterizer::DrawTriangle(const Vertex& v0, const Vertex& v1, const Vertex& 
 					//Color32 normalColor(255, (normal.x + 1) / 2 * 255, (normal.y + 1) / 2 * 255, (normal.z + 1) / 2 * 255);
 					//canvas->SetPixel(x, y, depth, normalColor);
 					float lightVal = Mathf::Max(0, normal.Dot(lightDir.Negate()));
-					Color32 drawColor = color.Multiply(lightVal);
+					Color drawColor = color.Multiply(lightVal);
 
 					if (texture)
 					{
 						Vector2 uv = v0.texcoord.Multiply(w1).Add(v1.texcoord.Multiply(w2)).Add(v2.texcoord.Multiply(w0));
 						uv = uv.Divide(w0 + w1 + w2);
-						Color32 texColor = texture->Sample(uv.x, uv.y, Texture::Warp);
-						drawColor = drawColor.Modulate(texColor);
+						drawColor = drawColor.Modulate(texture->Sample(uv.x, uv.y, Texture::Warp));
 					}
 
 					canvas->SetPixel(x, y, drawColor);
@@ -439,7 +438,7 @@ void Rasterizer::DrawTriangle(const Vertex& v0, const Vertex& v1, const Vertex& 
 	}
 }
 
-void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform, const Color32& color)
+void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform, const Color& color)
 {
 	assert(canvas != nullptr);
 	assert(camera != nullptr);
@@ -489,13 +488,14 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform, const Co
 		int i1 = mesh.indices[i * 3 + 1];
 		int i2 = mesh.indices[i * 3 + 2];
 
-		//if (IsBackFace(vertices[i0], vertices[i1], vertices[i2])) continue;
-		//if (IsOutOfCamera(vertices[i0], vertices[i1], vertices[i2])) continue;
-
 		Face face;
 		face.v[0] = vertices[i0];
 		face.v[1] = vertices[i1];
 		face.v[2] = vertices[i2];
+		
+		if (Orient2D(face.v[0].vpPoint, face.v[1].vpPoint, face.v[2].vpPoint) <= 0) continue;
+		//if (IsOutOfCamera(vertices[i0], vertices[i1], vertices[i2])) continue;
+
 		DrawTriangle(face.v[0], face.v[1], face.v[2], color);
 	}
 }
