@@ -30,6 +30,8 @@ struct Matrix4x4
 	const Vector3 MultiplyPoint3x4(const Vector3& p) const;
 	const Vector3 MultiplyVector(const Vector3& p) const;
 
+	static const Matrix4x4 TBN(const Vector3& tangent, const Vector3& binormal, const Vector3& normal);
+
 	static const Matrix4x4 identity;
 
 protected:

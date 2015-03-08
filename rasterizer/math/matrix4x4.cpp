@@ -13,15 +13,12 @@ Matrix4x4::Matrix4x4(float* _m)
 
 Matrix4x4::Matrix4x4(const Vector3& p, const Quaternion& q, const Vector3& s)
 {
-	Matrix4x4::Identity();
-
 	Matrix4x4 pMat, rMat, sMat;
 	sMat.AssignScaling(s);
 	rMat.AssignRotation(q);
 	pMat.AssignTranslation(p);
 
-	(*this) = sMat * rMat * pMat;
-
+	(*this) = pMat * rMat * sMat;
 }
 
 void Matrix4x4::Fill(float val)
@@ -394,6 +391,23 @@ const Vector3 Matrix4x4::MultiplyVector(const Vector3& p) const
 		m[0] * p.x + m[4] * p.y + m[8] * p.z,
 		m[1] * p.x + m[5] * p.y + m[9] * p.z,
 		m[2] * p.x + m[6] * p.y + m[10] * p.z);
+}
+
+const Matrix4x4 Matrix4x4::TBN(const Vector3& tangent, const Vector3& binormal, const Vector3& normal)
+{
+	Matrix4x4 mat = Matrix4x4::identity;
+	mat.m[0] = tangent.x;
+	mat.m[1] = tangent.y;
+	mat.m[2] = tangent.z;
+
+	mat.m[4] = binormal.x;
+	mat.m[5] = binormal.y;
+	mat.m[6] = binormal.z;
+
+	mat.m[8] = normal.x;
+	mat.m[9] = normal.y;
+	mat.m[10] = normal.z;
+	return mat;
 }
 
 

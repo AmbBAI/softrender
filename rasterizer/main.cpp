@@ -16,11 +16,12 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
+Mesh Plane();
 void MainLoop()
 {
 	Camera camera;
 	camera.SetLookAt(Vector3(0, 0, 100), Vector3(0, 0, 0), Vector3::up);
-	camera.SetPerspective(90, 1, 0.3f, 100);
+	camera.SetPerspective(90, 1, 0.3f, 1000);
 	//camera.SetOrthographic(-100, 100, -100, 100, 0.3f, 1000);
 	Vector3 position = Vector3::zero;
 	Vector3 scale = Vector3::one;
@@ -28,12 +29,15 @@ void MainLoop()
 	//Mesh::LoadMesh(meshes, "resources/cube/cube.obj");
 	//position = Vector3(0, 0, 0);
 	//scale = Vector3(20, 20, 20);
-	Mesh::LoadMesh(meshes, "resources/teapot/teapot.obj");
-	position = Vector3(0, -50, 0);
-	scale = Vector3(1, 1, 1);
-	//Mesh::LoadMesh(meshes, "resources/head/head.obj");
-	//position = Vector3(0, 0, 0);
-	//scale = Vector3(400, 400, 400);
+	//Mesh::LoadMesh(meshes, "resources/teapot/teapot.obj");
+	//position = Vector3(0, -50, 0);
+	//scale = Vector3(1, 1, 1);
+	Mesh::LoadMesh(meshes, "resources/head/head.obj");
+	position = Vector3(0, 0, 0);
+	scale = Vector3(400, 400, 400);
+	//meshes.push_back(Plane());
+	//position = Vector3(0, 0, -100.3/2);
+	//scale = Vector3(50, 50, 50);
 
 	Texture::Initialize();
 	Texture texture;
@@ -51,19 +55,18 @@ void MainLoop()
 
 	Rasterizer::canvas = canvas;
 	Rasterizer::camera = &camera;
-	Rasterizer::texture = &bump;
+	Rasterizer::texture = &texture;
+	Rasterizer::normalMap = &bump;
 
 	float r = 0;
 	float s = 1;
 	while (true)
 	{
-		r += 0.1f;
-		//s *= 1.01f;
 		clock_t startTime = clock();
 		canvas->Clear();
 
-		int width = bump.GetWidth();
-		int height = bump.GetHeight();
+		//int width = bump.GetWidth();
+		//int height = bump.GetHeight();
 		//for (int y = 0; y < height; ++y)
 		//{
 		//	for (int x = 0; x < width; ++x)
@@ -112,8 +115,33 @@ void MainLoop()
 		//Rasterizer::DrawTriangle(Vector2(100, 0), Vector2(100, 100), Vector2(0, 100), Color32(0xffffff88));
 
 		canvas->Present();
+
+		r += 0.1f;
+		//s *= 1.01f;
 		clock_t endTime = clock();
 		printf("%ld\n", endTime - startTime);
 	}
 
+}
+
+rasterizer::Mesh Plane()
+{
+	Mesh mesh;
+	mesh.vertices.push_back(Vector3(-1, -1, 0));
+	mesh.vertices.push_back(Vector3(1, -1, 0));
+	mesh.vertices.push_back(Vector3(1, 1, 0));
+	mesh.vertices.push_back(Vector3(-1, 1, 0));
+
+	mesh.texcoords.push_back(Vector2(0, 0));
+	mesh.texcoords.push_back(Vector2(1, 0));
+	mesh.texcoords.push_back(Vector2(1, 1));
+	mesh.texcoords.push_back(Vector2(0, 1));
+
+	mesh.indices.push_back(0);
+	mesh.indices.push_back(1);
+	mesh.indices.push_back(2);
+	mesh.indices.push_back(2);
+	mesh.indices.push_back(3);
+	mesh.indices.push_back(0);
+	return mesh;
 }

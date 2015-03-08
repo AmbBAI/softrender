@@ -20,7 +20,7 @@ struct Mesh
 	std::vector<Vector3> vertices;
 	std::vector<u32> indices;
 	std::vector<Vector3> normals;
-	std::vector<Vector4> tangents;
+	std::vector<Vector3> tangents;
 	std::vector<Vector2> texcoords;
 };
 

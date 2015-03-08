@@ -203,10 +203,8 @@ void Texture::UnparkBump(float strength/* = 2.0f*/)
 			int px2 = bytes[y * width + x2];
 			int py1 = bytes[y1 * width + x];
 			int py2 = bytes[y2 * width + x];
-			//Vector3 u = Vector3(1.0f, 0.f, (px2 - px1) / 255.f).Normalize();
-			//Vector3 v = Vector3(0.0f, 1.0f, (py2 - py1) / 255.f).Normalize();
 			Vector3& normal = normals[offset];
-			normals[offset] = Vector3((px2 - px1) / 255.f, (py2 - py1) / 255.f, 0.25f / strength).Normalize();
+			normals[offset] = Vector3((px1 - px2) / 255.f, (py1 - py2) / 255.f, 0.25f / strength).Normalize();
 
 			Color32& color = colors[offset];
 			color.r = u8((normal.x + 1.0f) / 2.0 * 255);

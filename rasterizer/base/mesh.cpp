@@ -93,7 +93,9 @@ void Mesh::RecalculateNormals()
 	{
 		normals[i] = normals[i].Normalize();
 		tangents[i] = (tan1[i] - normals[i] * normals[i].Dot(tan1[i])).Normalize();
-		tangents[i].w = normals[i].Cross(tan1[i]).Dot(tan2[i]) < 0.f ? -1.f : 1.f ;
+		float w = normals[i].Cross(tan1[i]).Dot(tan2[i]) < 0.f ? -1.f : 1.f ;
+		Vector3 binormal = normals[i].Cross(tangents[i]).Multiply(w);
+		tangents[i] = binormal.Cross(normals[i]);
 	}
 }
 
