@@ -1,0 +1,6 @@
+[submodule "thirdpart/tinyobjloader"]
+	path = thirdpart/tinyobjloader
+	url = https://github.com/syoyo/tinyobjloader.git
+[submodule "thirdpart/glfw"]
+	path = thirdpart/glfw
+	url = https://github.com/glfw/glfw.git
