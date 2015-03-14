@@ -1,19 +1,13 @@
 #include "texture.h"
 #include "math/mathf.h"
-#include "thirdpart/freeimage/FreeImage.h"
+#include "freeimage/FreeImage.h"
 
 namespace rasterizer
 {
 
-void _stdcall FreeImagePrint(FREE_IMAGE_FORMAT fmt, const char* msg)
-{
-	puts(msg);
-}
-
 void Texture::Initialize()
 {
 	FreeImage_Initialise();
-	FreeImage_SetOutputMessageStdCall(FreeImagePrint);
 }
 
 void Texture::Finalize()

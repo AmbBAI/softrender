@@ -10,25 +10,11 @@
 #include <cfloat>
 #include <cassert>
 
+#include <string>
 #include <vector>
 #include <algorithm>
 
-#ifdef _WINDOWS
-#include <Windows.h>
-#include <omp.h>
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include "thirdpart/glut/glut.h"
-#elif _LINUX
-#include <omp.h>
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <GL/glut.h>
-#elif _MACOSX
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
-#include <GLUT/glut.h>
-#endif
+#include "glfw/include/GLFW/glfw3.h"
 
 typedef unsigned char u8;
 typedef unsigned int u32;

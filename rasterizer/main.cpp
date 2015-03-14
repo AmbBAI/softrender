@@ -9,7 +9,7 @@ void MainLoop();
 int main(int argc, char *argv[])
 {
 	app = Application::GetInstance();
-	app->CreateApplication(argc, argv, "rasterizer", 512, 512);
+	app->CreateApplication("rasterizer", 512, 512);
 	canvas = app->GetCanvas();
 	app->SetRunLoop(MainLoop);
 	app->RunLoop();

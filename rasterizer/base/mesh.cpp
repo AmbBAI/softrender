@@ -1,6 +1,6 @@
 #include "mesh.h"
 
-#include "thirdpart/tinyobjloader/tiny_obj_loader.h"
+#include "tinyobjloader/tiny_obj_loader.h"
 
 namespace rasterizer
 {

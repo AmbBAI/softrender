@@ -9,12 +9,12 @@ namespace rasterizer
 class Canvas;
 class Application
 {
-	Application();
+	Application() = default;
 
 public:
 	static Application* GetInstance();
 	typedef void(*LoopFunc)();
-	bool CreateApplication(int argc, char *argv[], const char* title, int width, int height);
+	bool CreateApplication(const char* title, int width, int height);
 
 	void SetRunLoop(LoopFunc loopFunc) { this->loopFunc = loopFunc; }
 	void RunLoop();
@@ -22,12 +22,12 @@ public:
 	Canvas* GetCanvas();
 
 private:
-	LoopFunc	loopFunc;
+	LoopFunc	loopFunc = nullptr;
 
-	int width;
-	int height;
-
-	bool isConsoleVisible;
+    GLFWwindow* window = nullptr;
+    
+	int width = 0;
+	int height = 0;
 };
 
 }
