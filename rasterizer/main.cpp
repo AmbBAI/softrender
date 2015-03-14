@@ -62,7 +62,7 @@ void MainLoop()
 	float s = 1;
 	while (true)
 	{
-		clock_t startTime = clock();
+		float startTime = app->GetTime();
 		canvas->Clear();
 
 		//int width = bump.GetWidth();
@@ -118,8 +118,8 @@ void MainLoop()
 
 		r += 0.1f;
 		//s *= 1.01f;
-		clock_t endTime = clock();
-		printf("%ld\n", endTime - startTime);
+		float endTime = app->GetTime();
+		printf("%.3f\n", endTime - startTime);
 	}
 
 }

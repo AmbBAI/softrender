@@ -18,6 +18,8 @@ public:
 
 	void SetRunLoop(LoopFunc loopFunc) { this->loopFunc = loopFunc; }
 	void RunLoop();
+    
+    float GetTime();
 
 	Canvas* GetCanvas();
 

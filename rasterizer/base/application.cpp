@@ -43,4 +43,9 @@ void Application::RunLoop()
     glfwTerminate();
 }
 
+float Application::GetTime()
+{
+    return (float) glfwGetTime();
+}
+    
 }
