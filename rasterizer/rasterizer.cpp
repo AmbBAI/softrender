@@ -7,6 +7,7 @@ Camera* Rasterizer::camera = nullptr;
 Canvas* Rasterizer::canvas = nullptr;
 Texture* Rasterizer::texture = nullptr;
 Texture* Rasterizer::normalMap = nullptr;
+std::vector<Rasterizer::Vertex> Rasterizer::vertices;
 
 
 rasterizer::Vector3 Rasterizer::lightDir = Vector3(-1.f, -1.f, -1.f).Normalize();
@@ -48,7 +49,7 @@ void Rasterizer::DrawLine(int x0, int x1, int y0, int y1, const Color32& color)
 
 	for (int x = x0, y = y0; x < x1; ++x)
 	{
-		Plot(x, y, color, steep);
+        steep ? Plot(y, x, color) : Plot(x, y, color);
 		error = error - deltaY;
 		if (error < 0)
 		{
@@ -130,15 +131,7 @@ void Rasterizer::Plot(int x, int y, const Color32& color, float alpha, bool swap
 
 	Color32 drawColor = color;
 	drawColor.a *= Mathf::Clamp01(alpha);
-	Plot(x, y, drawColor, swapXY);
-}
-
-void Rasterizer::Plot(int x, int y, const Color32& color, bool swapXY)
-{
-	assert(canvas != nullptr);
-
-	if (swapXY) Plot(y, x, color);
-	else Plot(x, y, color);
+    swapXY ? Plot(y, x, drawColor) : Plot(x, y, drawColor) ;
 }
 
 void Rasterizer::Plot(int x, int y, const Color32& color)
@@ -167,12 +160,6 @@ void Rasterizer::DrawMeshPoint(const Mesh& mesh, const Matrix4x4& transform, con
 		float x = (point.x + 1) * width / 2;
 		float y = (point.y + 1) * height / 2;
 		Plot(Mathf::RoundToInt(x), Mathf::RoundToInt(y), color);
-		//printf("%s => %s => %s => %s => (%.2f %.2f)\n",
-		//	mesh.vertices[i].ToString().c_str(),
-		//	posW.ToString().c_str(),
-		//	posC.ToString().c_str(),
-		//	point.ToString().c_str(),
-		//	x, y);
 	}
 }
 
@@ -209,66 +196,11 @@ void Rasterizer::DrawMeshWireFrame(const Mesh& mesh, const Matrix4x4& transform,
 		DrawLine(points[v2].x, points[v0].x, points[v2].y, points[v0].y, color);
 	}
 }
-//
-//void Rasterizer::DrawTriangle(const Color32& color, const Vector2& v0, const Vector2& v1, const Vector2& v2, Canvas* canvas)
-//{
-//	int minX = Mathf::FloorToInt(Mathf::Min(v0.x, v1.x, v2.x));
-//	int minY = Mathf::FloorToInt(Mathf::Min(v0.y, v1.y, v2.y));
-//	int maxX = Mathf::FloorToInt(Mathf::Max(v0.x, v1.x, v2.x));
-//	int maxY = Mathf::FloorToInt(Mathf::Max(v0.y, v1.y, v2.y));
-//
-//	float deltaX01 = v0.x - v1.x;
-//	float deltaX12 = v1.x - v2.x;
-//	float deltaX20 = v2.x - v0.x;
-//
-//	float deltaY01 = v0.y - v1.y;
-//	float deltaY12 = v1.y - v2.y;
-//	float deltaY20 = v2.y - v0.y;
-//
-//	Vector2 topLeft(minX, minY);
-//	float w0Row = Orient2D(v0, v1, topLeft);
-//	float w1Row = Orient2D(v1, v2, topLeft);
-//	float w2Row = Orient2D(v2, v0, topLeft);
-//
-//	//if (deltaY01 < 0 || (deltaY01 == 0 && deltaX01 < 0)) w0Row += 1.0f;
-//	//if (deltaY12 < 0 || (deltaY12 == 0 && deltaX12 < 0)) w1Row += 1.0f;
-//	//if (deltaY20 < 0 || (deltaY20 == 0 && deltaX20 < 0)) w2Row += 1.0f;
-//
-//	for (int y = minY; y <= maxY; ++y)
-//	{
-//		float w0 = w0Row;
-//		float w1 = w1Row;
-//		float w2 = w2Row;
-//
-//		for (int x = minX; x <= maxX; ++x)
-//		{
-//			if (w0 > 0 && w1 > 0 && w2 > 0)
-//			{
-//				Plot(x, y, color);
-//			}
-//
-//			w0 += deltaY01;
-//			w1 += deltaY12;
-//			w2 += deltaY20;
-//		}
-//
-//		w0Row -= deltaX01;
-//		w1Row -= deltaX12;
-//		w2Row -= deltaX20;
-//	}
-//}
-//
-
-float Rasterizer::Orient2D(const Vector2& v1, const Vector2& v2, const Vector2& p)
-{
-	return (v2.x - v1.x) * (p.y - v1.y) - (v2.y - v1.y) * (p.x - v1.x);
-}
 
 float Rasterizer::Orient2D(const Point2D& v1, const Point2D& v2, const Point2D& p)
 {
 	return (v2.x - v1.x) * (p.y - v1.y) - (v2.y - v1.y) * (p.x - v1.x);
 }
-
 
 void Rasterizer::DrawTriangle(const Point2D& v0, const Point2D& v1, const Point2D& v2, const Color32& color)
 {
@@ -415,8 +347,8 @@ void Rasterizer::DrawTriangle(const Vertex& v0, const Vertex& v1, const Vertex& 
 				{
 					canvas->SetDepth(x, y, depth);
 
-					Vector3 normal = v0.normal.Multiply(wz0).Add(v1.normal.Multiply(wz1)).Add(v2.normal.Multiply(wz2)).Normalize();
-					Vector3 tangent = v0.tangent.Multiply(wz0).Add(v1.tangent.Multiply(wz1)).Add(v2.tangent.Multiply(wz2)).Normalize();
+					Vector3 normal = (v0.normal * wz0 + v1.normal * wz1 + v2.normal * wz2).Normalize();
+					Vector3 tangent = (v0.tangent * wz0 + v1.tangent * wz1 + v2.tangent * wz2).Normalize();
 					Vector3 binormal = normal.Cross(tangent).Normalize();
 
 					Matrix4x4 tbn = Matrix4x4::TBN(tangent, binormal, normal);
@@ -426,8 +358,7 @@ void Rasterizer::DrawTriangle(const Vertex& v0, const Vertex& v1, const Vertex& 
 					//canvas->SetPixel(x, y, depth, normalColor);
 					//canvas->SetPixel(x, y, depth, tangentColor);
 
-					Vector2 uv = v0.texcoord.Multiply(wz0).Add(v1.texcoord.Multiply(wz1)).Add(v2.texcoord.Multiply(wz2));
-					uv = uv.Multiply(invW);
+					Vector2 uv = (v0.texcoord * wz0 + v1.texcoord * wz1 + v2.texcoord * wz2) * invW;
 
 					Color drawColor = color;
 
@@ -477,10 +408,10 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform, const Co
 
 	const Matrix4x4* view = camera->GetViewMatrix();
 	const Matrix4x4* projection = camera->GetProjectionMatrix();
+    Matrix4x4 mv = (*view).Multiply(transform);
 
 	// MVP
 	int vertexN = (int)mesh.vertices.size();
-	std::vector<Vertex> vertices;
 	vertices.resize(vertexN);
 
 	int i = 0;
@@ -489,8 +420,7 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform, const Co
 	{
 		Vertex vertex;
 
-		Vector3 posW = transform.MultiplyPoint3x4(mesh.vertices[i]);
-		Vector3 posC = view->MultiplyPoint(posW);
+		Vector3 posC = mv.MultiplyPoint3x4(mesh.vertices[i]);
 		vertex.position = posC;
 
 		Vector3 normal = transform.MultiplyVector(mesh.normals[i]).Normalize();
@@ -504,9 +434,15 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform, const Co
 		Vector3 posP = projection->MultiplyPoint(posC);
 		vertex.projection = posP;
 
-		vertex.vpPoint.x = Mathf::RoundToInt((posP.x + 1) * width / 2);
-		vertex.vpPoint.y = Mathf::RoundToInt((posP.y + 1) * height / 2);
-		vertex.vpPoint.depth = camera->GetLinearDepth(posC.z);
+        Point2D point;
+		point.x = Mathf::RoundToInt((posP.x + 1) * width / 2);
+		point.y = Mathf::RoundToInt((posP.y + 1) * height / 2);
+        point.depth = camera->GetLinearDepth(posC.z);
+        point.inView = true;
+        if (point.x < 0 || point.x >= width) point.inView = false;
+        if (point.y < 0 || point.y >= height) point.inView = false;
+        if (point.depth < 0 || point.depth > 1) point.inView = false;
+        vertex.vpPoint = point;
 
 		//printf("%s => %s => %s => %d, %d, %.10f\n",
 		//	mesh.vertices[i].ToString().c_str(),
@@ -531,11 +467,13 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform, const Co
 		face.v[1] = vertices[i1];
 		face.v[2] = vertices[i2];
 		
-		if (Orient2D(face.v[0].vpPoint, face.v[1].vpPoint, face.v[2].vpPoint) <= 0) continue;
-		//if (IsOutOfCamera(vertices[i0], vertices[i1], vertices[i2])) continue;
-
+        if (Orient2D(face.v[0].vpPoint, face.v[1].vpPoint, face.v[2].vpPoint) <= 0) continue;
+        if (!face.v[0].vpPoint.inView && !face.v[1].vpPoint.inView && !face.v[2].vpPoint.inView) continue;
+        
 		DrawTriangle(face.v[0], face.v[1], face.v[2], color);
 	}
+    
+    //printf("%d, %d\n", backFaceCull, cameraCull);
 }
 
 }

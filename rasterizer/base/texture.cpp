@@ -164,7 +164,7 @@ void Texture::UnparkBump(float strength/* = 2.0f*/)
 	//	}
 	//}
 
-	normals.assign(width * height, Vector3());
+    std::vector<Vector3> normals(width * height, Vector3());
 	for (int y = 0; y < height; ++y)
 	{
 		for (int x = 0; x < width; ++x)

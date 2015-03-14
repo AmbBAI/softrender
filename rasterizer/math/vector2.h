@@ -24,6 +24,11 @@ struct Vector2
 	const Vector2 Divide(float f) const;
 	const float Dot(const Vector2& v) const;
 
+    const Vector2 operator +(const Vector2& v) const { return Add(v); }
+    const Vector2 operator -(const Vector2& v) const { return Subtract(v); }
+    const Vector2 operator *(float f) const { return Multiply(f); }
+    const Vector2 operator /(float f) const { return Divide(f); }
+    
 	static const Vector2 zero;
 	static const Vector2 one;
 };

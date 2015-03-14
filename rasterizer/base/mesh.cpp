@@ -47,6 +47,9 @@ bool Mesh::LoadMesh(std::vector<Mesh>& meshes, const char* file)
 
 void Mesh::RecalculateNormals()
 {
+    normals.clear();
+    tangents.clear();
+    
 	u32 vertexCount = vertices.size();
 	normals.assign(vertexCount, Vector3::zero);
 	tangents.assign(vertexCount, Vector4());
@@ -58,16 +61,16 @@ void Mesh::RecalculateNormals()
 		int v1 = indices[i + 1];
 		int v2 = indices[i + 2];
 
-		Vector3 edge1 = vertices[v1].Subtract(vertices[v0]);
-		Vector3 edge2 = vertices[v2].Subtract(vertices[v0]);
+		Vector3 edge1 = vertices[v1] - vertices[v0];
+		Vector3 edge2 = vertices[v2] - vertices[v0];
 
 		Vector3 normal = edge1.Cross(edge2);
-		normals[v0] = normals[v0].Add(normal);
-		normals[v1] = normals[v1].Add(normal);
-		normals[v2] = normals[v2].Add(normal);
+		normals[v0] = normals[v0] + normal;
+		normals[v1] = normals[v1] + normal;
+		normals[v2] = normals[v2] + normal;
 
-		Vector2 st1 = texcoords[v1].Subtract(texcoords[v0]);
-		Vector2 st2 = texcoords[v2].Subtract(texcoords[v0]);
+		Vector2 st1 = texcoords[v1] - texcoords[v0];
+		Vector2 st2 = texcoords[v2] - texcoords[v0];
 
 		float r = 1.f / (st1.x * st2.y - st2.x * st1.y);
 		Vector3 dir1 = Vector3(

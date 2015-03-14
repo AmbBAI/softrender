@@ -36,7 +36,7 @@ const Color Color::Modulate(const Color& c) const
 const Color Color::Lerp(const Color& a, const Color& b, float t)
 {
 	t = Mathf::Clamp01(t);
-	Color color = Color();
+	Color color;
 	color.a = a.a * (1 - t) + b.a * t;
 	color.r = a.r * (1 - t) + b.r * t;
 	color.g = a.g * (1 - t) + b.g * t;
@@ -68,7 +68,6 @@ Color32::Color32(u8 _a, u8 _r, u8 _g, u8 _b)
 	, g(_g)
 	, b(_b)
 {
-	//printf("%x %x %x %x %x - %d\n", a, r, g, b, argb, sizeof(Color));
 }
 
 Color32::operator Color() const
