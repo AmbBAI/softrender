@@ -62,7 +62,7 @@ struct Rasterizer
 private:
 	static float FloatPart(float v);
 	static int IntPart(float v);
-	static float Orient2D(const Point2D& v1, const Point2D& v2, const Point2D& p);
+	static int Orient2D(const Point2D& v1, const Point2D& v2, const Point2D& p);
 	static void Plot(int x, int y, const Color32& color);
 	static void Plot(int x, int y, const Color32& color, float alpha, bool swapXY = false);
     

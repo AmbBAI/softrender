@@ -27,21 +27,28 @@ public:
 	static float Round(float f);
 	static int RoundToInt(float f);
 
-
-	static int Clamp(int value, int min, int max);
-	static float Clamp(float value, float min, float max);
+	template<class T>
+	static T Clamp(T value, T min, T max);
 	static float Clamp01(float value);
 	static float Repeat(float t, float length);
 	static float PingPong(float t, float length);
 
-	static float Min(float a, float b);
-	static float Min(float a, float b, float c);
-	static float Min(const float* values, int count);
-	static float Min(const std::vector<float>& values);
-	static float Max(float a, float b);
-	static float Max(float a, float b, float c);
-	static float Max(const float* values, int count);
-	static float Max(const std::vector<float>& values);
+	template<class T>
+	static T Min(T a, T b);
+	template<class T>
+	static T Min(T a, T b, T c);
+	template<class T>
+	static T MinElement(const T* values, int count);
+	template<class T>
+	static T MinElement(const std::vector<T>& values);
+	template<class T>
+	static T Max(T a, T b);
+	template<class T>
+	static T Max(T a, T b, T c);
+	template<class T>
+	static T MaxElement(const T* values, int count);
+	template<class T>
+	static T MaxElement(const std::vector<T>& values);
 
 	static float Sqrt(float value);
 	static float Pow(float f, float p);
@@ -59,8 +66,9 @@ public:
 	static float Acos(float f);
 	static float Atan(float f);
 	static float Atan2(float y, float x);
-
 };
+
+#include "mathf.inl"
 
 } // namespace rasterizer
 

@@ -53,16 +53,6 @@ int Mathf::RoundToInt(float f)
 	return (int)(Mathf::Round(f) + Mathf::epsilon);
 }
 
-float Mathf::Clamp(float value, float min, float max)
-{
-	return value > max ? max : Mathf::Max(value, min);
-}
-
-int Mathf::Clamp(int value, int min, int max)
-{
-	return value > max ? max : (value < min ? min : value);
-}
-
 float Mathf::Clamp01(float value)
 {
 	return Mathf::Clamp(value, 0.f, 1.f);
@@ -101,47 +91,6 @@ float Mathf::PingPong(float t, float length)
 	float ret = t - Mathf::Floor(fTDivL) * length;
 	if (ifTDivL & 1) return negative ? -ret : ret ;
 	else return negative ? ret - length : length - ret;
-}
-
-float Mathf::Min(float a, float b)
-{
-	return ::fmin(a, b);
-}
-float Mathf::Min(float a, float b, float c)
-{
-	return Mathf::Min(a, Mathf::Min(b, c));
-}
-float Mathf::Min(const float* values, int count) 
-{
-	assert(values != nullptr);
-	assert(count > 0);
-
-	return *std::min_element(values, values + count);
-}
-float Mathf::Min(const std::vector<float>& values)
-{
-	return *std::min_element(values.begin(), values.end());
-}
-
-
-float Mathf::Max(float a, float b)
-{
-	return ::fmax(a, b);
-}
-float Mathf::Max(float a, float b, float c)
-{
-	return Mathf::Max(a, Mathf::Max(b, c));
-}
-float Mathf::Max(const float* values, int count)
-{
-	assert(values != nullptr);
-	assert(count > 0);
-
-	return *std::max_element(values, values + count);
-}
-float Mathf::Max(const std::vector<float>& values)
-{
-	return *std::max_element(values.begin(), values.end());
 }
 
 float Mathf::Sin(float f)

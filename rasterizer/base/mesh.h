@@ -16,6 +16,7 @@ struct Mesh
 	static bool LoadMesh(std::vector<Mesh>& meshes, const char* file);
 
 	void RecalculateNormals();
+	void CalculateTangents();
 
 	std::vector<Vector3> vertices;
 	std::vector<u32> indices;

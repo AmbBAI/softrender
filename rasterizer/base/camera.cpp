@@ -32,6 +32,7 @@ bool Camera::SetOrthographic(float left, float right, float bottom, float top, f
 	this->zFar = zFar;
 	this->zNear = zNear;
 	projectionMatrix = Matrix4x4::Orthographic(left, right, bottom, top, zFar, zFar);
+	return true;
 }
 
 float Camera::GetLinearDepth(float viewZ) const

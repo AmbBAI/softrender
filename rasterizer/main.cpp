@@ -50,7 +50,8 @@ void MainLoop()
 
 	for (int i = 0; i < (int)meshes.size(); ++i)
 	{
-		meshes[i].RecalculateNormals();
+		if (meshes[i].normals.size() <= 0)
+			meshes[i].RecalculateNormals();
 	}
 
 	Rasterizer::canvas = canvas;

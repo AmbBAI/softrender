@@ -86,7 +86,7 @@ void Rasterizer::DrawSmoothLine(float x0, float x1, float y0, float y1, const Co
 
 	xend = Mathf::Round(x0);
 	yend = y0 + gradient * (xend - x0);
-	xgap = 1.f - FloatPart(x0 + 0.5);
+	xgap = 1.f - FloatPart(x0 + 0.5f);
 	xpxl1 = Mathf::RoundToInt(xend);
 	ypxl1 = IntPart(yend);
 	yfpart = FloatPart(yend);
@@ -96,7 +96,7 @@ void Rasterizer::DrawSmoothLine(float x0, float x1, float y0, float y1, const Co
 
 	xend = Mathf::Round(x1);
 	yend = y1 + gradient * (xend - x1);
-	xgap = 1.f - FloatPart(x1 + 0.5);
+	xgap = 1.f - FloatPart(x1 + 0.5f);
 	xpxl2 = Mathf::RoundToInt(xend);
 	ypxl2 = IntPart(yend);
 	yfpart = FloatPart(yend);
@@ -130,7 +130,7 @@ void Rasterizer::Plot(int x, int y, const Color32& color, float alpha, bool swap
 	assert(canvas != nullptr);
 
 	Color32 drawColor = color;
-	drawColor.a *= Mathf::Clamp01(alpha);
+	drawColor.a = (u8)(drawColor.a * Mathf::Clamp01(alpha));
     swapXY ? Plot(y, x, drawColor) : Plot(x, y, drawColor) ;
 }
 
@@ -197,7 +197,7 @@ void Rasterizer::DrawMeshWireFrame(const Mesh& mesh, const Matrix4x4& transform,
 	}
 }
 
-float Rasterizer::Orient2D(const Point2D& v1, const Point2D& v2, const Point2D& p)
+int Rasterizer::Orient2D(const Point2D& v1, const Point2D& v2, const Point2D& p)
 {
 	return (v2.x - v1.x) * (p.y - v1.y) - (v2.y - v1.y) * (p.x - v1.x);
 }
@@ -222,9 +222,9 @@ void Rasterizer::DrawTriangle(const Point2D& v0, const Point2D& v1, const Point2
 	int w1Row = Orient2D(v1, v2, topLeft);
 	int w2Row = Orient2D(v2, v0, topLeft);
 
-	if (deltaY01 < 0 || (deltaY01 == 0 && deltaX01 < 0)) w0Row += 1.0f;
-	if (deltaY12 < 0 || (deltaY12 == 0 && deltaX12 < 0)) w1Row += 1.0f;
-	if (deltaY20 < 0 || (deltaY20 == 0 && deltaX20 < 0)) w2Row += 1.0f;
+	if (deltaY01 < 0 || (deltaY01 == 0 && deltaX01 < 0)) w0Row += 1;
+	if (deltaY12 < 0 || (deltaY12 == 0 && deltaX12 < 0)) w1Row += 1;
+	if (deltaY20 < 0 || (deltaY20 == 0 && deltaX20 < 0)) w2Row += 1;
 
 	for (int y = minY; y <= maxY; ++y)
 	{
@@ -318,9 +318,9 @@ void Rasterizer::DrawTriangle(const Vertex& v0, const Vertex& v1, const Vertex& 
 	int w1Row = Orient2D(v1.vpPoint, v2.vpPoint, topLeft);
 	int w2Row = Orient2D(v2.vpPoint, v0.vpPoint, topLeft);
 
-	if (deltaY01 < 0 || (deltaY01 == 0 && deltaX01 < 0)) w0Row += 1.0f;
-	if (deltaY12 < 0 || (deltaY12 == 0 && deltaX12 < 0)) w1Row += 1.0f;
-	if (deltaY20 < 0 || (deltaY20 == 0 && deltaX20 < 0)) w2Row += 1.0f;
+	if (deltaY01 < 0 || (deltaY01 == 0 && deltaX01 < 0)) w0Row += 1;
+	if (deltaY12 < 0 || (deltaY12 == 0 && deltaX12 < 0)) w1Row += 1;
+	if (deltaY20 < 0 || (deltaY20 == 0 && deltaX20 < 0)) w2Row += 1;
 
 	float invZ0 = 1 / v0.vpPoint.depth;
 	float invZ1 = 1 / v1.vpPoint.depth;
@@ -339,7 +339,7 @@ void Rasterizer::DrawTriangle(const Vertex& v0, const Vertex& v1, const Vertex& 
 				float wz0 = w1 * invZ0;
 				float wz1 = w2 * invZ1;
 				float wz2 = w0 * invZ2;
-				float invW = 1.0 / (wz0 + wz1 + wz2);
+				float invW = 1.0f / (wz0 + wz1 + wz2);
 
 				float depth = v0.vpPoint.depth * wz0 + v1.vpPoint.depth * wz1 + v2.vpPoint.depth * wz2;
 				depth *= invW;
@@ -376,7 +376,7 @@ void Rasterizer::DrawTriangle(const Vertex& v0, const Vertex& v1, const Vertex& 
 						normalColor = Color(1, (normal.x + 1) / 2, (normal.y + 1) / 2, (normal.z + 1) / 2);
 					}
 
-					float lightVal = Mathf::Max(0, normal.Dot(lightDir.Negate()));
+					float lightVal = Mathf::Max(0.f, normal.Dot(lightDir.Negate()));
 					drawColor = drawColor.Multiply(lightVal);
 
 					canvas->SetPixel(x, y, drawColor);

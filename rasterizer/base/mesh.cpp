@@ -40,6 +40,13 @@ bool Mesh::LoadMesh(std::vector<Mesh>& meshes, const char* file)
 		{
 			mesh.texcoords.push_back(Vector2(texcoords[i], texcoords[i + 1]));
 		}
+
+		if (mesh.normals.size() == mesh.vertices.size()
+			&& mesh.texcoords.size() == mesh.vertices.size())
+		{
+			mesh.CalculateTangents();
+		}
+
 		meshes.push_back(mesh);
 	}
 	return true;
@@ -48,13 +55,9 @@ bool Mesh::LoadMesh(std::vector<Mesh>& meshes, const char* file)
 void Mesh::RecalculateNormals()
 {
     normals.clear();
-    tangents.clear();
     
 	u32 vertexCount = vertices.size();
 	normals.assign(vertexCount, Vector3::zero);
-	tangents.assign(vertexCount, Vector4());
-	std::vector<Vector3> tan1(vertexCount, Vector3::zero);
-	std::vector<Vector3> tan2(vertexCount, Vector3::zero);
 	for (int i = 0; i + 2 < (int)indices.size(); i += 3)
 	{
 		int v0 = indices[i];
@@ -68,6 +71,32 @@ void Mesh::RecalculateNormals()
 		normals[v0] = normals[v0] + normal;
 		normals[v1] = normals[v1] + normal;
 		normals[v2] = normals[v2] + normal;
+	}
+
+	for (int i = 0; i < (int)vertexCount; ++i)
+	{
+		normals[i] = normals[i].Normalize();
+	}
+
+	CalculateTangents();
+}
+
+void Mesh::CalculateTangents()
+{
+	tangents.clear();
+
+	u32 vertexCount = normals.size();
+	tangents.assign(vertexCount, Vector3::zero);
+	std::vector<Vector3> tan1(vertexCount, Vector3::zero);
+	std::vector<Vector3> tan2(vertexCount, Vector3::zero);
+	for (int i = 0; i + 2 < (int)indices.size(); i += 3)
+	{
+		int v0 = indices[i];
+		int v1 = indices[i + 1];
+		int v2 = indices[i + 2];
+
+		Vector3 edge1 = vertices[v1] - vertices[v0];
+		Vector3 edge2 = vertices[v2] - vertices[v0];
 
 		Vector2 st1 = texcoords[v1] - texcoords[v0];
 		Vector2 st2 = texcoords[v2] - texcoords[v0];
@@ -94,9 +123,8 @@ void Mesh::RecalculateNormals()
 
 	for (int i = 0; i < (int)vertexCount; ++i)
 	{
-		normals[i] = normals[i].Normalize();
 		tangents[i] = (tan1[i] - normals[i] * normals[i].Dot(tan1[i])).Normalize();
-		float w = normals[i].Cross(tan1[i]).Dot(tan2[i]) < 0.f ? -1.f : 1.f ;
+		float w = normals[i].Cross(tan1[i]).Dot(tan2[i]) < 0.f ? -1.f : 1.f;
 		Vector3 binormal = normals[i].Cross(tangents[i]).Multiply(w);
 		tangents[i] = binormal.Cross(normals[i]);
 	}
