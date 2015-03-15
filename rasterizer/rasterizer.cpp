@@ -300,37 +300,57 @@ void Rasterizer::DrawMeshColor(const Mesh& mesh, const Matrix4x4& transform, con
 
 void Rasterizer::DrawTriangle(const Vertex& v0, const Vertex& v1, const Vertex& v2, const Color& color)
 {
-	int minX = Mathf::Min(v0.vpPoint.x, v1.vpPoint.x, v2.vpPoint.x);
-	int minY = Mathf::Min(v0.vpPoint.y, v1.vpPoint.y, v2.vpPoint.y);
-	int maxX = Mathf::Max(v0.vpPoint.x, v1.vpPoint.x, v2.vpPoint.x);
-	int maxY = Mathf::Max(v0.vpPoint.y, v1.vpPoint.y, v2.vpPoint.y);
+	int minX = Mathf::Min(v0.point.x, v1.point.x, v2.point.x);
+	int minY = Mathf::Min(v0.point.y, v1.point.y, v2.point.y);
+	int maxX = Mathf::Max(v0.point.x, v1.point.x, v2.point.x);
+	int maxY = Mathf::Max(v0.point.y, v1.point.y, v2.point.y);
 
-	int deltaX01 = v0.vpPoint.x - v1.vpPoint.x;
-	int deltaX12 = v1.vpPoint.x - v2.vpPoint.x;
-	int deltaX20 = v2.vpPoint.x - v0.vpPoint.x;
+	int deltaX01 = v0.point.x - v1.point.x;
+	int deltaX12 = v1.point.x - v2.point.x;
+	int deltaX20 = v2.point.x - v0.point.x;
 
-	int deltaY01 = v0.vpPoint.y - v1.vpPoint.y;
-	int deltaY12 = v1.vpPoint.y - v2.vpPoint.y;
-	int deltaY20 = v2.vpPoint.y - v0.vpPoint.y;
+	int deltaY01 = v0.point.y - v1.point.y;
+	int deltaY12 = v1.point.y - v2.point.y;
+	int deltaY20 = v2.point.y - v0.point.y;
 
 	Point2D topLeft(minX, minY);
-	int w0Row = Orient2D(v0.vpPoint, v1.vpPoint, topLeft);
-	int w1Row = Orient2D(v1.vpPoint, v2.vpPoint, topLeft);
-	int w2Row = Orient2D(v2.vpPoint, v0.vpPoint, topLeft);
+	int w0Row = Orient2D(v0.point, v1.point, topLeft);
+	int w1Row = Orient2D(v1.point, v2.point, topLeft);
+	int w2Row = Orient2D(v2.point, v0.point, topLeft);
 
 	if (deltaY01 < 0 || (deltaY01 == 0 && deltaX01 < 0)) w0Row += 1;
 	if (deltaY12 < 0 || (deltaY12 == 0 && deltaX12 < 0)) w1Row += 1;
 	if (deltaY20 < 0 || (deltaY20 == 0 && deltaX20 < 0)) w2Row += 1;
 
-	float invZ0 = 1 / v0.vpPoint.depth;
-	float invZ1 = 1 / v1.vpPoint.depth;
-	float invZ2 = 1 / v2.vpPoint.depth;
+	int startW0 = w0Row;
+	int startW1 = w1Row;
+	int startW2 = w2Row;
+	if (minY < 0)
+	{
+		startW0 -= deltaX01 * (-minY);
+		startW1 -= deltaX12 * (-minY);
+		startW2 -= deltaX20 * (-minY);
+		minY = 0;
+	}
+	if (minX < 0)
+	{
+		startW0 += deltaY01 * (-minX);
+		startW1 += deltaY12 * (-minX);
+		startW2 += deltaY20 * (-minX);
+		minX = 0;
+	}
+	maxX = Mathf::Min(maxX, canvas->GetWidth() - 1);
+	maxY = Mathf::Min(maxY, canvas->GetHeight() - 1);
+
+	float invZ0 = 1 / v0.point.depth;
+	float invZ1 = 1 / v1.point.depth;
+	float invZ2 = 1 / v2.point.depth;
 
 	for (int y = minY; y <= maxY; ++y)
 	{
-		int w0 = w0Row;
-		int w1 = w1Row;
-		int w2 = w2Row;
+		int w0 = startW0;
+		int w1 = startW1;
+		int w2 = startW2;
 
 		for (int x = minX; x <= maxX; ++x)
 		{
@@ -341,7 +361,7 @@ void Rasterizer::DrawTriangle(const Vertex& v0, const Vertex& v1, const Vertex& 
 				float wz2 = w0 * invZ2;
 				float invW = 1.0f / (wz0 + wz1 + wz2);
 
-				float depth = v0.vpPoint.depth * wz0 + v1.vpPoint.depth * wz1 + v2.vpPoint.depth * wz2;
+				float depth = v0.point.depth * wz0 + v1.point.depth * wz1 + v2.point.depth * wz2;
 				depth *= invW;
 				if (depth < canvas->GetDepth(x, y))
 				{
@@ -392,9 +412,9 @@ void Rasterizer::DrawTriangle(const Vertex& v0, const Vertex& v1, const Vertex& 
 			w2 += deltaY20;
 		}
 
-		w0Row -= deltaX01;
-		w1Row -= deltaX12;
-		w2Row -= deltaX20;
+		startW0 -= deltaX01;
+		startW1 -= deltaX12;
+		startW2 -= deltaX20;
 	}
 }
 
@@ -442,7 +462,7 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform, const Co
         if (point.x < 0 || point.x >= width) point.inView = false;
         if (point.y < 0 || point.y >= height) point.inView = false;
         if (point.depth < 0 || point.depth > 1) point.inView = false;
-        vertex.vpPoint = point;
+        vertex.point = point;
 
 		//printf("%s => %s => %s => %d, %d, %.10f\n",
 		//	mesh.vertices[i].ToString().c_str(),
@@ -467,8 +487,8 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform, const Co
 		face.v[1] = vertices[i1];
 		face.v[2] = vertices[i2];
 		
-        if (Orient2D(face.v[0].vpPoint, face.v[1].vpPoint, face.v[2].vpPoint) <= 0) continue;
-        if (!face.v[0].vpPoint.inView && !face.v[1].vpPoint.inView && !face.v[2].vpPoint.inView) continue;
+        if (Orient2D(face.v[0].point, face.v[1].point, face.v[2].point) <= 0) continue;
+        if (!face.v[0].point.inView && !face.v[1].point.inView && !face.v[2].point.inView) continue;
         
 		DrawTriangle(face.v[0], face.v[1], face.v[2], color);
 	}

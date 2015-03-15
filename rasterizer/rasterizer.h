@@ -35,7 +35,7 @@ struct Rasterizer
 		Vector3 tangent = Vector3::right;
 		Vector2 texcoord = Vector2::zero;
 		Vector3 projection = Vector3::zero;
-		Point2D vpPoint = Point2D(0, 0);
+		Point2D point = Point2D(0, 0);
 	};
 
 	struct Face
