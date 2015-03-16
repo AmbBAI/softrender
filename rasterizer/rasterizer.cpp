@@ -313,34 +313,19 @@ void Rasterizer::DrawTriangle(const Vertex& v0, const Vertex& v1, const Vertex& 
 	int deltaY12 = v1.point.y - v2.point.y;
 	int deltaY20 = v2.point.y - v0.point.y;
 
-	Point2D topLeft(minX, minY);
-	int w0Row = Orient2D(v0.point, v1.point, topLeft);
-	int w1Row = Orient2D(v1.point, v2.point, topLeft);
-	int w2Row = Orient2D(v2.point, v0.point, topLeft);
-
-	if (deltaY01 < 0 || (deltaY01 == 0 && deltaX01 < 0)) w0Row += 1;
-	if (deltaY12 < 0 || (deltaY12 == 0 && deltaX12 < 0)) w1Row += 1;
-	if (deltaY20 < 0 || (deltaY20 == 0 && deltaX20 < 0)) w2Row += 1;
-
-	int startW0 = w0Row;
-	int startW1 = w1Row;
-	int startW2 = w2Row;
-	if (minY < 0)
-	{
-		startW0 -= deltaX01 * (-minY);
-		startW1 -= deltaX12 * (-minY);
-		startW2 -= deltaX20 * (-minY);
-		minY = 0;
-	}
-	if (minX < 0)
-	{
-		startW0 += deltaY01 * (-minX);
-		startW1 += deltaY12 * (-minX);
-		startW2 += deltaY20 * (-minX);
-		minX = 0;
-	}
+	if (minY < 0) minY = 0;
+	if (minX < 0) minX = 0;
 	maxX = Mathf::Min(maxX, canvas->GetWidth() - 1);
 	maxY = Mathf::Min(maxY, canvas->GetHeight() - 1);
+
+	Point2D topLeft(minX, minY);
+	int startW0 = Orient2D(v0.point, v1.point, topLeft);
+	int startW1 = Orient2D(v1.point, v2.point, topLeft);
+	int startW2 = Orient2D(v2.point, v0.point, topLeft);
+
+	if (deltaY01 < 0 || (deltaY01 == 0 && deltaX01 < 0)) startW0 += 1;
+	if (deltaY12 < 0 || (deltaY12 == 0 && deltaX12 < 0)) startW1 += 1;
+	if (deltaY20 < 0 || (deltaY20 == 0 && deltaX20 < 0)) startW2 += 1;
 
 	float invZ0 = 1 / v0.point.depth;
 	float invZ1 = 1 / v1.point.depth;
