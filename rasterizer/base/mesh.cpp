@@ -5,7 +5,7 @@
 namespace rasterizer
 {
 
-bool Mesh::LoadMesh(std::vector<Mesh>& meshes, const char* file)
+bool Mesh::LoadMesh(std::vector<MeshPtr>& meshes, const char* file)
 {
 	std::vector<tinyobj::shape_t> shape;
 	std::vector<tinyobj::material_t> material;
@@ -17,6 +17,19 @@ bool Mesh::LoadMesh(std::vector<Mesh>& meshes, const char* file)
 		return false;
 	}
 
+	std::vector<MaterialPtr> materials;
+	for (int i = 0; i < (int)material.size(); ++i)
+	{
+		tinyobj::material_t& m = material[i];
+		MaterialPtr newM(new Material());
+		newM->ambient = Color(1.f, m.ambient[0], m.ambient[1], m.ambient[2]);
+		newM->diffuse = Color(1.f, m.diffuse[0], m.diffuse[1], m.diffuse[2]);
+		newM->specular = Color(1.f, m.ambient[0], m.ambient[1], m.ambient[2]);
+		newM->shininess = m.shininess;
+		newM->emission = Color(1.f, m.emission[0], m.emission[1], m.emission[2]);
+		materials.push_back(newM);
+	}
+
 	meshes.clear();
 	for (int s = 0; s < (int)shape.size(); ++s)
 	{
@@ -26,25 +39,32 @@ bool Mesh::LoadMesh(std::vector<Mesh>& meshes, const char* file)
 		std::vector<u32>& indices = subMesh.indices;
 		std::vector<float>& texcoords = subMesh.texcoords;
 
-		Mesh mesh;
+		MeshPtr mesh(new Mesh());
 		for (int i = 0; i + 2 < (int)positions.size(); i += 3)
 		{
-			mesh.vertices.push_back(Vector3(positions[i], positions[i + 1], positions[i + 2]));
+			mesh->vertices.push_back(Vector3(positions[i], positions[i + 1], positions[i + 2]));
 		}
-		mesh.indices.assign(indices.begin(), indices.end());
+		mesh->indices.assign(indices.begin(), indices.end());
 		for (int i = 0; i + 2 < (int)normals.size(); i += 3)
 		{
-			mesh.normals.push_back(Vector3(normals[i], normals[i + 1], normals[i + 2]));
+			mesh->normals.push_back(Vector3(normals[i], normals[i + 1], normals[i + 2]));
 		}
 		for (int i = 0; i + 1 < (int)texcoords.size(); i += 2)
 		{
-			mesh.texcoords.push_back(Vector2(texcoords[i], texcoords[i + 1]));
+			mesh->texcoords.push_back(Vector2(texcoords[i], texcoords[i + 1]));
 		}
 
-		if (mesh.normals.size() == mesh.vertices.size()
-			&& mesh.texcoords.size() == mesh.vertices.size())
+		if (mesh->normals.size() == mesh->vertices.size()
+			&& mesh->texcoords.size() == mesh->vertices.size())
 		{
-			mesh.CalculateTangents();
+			mesh->CalculateTangents();
+		}
+
+		for (int i = 0; i < (int)subMesh.material_ids.size(); ++i)
+		{
+			int id = subMesh.material_ids[i];
+			if (id < 0 || id >= (int) materials.size()) continue;
+			mesh->materials.push_back(materials[id]);
 		}
 
 		meshes.push_back(mesh);

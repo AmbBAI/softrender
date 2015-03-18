@@ -45,9 +45,9 @@ struct Rasterizer
 
 	static Vector3 lightDir;
 	static Canvas* canvas;
-	static Camera* camera;
-	static Texture* texture;
-	static Texture* normalMap;
+	static CameraPtr camera;
+	static TexturePtr texture;
+	static TexturePtr normalMap;
 
 	static void DrawLine(int x0, int x1, int y0, int y1, const Color32& color);
 	static void DrawSmoothLine(float x0, float x1, float y0, float y1, const Color32& color);

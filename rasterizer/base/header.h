@@ -10,8 +10,10 @@
 #include <cfloat>
 #include <cassert>
 
+#include <memory>
 #include <string>
 #include <vector>
+#include <map>
 #include <algorithm>
 
 #include "glfw/include/GLFW/glfw3.h"

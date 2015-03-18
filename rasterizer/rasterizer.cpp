@@ -3,10 +3,10 @@
 namespace rasterizer
 {
 
-Camera* Rasterizer::camera = nullptr;
 Canvas* Rasterizer::canvas = nullptr;
-Texture* Rasterizer::texture = nullptr;
-Texture* Rasterizer::normalMap = nullptr;
+CameraPtr Rasterizer::camera;
+TexturePtr Rasterizer::texture;
+TexturePtr Rasterizer::normalMap;
 std::vector<Rasterizer::Vertex> Rasterizer::vertices;
 
 
@@ -480,5 +480,4 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform, const Co
     
     //printf("%d, %d\n", backFaceCull, cameraCull);
 }
-
 }

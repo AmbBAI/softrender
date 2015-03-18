@@ -8,8 +8,12 @@
 namespace rasterizer
 {
 
+struct Camera;
+typedef std::shared_ptr<Camera> CameraPtr;
+
 struct Camera
 {
+public:
 	void SetLookAt(const Vector3& eye, const Vector3& target, const Vector3& up);
 	const Matrix4x4* GetViewMatrix() const;
 

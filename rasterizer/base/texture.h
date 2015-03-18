@@ -8,37 +8,51 @@
 namespace rasterizer
 {
 
-struct Texture
+class Texture;
+typedef std::shared_ptr<Texture> TexturePtr;
+
+class Texture
 {
+public:
+	enum AddressMode
+	{
+		AddressMode_Warp,
+		AddressMode_Clamp,
+		AddressMode_Mirror,
+	};
+
+	enum TextureType
+	{
+		TextureType_Texture,
+		TextureType_NormalMap,
+	};
+
+public:
 	static void Initialize();
 	static void Finalize();
 
-	static bool LoadTexture(Texture& texture, const char* file);
-	static void UnloadTexture(Texture& texture);
+	static TexturePtr LoadTexture(const char* file);
+	static std::map<std::string, TexturePtr> texturePool;
 
-	enum AddressMode
-	{
-		Warp,
-		Clamp,
-		Mirror,
-	};
+public:
+	Texture() = default;
+	virtual ~Texture() = default;
 
+public:
 	int GetWidth();
 	int GetHeight();
 
 	void UnparkColor();
 	void UnparkBump(float strength = 2.0f);
 
-	const Color32 GetColor(int x, int y) const;
+	const Color GetColor(int x, int y) const;
 	const Color Sample(float u, float v) const;
-
-	AddressMode addressMode = Warp;
 
 protected:
 	int width = 0;
 	int height = 0;
-	void* imageHandle = nullptr;
-	std::vector<Color32> colors;
+	AddressMode addressMode = AddressMode_Warp;
+	std::vector<Color> colors;
 };
 
 }

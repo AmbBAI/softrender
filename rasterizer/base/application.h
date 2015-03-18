@@ -10,6 +10,7 @@ class Canvas;
 class Application
 {
 	Application() = default;
+	~Application();
 
 public:
 	static Application* GetInstance();
@@ -30,6 +31,8 @@ private:
     
 	int width = 0;
 	int height = 0;
+
+	Canvas* canvas = nullptr;
 };
 
 }

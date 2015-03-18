@@ -10,6 +10,21 @@ Application* Application::GetInstance()
 	return &_GlobalApplication;
 }
 
+Application::~Application()
+{
+	if (window != nullptr)
+	{
+		glfwDestroyWindow(window);
+		window = nullptr;
+	}
+
+	if (canvas != nullptr)
+	{
+		delete canvas;
+		canvas = nullptr;
+	}
+}
+
 bool Application::CreateApplication(const char* title, int width, int height)
 {
     if (!glfwInit()) return false;
@@ -28,7 +43,10 @@ bool Application::CreateApplication(const char* title, int width, int height)
 
 Canvas* Application::GetCanvas()
 {
-	Canvas* canvas = new Canvas(width, height);
+	if (canvas == nullptr)
+	{
+		canvas = new Canvas(width, height);
+	}
 	return canvas;
 }
 
@@ -47,5 +65,5 @@ float Application::GetTime()
 {
     return (float) glfwGetTime();
 }
-    
+
 }

@@ -5,15 +5,19 @@
 #include "math/vector2.h"
 #include "math/vector3.h"
 #include "math/vector4.h"
+#include "base/material.h"
 
 namespace rasterizer
 {
+
+struct Mesh;
+typedef std::shared_ptr<Mesh> MeshPtr;
 
 struct Mesh
 {
 	Mesh() = default;
 	
-	static bool LoadMesh(std::vector<Mesh>& meshes, const char* file);
+	static bool LoadMesh(std::vector<MeshPtr>& meshes, const char* file);
 
 	void RecalculateNormals();
 	void CalculateTangents();
@@ -23,6 +27,7 @@ struct Mesh
 	std::vector<Vector3> normals;
 	std::vector<Vector3> tangents;
 	std::vector<Vector2> texcoords;
+	std::vector<MaterialPtr> materials;
 };
 
 }
