@@ -31,7 +31,8 @@ public:
 	static void Initialize();
 	static void Finalize();
 
-	static TexturePtr LoadTexture(const char* file);
+	static TexturePtr CreateTexture(const char* file);
+    static TexturePtr LoadTexture(const char* file);
 	static std::map<std::string, TexturePtr> texturePool;
 
 public:
@@ -42,8 +43,8 @@ public:
 	int GetWidth();
 	int GetHeight();
 
-	void UnparkColor();
-	void UnparkBump(float strength = 2.0f);
+	bool UnparkColor(u8* bytes, u32 width, u32 height, u32 pitch, u32 bpp);
+	void ConvertBumpToNormal(float strength = 2.0f);
 
 	const Color GetColor(int x, int y) const;
 	const Color Sample(float u, float v) const;

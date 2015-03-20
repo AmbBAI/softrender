@@ -16,51 +16,53 @@ int main(int argc, char *argv[])
 }
 
 CameraPtr CreateCamera();
-
-Mesh Plane();
+MeshPtr CreatePlane();
+MeshPtr mesh;
 void MainLoop()
 {
-	Rasterizer::camera = CreateCamera();
+    if (mesh == nullptr)
+    {
+        Rasterizer::canvas = canvas;
+        Rasterizer::camera = CreateCamera();
 
-	Vector3 position = Vector3::zero;
-	Vector3 scale = Vector3::one;
-	std::vector<MeshPtr> meshes;
-	//Mesh::LoadMesh(meshes, "resources/cube/cube.obj");
-	//position = Vector3(0, 0, 0);
-	//scale = Vector3(20, 20, 20);
-	//Mesh::LoadMesh(meshes, "resources/teapot/teapot.obj");
-	//position = Vector3(0, -50, 0);
-	//scale = Vector3(1, 1, 1);
-	Mesh::LoadMesh(meshes, "resources/head/head.obj");
-	position = Vector3(0, 0, 0);
-	scale = Vector3(400, 400, 400);
-	//meshes.push_back(Plane());
-	//position = Vector3(0, 0, -100.3/2);
-	//scale = Vector3(50, 50, 50);
+        mesh = CreatePlane();
 
-	for (int i = 0; i < (int)meshes.size(); ++i)
-	{
-		if (meshes[i]->normals.size() <= 0)
-			meshes[i]->RecalculateNormals();
-	}
+        if (mesh->normals.size() <= 0)
+            mesh->RecalculateNormals();
+    }
 
-	Rasterizer::canvas = canvas;
+//	Vector3 position = Vector3::zero;
+//	Vector3 scale = Vector3::one;
+//	std::vector<MeshPtr> meshes;
+//	//Mesh::LoadMesh(meshes, "resources/cube/cube.obj");
+//	//position = Vector3(0, 0, 0);
+//	//scale = Vector3(20, 20, 20);
+//	//Mesh::LoadMesh(meshes, "resources/teapot/teapot.obj");
+//	//position = Vector3(0, -50, 0);
+//	//scale = Vector3(1, 1, 1);
+//	Mesh::LoadMesh(meshes, "resources/head/head.obj");
+//	position = Vector3(0, 0, 0);
+//	scale = Vector3(400, 400, 400);
+//	//meshes.push_back(Plane());
+    Vector3 position = Vector3(0, 0, -100.3/2);
+    Vector3 rotation = Vector3(45, 45, 0);
+	Vector3 scale = Vector3(50, 50, 50);
 
 	Application* app = Application::GetInstance();
 	float startTime = app->GetTime();
 	canvas->Clear();
 
-	Matrix4x4 trans(position, Quaternion(Vector3(0, 0, 0)), scale);
+	Matrix4x4 trans(position, Quaternion(rotation), scale);
 
-	for (int i = 0; i < (int)meshes.size(); ++i)
-	{
-		Rasterizer::DrawMesh(*(meshes[i]), trans, Color::white);
-	}
+    Rasterizer::DrawMesh(*(mesh), trans, Color::white);
+    
+//	for (int i = 0; i < (int)meshes.size(); ++i)
+//	{
+//		Rasterizer::DrawMesh(*(meshes[i]), trans, Color::white);
+//	}
 
 	canvas->Present();
 
-	//r += 0.1f;
-	//s *= 1.01f;
 	float endTime = app->GetTime();
 	printf("%.3f\n", endTime - startTime);
 }
@@ -76,36 +78,32 @@ CameraPtr CreateCamera()
 
 void InitTexture()
 {
-	TexturePtr texture;
-	//Texture::LoadTexture(texture, "resources/teapot/default.png");
-	texture = Texture::LoadTexture("resources/head/lambertian.jpg");
-	texture->UnparkColor();
-	TexturePtr bump;
-	bump = Texture::LoadTexture("resources/head/bump-lowRes.png");
-	bump->UnparkBump();
+	TexturePtr texture = Texture::LoadTexture("resources/head/lambertian.jpg");
+	TexturePtr bump = Texture::LoadTexture("resources/head/bump-lowRes.png");
+	bump->ConvertBumpToNormal();
 
 	Rasterizer::texture = texture;
 	Rasterizer::normalMap = bump;
 }
 
-rasterizer::Mesh Plane()
+MeshPtr CreatePlane()
 {
-	Mesh mesh;
-	mesh.vertices.push_back(Vector3(-1, -1, 0));
-	mesh.vertices.push_back(Vector3(1, -1, 0));
-	mesh.vertices.push_back(Vector3(1, 1, 0));
-	mesh.vertices.push_back(Vector3(-1, 1, 0));
+	MeshPtr mesh(new Mesh());
+	mesh->vertices.push_back(Vector3(-1, -1, 0));
+	mesh->vertices.push_back(Vector3(1, -1, 0));
+	mesh->vertices.push_back(Vector3(1, 1, 0));
+	mesh->vertices.push_back(Vector3(-1, 1, 0));
 
-	mesh.texcoords.push_back(Vector2(0, 0));
-	mesh.texcoords.push_back(Vector2(1, 0));
-	mesh.texcoords.push_back(Vector2(1, 1));
-	mesh.texcoords.push_back(Vector2(0, 1));
+	mesh->texcoords.push_back(Vector2(0, 0));
+	mesh->texcoords.push_back(Vector2(1, 0));
+	mesh->texcoords.push_back(Vector2(1, 1));
+	mesh->texcoords.push_back(Vector2(0, 1));
 
-	mesh.indices.push_back(0);
-	mesh.indices.push_back(1);
-	mesh.indices.push_back(2);
-	mesh.indices.push_back(2);
-	mesh.indices.push_back(3);
-	mesh.indices.push_back(0);
+	mesh->indices.push_back(0);
+	mesh->indices.push_back(1);
+	mesh->indices.push_back(2);
+	mesh->indices.push_back(2);
+	mesh->indices.push_back(3);
+	mesh->indices.push_back(0);
 	return mesh;
 }

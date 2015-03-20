@@ -18,9 +18,8 @@ bool Mesh::LoadMesh(std::vector<MeshPtr>& meshes, const char* file)
 	}
 
 	std::vector<MaterialPtr> materials;
-	for (int i = 0; i < (int)material.size(); ++i)
+    for (auto m : material)
 	{
-		tinyobj::material_t& m = material[i];
 		MaterialPtr newM(new Material());
 		newM->ambient = Color(1.f, m.ambient[0], m.ambient[1], m.ambient[2]);
 		newM->diffuse = Color(1.f, m.diffuse[0], m.diffuse[1], m.diffuse[2]);
@@ -31,13 +30,12 @@ bool Mesh::LoadMesh(std::vector<MeshPtr>& meshes, const char* file)
 	}
 
 	meshes.clear();
-	for (int s = 0; s < (int)shape.size(); ++s)
+    for (auto s : shape)
 	{
-		tinyobj::mesh_t& subMesh = shape[s].mesh;
-		std::vector<float>& positions = subMesh.positions;
-		std::vector<float>& normals = subMesh.normals;
-		std::vector<u32>& indices = subMesh.indices;
-		std::vector<float>& texcoords = subMesh.texcoords;
+		std::vector<float>& positions = s.mesh.positions;
+		std::vector<float>& normals = s.mesh.normals;
+		std::vector<u32>& indices = s.mesh.indices;
+		std::vector<float>& texcoords = s.mesh.texcoords;
 
 		MeshPtr mesh(new Mesh());
 		for (int i = 0; i + 2 < (int)positions.size(); i += 3)
@@ -60,9 +58,8 @@ bool Mesh::LoadMesh(std::vector<MeshPtr>& meshes, const char* file)
 			mesh->CalculateTangents();
 		}
 
-		for (int i = 0; i < (int)subMesh.material_ids.size(); ++i)
+        for (auto id : s.mesh.material_ids)
 		{
-			int id = subMesh.material_ids[i];
 			if (id < 0 || id >= (int) materials.size()) continue;
 			mesh->materials.push_back(materials[id]);
 		}

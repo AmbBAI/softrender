@@ -15,7 +15,8 @@ void Texture::Finalize()
 	FreeImage_DeInitialise();
 }
 
-TexturePtr Texture::LoadTexture(const char* file)
+std::map<std::string, TexturePtr> Texture::texturePool;
+TexturePtr Texture::CreateTexture(const char* file)
 {
 	FREE_IMAGE_FORMAT imageFormat = FreeImage_GetFileType(file);
 	FIBITMAP* fiBitmap = FreeImage_Load(imageFormat, file);
@@ -28,28 +29,28 @@ TexturePtr Texture::LoadTexture(const char* file)
 	BYTE* bytes = FreeImage_GetBits(fiBitmap);
 
 	TexturePtr tex(new Texture());
-	tex->width = (int)width;
-	tex->height = (int)height;
-	tex->colors.assign(tex->width * tex->height, Color::white);
-
-	BYTE* line = bytes;
-	for (u32 i = 0; i < height; ++i)
-	{
-		BYTE* bit = line;
-		for (u32 j = 0; j < width; ++j)
-		{
-			// TODO
-
-			bit += bpp;
-		}
-		line += pitch;
-	}
-
-
+    tex->UnparkColor(bytes, width, height, pitch, bpp);
+    
 	FreeImage_Unload(fiBitmap);
 	return tex;
 }
 
+TexturePtr Texture::LoadTexture(const char* file)
+{
+    std::map<std::string, TexturePtr>::iterator itor;
+    itor = texturePool.find(file);
+    if (itor != texturePool.end())
+    {
+        return itor->second;
+    }
+    else
+    {
+        TexturePtr tex = CreateTexture(file);
+        if (tex != nullptr) texturePool[file] = tex;
+        return tex;
+    }
+}
+    
 int Texture::GetWidth()
 {
 	return width;
@@ -60,30 +61,80 @@ int Texture::GetHeight()
 	return height;
 }
 
-void Texture::UnparkColor()
+bool Texture::UnparkColor(u8* bytes, u32 width, u32 height, u32 pitch, u32 bpp)
 {
-	//FIBITMAP* fiBitmap = (FIBITMAP*)imageHandle;
-	//if (fiBitmap == nullptr) return;
-	//
-	//colors.assign(width * height, Color());
-	//for (int y = 0; y < height; ++y)
-	//{
-	//	for (int x = 0; x < width; ++x)
-	//	{
-	//		RGBQUAD rgbQuad;
-	//		BOOL ret = FreeImage_GetPixelColor(fiBitmap, (u32)x, (u32)y, &rgbQuad);
-	//		if (ret)
-	//		{
-	//			Color32& color = colors[y * width + x];
-	//			color.r = rgbQuad.rgbRed;
-	//			color.g = rgbQuad.rgbGreen;
-	//			color.b = rgbQuad.rgbBlue;
-	//			color.a = 255; // ..
-	//		}
-	//	}
-	//}
+    if(bytes == nullptr) return false;
+    if(width <= 0 || height <= 0) return false;
+    if (bpp != 1 && bpp != 3 && bpp != 4) return false;
+    
+    this->width = (int)width;
+    this->height = (int)height;
+    this->colors.assign(width * height, Color::black);
+    
+    u8* line = bytes;
+    for (u32 y = 0; y < height; ++y)
+    {
+        u8* byte = line;
+        for (u32 x = 0; x < width; ++x)
+        {
+            Color& color = this->colors[y * width + x];
+            if (bpp == 1)
+            {
+                color.r = color.g = color.b = byte[0] / 255.f;
+                color.a = 1.f;
+            }
+            else
+            {
+                color.r = byte[0] / 255.f;
+                color.g = byte[1] / 255.f;
+                color.b = byte[2] / 255.f;
+                color.a = (bpp == 4) ? byte[3] / 255.f : 1.f ;
+            }
+            byte += bpp;
+        }
+        line += pitch;
+    }
+    return true;
 }
 
+void Texture::ConvertBumpToNormal(float strength/* = 2.0f*/)
+{
+    std::vector<u8> bump(width * height, 0);
+    for (int i=0; i<(int)colors.size(); ++i)
+    {
+        bump[i] = colors[i].b;
+    }
+    
+    for (int y = 0; y < height; ++y)
+    {
+    	for (int x = 0; x < width; ++x)
+        {
+        	int offset = y * width + x;
+        	int x1 = x - 1;
+        	int x2 = x + 1;
+        	int y1 = y - 1;
+        	int y2 = y + 1;
+
+            if (x1 < 0) x1 = 0;
+        	if (x2 >= width) x2 = width - 1;
+        	if (y1 < 0) y1 = 0;
+        	if (y2 >= height) y2 = height - 1;
+            
+        	float px1 = bump[y * width + x1];
+        	float px2 = bump[y * width + x2];
+        	float py1 = bump[y1 * width + x];
+        	float py2 = bump[y2 * width + x];
+        	Vector3 normal = Vector3(px1 - px2, py1 - py2, 0.25f / strength).Normalize();
+        
+            Color& color = colors[offset];
+        	color.r = (normal.x + 1.0f) / 2.0;
+        	color.g = (normal.y + 1.0f) / 2.0;
+        	color.b = (normal.z + 1.0f) / 2.0;
+        	color.a = 1.f;
+        }
+    }
+}
+    
 const Color Texture::GetColor(int x, int y) const
 {
 	if (x < 0 || x >= width) return Color::black;
@@ -127,7 +178,9 @@ const Color Texture::Sample(float u, float v) const
 		if (x2 >= width) x2 = 0;
 		if (y2 >= height) y2 = 0;
 		break;
-	case Texture::AddressMode_Mirror:
+    case Texture::AddressMode_Clamp:
+        break;
+    case Texture::AddressMode_Mirror:
 		if (x2 >= width) x2 = width - 1;
 		if (y2 >= height) y2 = height - 1;
 		break;
@@ -141,70 +194,5 @@ const Color Texture::Sample(float u, float v) const
 	return Color::Lerp(Color::Lerp(c0, c1, fpartX), Color::Lerp(c2, c3, fpartX), fpartY);
 }
 
-void Texture::UnparkBump(float strength/* = 2.0f*/)
-{
-	//FIBITMAP* fiBitmap = (FIBITMAP*)imageHandle;
-	//if (fiBitmap == nullptr) return;
-	//colors.assign(width * height, Color());
-	//BYTE* bytes = FreeImage_GetBits(fiBitmap);
-
-	////for (int y = 0; y < height; ++y)
-	////{
-	////	for (int x = 0; x < width; ++x)
-	////	{
-	////		int offset = y * width + x;
-	////		u8 gray = bytes[offset];
-	////		Color32& color = colors[offset];
-	////		color.r = gray;
-	////		color.g = gray;
-	////		color.b = gray;
-	////		color.a = 255; // ..
-	////	}
-	////}
-
- //   std::vector<Vector3> normals(width * height, Vector3());
-	//for (int y = 0; y < height; ++y)
-	//{
-	//	for (int x = 0; x < width; ++x)
-	//	{
-	//		int offset = y * width + x;
-	//		int x1 = x - 1;
-	//		int x2 = x + 1;
-	//		int y1 = y - 1;
-	//		int y2 = y + 1;
-	//		switch (addressMode)
-	//		{
-	//		case rasterizer::Texture::Warp:
-	//			if (x1 < 0) x1 = width - 1;
-	//			if (x2 >= width) x2 = 0;
-	//			if (y1 < 0) y1 = height - 1;
-	//			if (y2 >= height) y2 = 0;
-	//			break;
-	//		case rasterizer::Texture::Clamp:
-	//		case rasterizer::Texture::Mirror:
-	//			if (x1 < 0) x1 = 0;
-	//			if (x2 >= width) x2 = width - 1;
-	//			if (y1 < 0) y1 = 0;
-	//			if (y2 >= height) y2 = height - 1;
-	//			break;
-	//		default:
-	//			break;
-	//		}
-
-	//		int px1 = bytes[y * width + x1];
-	//		int px2 = bytes[y * width + x2];
-	//		int py1 = bytes[y1 * width + x];
-	//		int py2 = bytes[y2 * width + x];
-	//		Vector3& normal = normals[offset];
-	//		normals[offset] = Vector3((px1 - px2) / 255.f, (py1 - py2) / 255.f, 0.25f / strength).Normalize();
-
-	//		Color32& color = colors[offset];
-	//		color.r = u8((normal.x + 1.0f) / 2.0 * 255);
-	//		color.g = u8((normal.y + 1.0f) / 2.0 * 255);
-	//		color.b = u8((normal.z + 1.0f) / 2.0 * 255);
-	//		color.a = 255; // ..
-	//	}
-	//}
-}
 
 }
