@@ -17,6 +17,7 @@ int main(int argc, char *argv[])
 
 CameraPtr CreateCamera();
 MeshPtr CreatePlane();
+void LoadTexture();
 MeshPtr mesh;
 void MainLoop()
 {
@@ -29,6 +30,8 @@ void MainLoop()
 
         if (mesh->normals.size() <= 0)
             mesh->RecalculateNormals();
+        
+        LoadTexture();
     }
 
 //	Vector3 position = Vector3::zero;
@@ -76,7 +79,7 @@ CameraPtr CreateCamera()
 	return camera;
 }
 
-void InitTexture()
+void LoadTexture()
 {
 	TexturePtr texture = Texture::LoadTexture("resources/head/lambertian.jpg");
 	TexturePtr bump = Texture::LoadTexture("resources/head/bump-lowRes.png");

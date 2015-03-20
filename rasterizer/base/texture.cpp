@@ -20,7 +20,7 @@ TexturePtr Texture::CreateTexture(const char* file)
 {
 	FREE_IMAGE_FORMAT imageFormat = FreeImage_GetFileType(file);
 	FIBITMAP* fiBitmap = FreeImage_Load(imageFormat, file);
-	if (fiBitmap == nullptr) return TexturePtr(nullptr);
+	if (fiBitmap == nullptr) return nullptr;
 
 	u32 width = FreeImage_GetWidth(fiBitmap);
 	u32 height = FreeImage_GetHeight(fiBitmap);
@@ -85,9 +85,9 @@ bool Texture::UnparkColor(u8* bytes, u32 width, u32 height, u32 pitch, u32 bpp)
             }
             else
             {
-                color.r = byte[0] / 255.f;
+                color.b = byte[0] / 255.f;
                 color.g = byte[1] / 255.f;
-                color.b = byte[2] / 255.f;
+                color.r = byte[2] / 255.f;
                 color.a = (bpp == 4) ? byte[3] / 255.f : 1.f ;
             }
             byte += bpp;
