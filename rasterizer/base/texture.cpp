@@ -99,7 +99,7 @@ bool Texture::UnparkColor(u8* bytes, u32 width, u32 height, u32 pitch, u32 bpp)
 
 void Texture::ConvertBumpToNormal(float strength/* = 2.0f*/)
 {
-    std::vector<u8> bump(width * height, 0);
+    std::vector<float> bump(width * height, 0.f);
     for (int i=0; i<(int)colors.size(); ++i)
     {
         bump[i] = colors[i].b;

@@ -18,18 +18,22 @@ int main(int argc, char *argv[])
 CameraPtr CreateCamera();
 MeshPtr CreatePlane();
 void LoadTexture();
-MeshPtr mesh;
+std::vector<MeshPtr> mesh;
 void MainLoop()
 {
-    if (mesh == nullptr)
+    if (mesh.size() == 0)
     {
         Rasterizer::canvas = canvas;
         Rasterizer::camera = CreateCamera();
 
-        mesh = CreatePlane();
+        //mesh = CreatePlane();
+		Mesh::LoadMesh(mesh, "resources/head/head.obj");
 
-        if (mesh->normals.size() <= 0)
-            mesh->RecalculateNormals();
+		for (auto m : mesh)
+		{
+			if (m->normals.size() <= 0)
+				m->RecalculateNormals();
+		}
         
         LoadTexture();
     }
@@ -44,12 +48,13 @@ void MainLoop()
 //	//position = Vector3(0, -50, 0);
 //	//scale = Vector3(1, 1, 1);
 //	Mesh::LoadMesh(meshes, "resources/head/head.obj");
-//	position = Vector3(0, 0, 0);
-//	scale = Vector3(400, 400, 400);
+	Vector3 position = Vector3(0, 0, 0);
+	Vector3 rotation = Vector3(30, 30, 0);
+	Vector3 scale = Vector3(400, 400, 400);
 //	//meshes.push_back(Plane());
-    Vector3 position = Vector3(0, 0, -100.3/2);
-    Vector3 rotation = Vector3(45, 45, 0);
-	Vector3 scale = Vector3(50, 50, 50);
+//	Vector3 position = Vector3(0, 0, -100.3/2);
+//	Vector3 rotation = Vector3(45, 45, 0);
+//	Vector3 scale = Vector3(50, 50, 50);
 
 	Application* app = Application::GetInstance();
 	float startTime = app->GetTime();
@@ -57,12 +62,12 @@ void MainLoop()
 
 	Matrix4x4 trans(position, Quaternion(rotation), scale);
 
-    Rasterizer::DrawMesh(*(mesh), trans, Color::white);
+    //Rasterizer::DrawMesh(*(mesh), trans, Color::white);
     
-//	for (int i = 0; i < (int)meshes.size(); ++i)
-//	{
-//		Rasterizer::DrawMesh(*(meshes[i]), trans, Color::white);
-//	}
+	for (auto m : mesh)
+	{
+		Rasterizer::DrawMesh(*(m), trans, Color::white);
+	}
 
 	canvas->Present();
 
