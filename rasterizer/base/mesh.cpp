@@ -9,7 +9,12 @@ bool Mesh::LoadMesh(std::vector<MeshPtr>& meshes, const char* file)
 {
 	std::vector<tinyobj::shape_t> shape;
 	std::vector<tinyobj::material_t> material;
-	std::string ret = tinyobj::LoadObj(shape, material, file);
+	std::string filePath(file);
+	std::replace(filePath.begin(), filePath.end(), '\\', '/');
+	u32 pos = (u32)filePath.rfind('/');
+	std::string fileDir = "./";
+	if (pos != filePath.npos) fileDir = filePath.substr(0, pos + 1);
+	std::string ret = tinyobj::LoadObj(shape, material, filePath.c_str(), fileDir.c_str());
 
 	if (ret.length() != 0)
 	{
@@ -26,6 +31,16 @@ bool Mesh::LoadMesh(std::vector<MeshPtr>& meshes, const char* file)
 		newM->specular = Color(1.f, m.ambient[0], m.ambient[1], m.ambient[2]);
 		newM->shininess = m.shininess;
 		newM->emission = Color(1.f, m.emission[0], m.emission[1], m.emission[2]);
+		if (m.diffuse_texname.size() > 0)
+		{
+			std::string texPath = fileDir + m.diffuse_texname;
+			newM->diffuseTexture = Texture::LoadTexture(texPath.c_str());
+		}
+		if (m.normal_texname.size() > 0)
+		{
+			std::string texPath = fileDir + m.normal_texname;
+			newM->normalTexture = Texture::LoadTexture(texPath.c_str());
+		}
 		materials.push_back(newM);
 	}
 

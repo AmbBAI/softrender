@@ -46,18 +46,20 @@ struct Rasterizer
 	static Vector3 lightDir;
 	static Canvas* canvas;
 	static CameraPtr camera;
-	static TexturePtr texture;
-	static TexturePtr normalMap;
+	static MaterialPtr material;
+	typedef Color (*FragmentShader)(const Face& face, float w0, float w1, float w2, float invW);
+	static FragmentShader fragmentShader;
 
 	static void DrawLine(int x0, int x1, int y0, int y1, const Color32& color);
 	static void DrawSmoothLine(float x0, float x1, float y0, float y1, const Color32& color);
 	static void DrawMeshPoint(const Mesh& mesh, const Matrix4x4& transform, const Color32& color);
 	static void DrawMeshWireFrame(const Mesh& mesh, const Matrix4x4& transform, const Color32& color);
-	//static void DrawTriangle(const Vector2& v0, const Vector2& v1, const Vector2& v2, const Color32& color);
-	static void DrawTriangle(const Point2D& v0, const Point2D& v1, const Point2D& v2, const Color32& color);
-	static void DrawMeshColor(const Mesh& mesh, const Matrix4x4& transform, const Color32& color);
 	static void DrawTriangle(const Vertex& v0, const Vertex& v1, const Vertex& v2, const Color& color);
 	static void DrawMesh(const Mesh& mesh, const Matrix4x4& transform, const Color& color);
+
+	static void DrawTriangle(const Face& f);
+
+	static Color FS(const Face& face, float w0, float w1, float w2, float invW);
 
 private:
 	static float FloatPart(float v);

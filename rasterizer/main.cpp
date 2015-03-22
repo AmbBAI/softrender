@@ -17,7 +17,6 @@ int main(int argc, char *argv[])
 
 CameraPtr CreateCamera();
 MeshPtr CreatePlane();
-void LoadTexture();
 std::vector<MeshPtr> mesh;
 void MainLoop()
 {
@@ -34,8 +33,8 @@ void MainLoop()
 			if (m->normals.size() <= 0)
 				m->RecalculateNormals();
 		}
-        
-        LoadTexture();
+
+		Rasterizer::fragmentShader = Rasterizer::FS;
     }
 
 //	Vector3 position = Vector3::zero;
@@ -49,7 +48,7 @@ void MainLoop()
 //	//scale = Vector3(1, 1, 1);
 //	Mesh::LoadMesh(meshes, "resources/head/head.obj");
 	Vector3 position = Vector3(0, 0, 0);
-	Vector3 rotation = Vector3(30, 30, 0);
+	Vector3 rotation = Vector3(10, 10, 0);
 	Vector3 scale = Vector3(400, 400, 400);
 //	//meshes.push_back(Plane());
 //	Vector3 position = Vector3(0, 0, -100.3/2);
@@ -62,10 +61,9 @@ void MainLoop()
 
 	Matrix4x4 trans(position, Quaternion(rotation), scale);
 
-    //Rasterizer::DrawMesh(*(mesh), trans, Color::white);
-    
 	for (auto m : mesh)
 	{
+		Rasterizer::material = m->materials[0];
 		Rasterizer::DrawMesh(*(m), trans, Color::white);
 	}
 
@@ -82,16 +80,6 @@ CameraPtr CreateCamera()
 	camera->SetPerspective(90, 1, 0.3f, 1000);
 	//camera.SetOrthographic(-100, 100, -100, 100, 0.3f, 1000);
 	return camera;
-}
-
-void LoadTexture()
-{
-	TexturePtr texture = Texture::LoadTexture("resources/head/lambertian.jpg");
-	TexturePtr bump = Texture::LoadTexture("resources/head/bump-lowRes.png");
-	bump->ConvertBumpToNormal();
-
-	Rasterizer::texture = texture;
-	Rasterizer::normalMap = bump;
 }
 
 MeshPtr CreatePlane()
