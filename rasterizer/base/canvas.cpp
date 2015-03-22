@@ -16,10 +16,6 @@ Canvas::Canvas(int width, int height)
 	}
 }
 
-Canvas::~Canvas()
-{
-}
-
 bool Canvas::SetPixel(int x, int y, const Color& color)
 {
 	if (x < 0 || x >= width) return false;

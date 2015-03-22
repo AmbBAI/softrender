@@ -2,6 +2,7 @@
 using namespace rasterizer;
 
 Canvas* canvas;
+Input* input;
 
 void MainLoop();
 
@@ -10,14 +11,21 @@ int main(int argc, char *argv[])
 	Application* app = Application::GetInstance();
 	app->CreateApplication("rasterizer", 512, 512);
 	canvas = app->GetCanvas();
+	input = app->GetInput();
 	app->SetRunLoop(MainLoop);
 	app->RunLoop();
 	return 0;
 }
 
+Vector3 cPosition = Vector3(0, 0, 100);
+Vector3 cTarget = Vector3(0, 0, 0);
 CameraPtr CreateCamera();
+void UpdateCamera(CameraPtr camera);
 MeshPtr CreatePlane();
 std::vector<MeshPtr> mesh;
+Vector3 position = Vector3::zero;
+Vector3 rotation = Vector3::zero;
+Vector3 scale = Vector3::one;
 void MainLoop()
 {
     if (mesh.size() == 0)
@@ -26,7 +34,7 @@ void MainLoop()
         Rasterizer::camera = CreateCamera();
 
         //mesh = CreatePlane();
-		Mesh::LoadMesh(mesh, "resources/head/head.obj");
+		Mesh::LoadMesh(mesh, "resources/crytek-sponza/sponza.obj");
 
 		for (auto m : mesh)
 		{
@@ -36,6 +44,8 @@ void MainLoop()
 
 		Rasterizer::fragmentShader = Rasterizer::FS;
     }
+
+	UpdateCamera(Rasterizer::camera);
 
 //	Vector3 position = Vector3::zero;
 //	Vector3 scale = Vector3::one;
@@ -47,9 +57,6 @@ void MainLoop()
 //	//position = Vector3(0, -50, 0);
 //	//scale = Vector3(1, 1, 1);
 //	Mesh::LoadMesh(meshes, "resources/head/head.obj");
-	Vector3 position = Vector3(0, 0, 0);
-	Vector3 rotation = Vector3(10, 10, 0);
-	Vector3 scale = Vector3(400, 400, 400);
 //	//meshes.push_back(Plane());
 //	Vector3 position = Vector3(0, 0, -100.3/2);
 //	Vector3 rotation = Vector3(45, 45, 0);
@@ -70,16 +77,59 @@ void MainLoop()
 	canvas->Present();
 
 	float endTime = app->GetTime();
-	printf("%.3f\n", endTime - startTime);
+	printf("\r%.3f", endTime - startTime);
 }
 
 CameraPtr CreateCamera()
 {
 	CameraPtr camera(new Camera());
-	camera->SetLookAt(Vector3(0, 0, 100), Vector3(0, 0, 0), Vector3::up);
-	camera->SetPerspective(90, 1, 0.3f, 1000);
+	camera->SetLookAt(cPosition, cTarget, Vector3::up);
+	camera->SetPerspective(90, 1, 0.3f, 10000);
 	//camera.SetOrthographic(-100, 100, -100, 100, 0.3f, 1000);
 	return camera;
+}
+
+void UpdateCamera(CameraPtr camera)
+{
+	bool changed = false;
+	if (input->GetKey(GLFW_KEY_W))
+	{
+		cPosition.z -= 10;
+		cTarget.z -= 10;
+		changed = true;
+	}
+	if (input->GetKey(GLFW_KEY_S))
+	{
+		cPosition.z += 10;
+		cTarget.z += 10;
+		changed = true;
+	}
+	if (input->GetKey(GLFW_KEY_A))
+	{
+		cPosition.x -= 10;
+		cTarget.x -= 10;
+		changed = true;
+	}
+	if (input->GetKey(GLFW_KEY_D))
+	{
+		cPosition.x += 10;
+		cTarget.x += 10;
+		changed = true;
+	}
+	if (input->GetKey(GLFW_KEY_Q))
+	{
+		cPosition.y -= 10;
+		cTarget.y -= 10;
+		changed = true;
+	}
+	if (input->GetKey(GLFW_KEY_E))
+	{
+		cPosition.y += 10;
+		cTarget.y += 10;
+		changed = true;
+	}
+
+	if (changed) camera->SetLookAt(cPosition, cTarget, Vector3::up);
 }
 
 MeshPtr CreatePlane()

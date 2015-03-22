@@ -7,6 +7,7 @@ namespace rasterizer
 {
 
 class Canvas;
+class Input;
 class Application
 {
 	Application() = default;
@@ -23,6 +24,7 @@ public:
     float GetTime();
 
 	Canvas* GetCanvas();
+	Input* GetInput();
 
 private:
 	LoopFunc	loopFunc = nullptr;
@@ -33,6 +35,7 @@ private:
 	int height = 0;
 
 	Canvas* canvas = nullptr;
+	Input* input = nullptr;
 };
 
 }

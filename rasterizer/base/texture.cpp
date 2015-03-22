@@ -51,14 +51,19 @@ TexturePtr Texture::LoadTexture(const char* file)
     }
 }
     
-int Texture::GetWidth()
+u32 Texture::GetWidth()
 {
 	return width;
 }
 
-int Texture::GetHeight()
+u32 Texture::GetHeight()
 {
 	return height;
+}
+
+u32 Texture::GetBPP()
+{
+	return bpp;
 }
 
 bool Texture::UnparkColor(u8* bytes, u32 width, u32 height, u32 pitch, u32 bpp)
@@ -67,8 +72,9 @@ bool Texture::UnparkColor(u8* bytes, u32 width, u32 height, u32 pitch, u32 bpp)
     if(width <= 0 || height <= 0) return false;
     if (bpp != 1 && bpp != 3 && bpp != 4) return false;
     
-    this->width = (int)width;
-    this->height = (int)height;
+    this->width = width;
+    this->height = height;
+	this->bpp = bpp;
     this->colors.assign(width * height, Color::black);
     
     u8* line = bytes;

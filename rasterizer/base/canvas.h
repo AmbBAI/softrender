@@ -10,9 +10,9 @@ namespace rasterizer
 
 class Canvas
 {
-public:
+	friend Application;
 	Canvas(int width, int height);
-	~Canvas();
+	~Canvas() = default;
 
 public:
 	bool SetPixel(int x, int y, const Color& color);

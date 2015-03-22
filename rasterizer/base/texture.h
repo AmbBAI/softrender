@@ -40,8 +40,9 @@ public:
 	virtual ~Texture() = default;
 
 public:
-	int GetWidth();
-	int GetHeight();
+	u32 GetWidth();
+	u32 GetHeight();
+	u32 GetBPP();
 
 	bool UnparkColor(u8* bytes, u32 width, u32 height, u32 pitch, u32 bpp);
 	void ConvertBumpToNormal(float strength = 2.0f);
@@ -50,8 +51,9 @@ public:
 	const Color Sample(float u, float v) const;
 
 protected:
-	int width = 0;
-	int height = 0;
+	u32 width = 0;
+	u32 height = 0;
+	u32 bpp = 3;
 	AddressMode addressMode = AddressMode_Warp;
 	std::vector<Color> colors;
 };

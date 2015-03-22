@@ -219,6 +219,9 @@ void Rasterizer::DrawTriangle(const Face& f)
 	if (maxX >= width) maxX = width - 1;
 	if (maxY >= height) maxY = height - 1;
 
+	if (maxX < minX) return;
+	if (maxY < minY) return;
+
 	int dx01 = p0.x - p1.x;
 	int dx12 = p1.x - p2.x;
 	int dx20 = p2.x - p0.x;
@@ -256,11 +259,12 @@ void Rasterizer::DrawTriangle(const Face& f)
 				float invW = 1.0f / (wz0 + wz1 + wz2);
 
 
-				float depth = p0.depth * wz0 + p1.depth * wz1 + p2.depth * wz2;
-				depth *= invW;
-				if (depth < canvas->GetDepth(x, y))
+				float depth = p0.z * w1 + p1.z * w2 + p2.z * w0;
+				depth /= w1 + w2 + w0;
+				if (depth > 0.0f && depth < 1.0f && depth < canvas->GetDepth(x, y))
 				{
 					canvas->SetDepth(x, y, depth);
+					//canvas->SetPixel(x, y, Color(1.f, 1.f - depth, 1.f - depth, 1.f - depth));
 					if (fragmentShader != nullptr)
 					{
 						Color color = fragmentShader(f, wz0, wz1, wz2, invW);
@@ -290,25 +294,25 @@ Color Rasterizer::FS(const Face& face, float w0, float w1, float w2, float invW)
 	Vector2 uv = (v0.texcoord * w0 + v1.texcoord * w1 + v2.texcoord * w2) * invW;
 
 	Color color = Color::white;
-	MaterialPtr material = Rasterizer::material;
+	//MaterialPtr material = Rasterizer::material;
 
-	if (material && material->diffuseTexture)
-	{
-		color = color.Modulate(material->diffuseTexture->Sample(uv.x, uv.y));
-	}
+	//if (material && material->diffuseTexture)
+	//{
+	//	color = color.Modulate(material->diffuseTexture->Sample(uv.x, uv.y));
+	//}
 
-	if (material && material->normalTexture)
-	{
-		Vector3 tangent = (v0.tangent * w0 + v1.tangent * w1 + v2.tangent * w2).Normalize();
-		Vector3 binormal = normal.Cross(tangent).Normalize();
-		Matrix4x4 tbn = Matrix4x4::TBN(tangent, binormal, normal);
+	//if (material && material->normalTexture)
+	//{
+	//	Vector3 tangent = (v0.tangent * w0 + v1.tangent * w1 + v2.tangent * w2).Normalize();
+	//	Vector3 binormal = normal.Cross(tangent).Normalize();
+	//	Matrix4x4 tbn = Matrix4x4::TBN(tangent, binormal, normal);
 
-		Color normalColor = material->normalTexture->Sample(uv.x, uv.y);
-		normal = Vector3(normalColor.r * 2 - 1, normalColor.g * 2 - 1, normalColor.b * 2 - 1);
+	//	Color normalColor = material->normalTexture->Sample(uv.x, uv.y);
+	//	normal = Vector3(normalColor.r * 2 - 1, normalColor.g * 2 - 1, normalColor.b * 2 - 1);
 
-		normal = tbn.MultiplyVector(normal);
-		//normalColor = Color(1, (normal.x + 1) / 2, (normal.y + 1) / 2, (normal.z + 1) / 2);
-	}
+	//	normal = tbn.MultiplyVector(normal);
+	//	//normalColor = Color(1, (normal.x + 1) / 2, (normal.y + 1) / 2, (normal.z + 1) / 2);
+	//}
 
 	float lightVal = Mathf::Max(0.f, normal.Dot(lightDir.Negate()));
 	color = color.Multiply(lightVal);
@@ -354,11 +358,12 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform, const Co
         Point2D point;
 		point.x = Mathf::RoundToInt((posP.x + 1) * width / 2);
 		point.y = Mathf::RoundToInt((posP.y + 1) * height / 2);
+		point.z = posP.z;
         point.depth = camera->GetLinearDepth(posC.z);
         point.inView = true;
         if (point.x < 0 || point.x >= width) point.inView = false;
         if (point.y < 0 || point.y >= height) point.inView = false;
-        if (point.depth < 0 || point.depth > 1) point.inView = false;
+        if (point.z < 0 || point.z > 1) point.inView = false;
         vertex.point = point;
 
 		vertices[i] = vertex;
@@ -379,7 +384,7 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform, const Co
 		face.v[2] = vertices[i2];
 		
         if (Orient2D(face.v[0].point, face.v[1].point, face.v[2].point) <= 0) continue;
-        if (!face.v[0].point.inView && !face.v[1].point.inView && !face.v[2].point.inView) continue;
+        if ((!face.v[0].point.inView) && (!face.v[1].point.inView) && (!face.v[2].point.inView)) continue;
         
 		DrawTriangle(face);
 	}

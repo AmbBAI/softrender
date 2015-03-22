@@ -4,6 +4,7 @@
 #include "base/header.h"
 #include "base/application.h"
 #include "base/canvas.h"
+#include "base/input.h"
 #include "base/camera.h"
 #include "base/mesh.h"
 #include "base/texture.h"
@@ -20,6 +21,7 @@ struct Rasterizer
 	{
 		int x = 0;
 		int y = 0;
+		float z = 0.0f;
 		float depth = 0.0f;
         bool inView = true;
 

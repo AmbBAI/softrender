@@ -1,5 +1,6 @@
 #include "application.h"
 #include "canvas.h"
+#include "input.h"
 
 namespace rasterizer
 {
@@ -23,6 +24,12 @@ Application::~Application()
 		delete canvas;
 		canvas = nullptr;
 	}
+
+	if (input != nullptr)
+	{
+		delete input;
+		input = nullptr;
+	}
 }
 
 bool Application::CreateApplication(const char* title, int width, int height)
@@ -43,12 +50,25 @@ bool Application::CreateApplication(const char* title, int width, int height)
 
 Canvas* Application::GetCanvas()
 {
+	assert(width > 0 && height > 0);
 	if (canvas == nullptr)
 	{
 		canvas = new Canvas(width, height);
 	}
 	return canvas;
 }
+
+Input* Application::GetInput()
+{
+	assert(window != nullptr);
+	if (input == nullptr)
+	{
+		input = new Input(window);
+	}
+	return input;
+}
+
+
 
 void Application::RunLoop()
 {
