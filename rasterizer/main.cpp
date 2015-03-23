@@ -33,14 +33,18 @@ void MainLoop()
         Rasterizer::canvas = canvas;
         Rasterizer::camera = CreateCamera();
 
-        //mesh = CreatePlane();
-		Mesh::LoadMesh(mesh, "resources/crytek-sponza/sponza.obj");
+        mesh.push_back(CreatePlane());
+		//Mesh::LoadMesh(mesh, "resources/crytek-sponza/sponza.obj");
 
 		for (auto m : mesh)
 		{
 			if (m->normals.size() <= 0)
 				m->RecalculateNormals();
 		}
+        
+        position = Vector3(0, 0, 0);
+        rotation = Vector3(0, 90, 0);
+        scale = Vector3(500, 500, 500);
 
 		Rasterizer::fragmentShader = Rasterizer::FS;
     }
@@ -70,14 +74,14 @@ void MainLoop()
 
 	for (auto m : mesh)
 	{
-		Rasterizer::material = m->materials[0];
+        if (m->materials.size() > 0) Rasterizer::material = m->materials[0];
 		Rasterizer::DrawMesh(*(m), trans, Color::white);
 	}
 
 	canvas->Present();
 
 	float endTime = app->GetTime();
-	printf("\r%.3f", endTime - startTime);
+	printf("\r%.3f\n", endTime - startTime);
 }
 
 CameraPtr CreateCamera()

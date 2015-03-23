@@ -214,13 +214,13 @@ void Rasterizer::DrawTriangle(const Face& f)
 
 	int width = canvas->GetWidth();
 	int height = canvas->GetHeight();
-	if (minY < 0) minY = 0;
 	if (minX < 0) minX = 0;
-	if (maxX >= width) maxX = width - 1;
+    if (minY < 0) minY = 0;
+    if (maxX >= width) maxX = width - 1;
 	if (maxY >= height) maxY = height - 1;
-
-	if (maxX < minX) return;
-	if (maxY < minY) return;
+//
+//	if (maxX < minX) return;WWW
+//	if (maxY < minY) return;
 
 	int dx01 = p0.x - p1.x;
 	int dx12 = p1.x - p2.x;
@@ -243,6 +243,7 @@ void Rasterizer::DrawTriangle(const Face& f)
 	float invZ1 = 1.f / p1.depth;
 	float invZ2 = 1.f / p2.depth;
 
+    printf("%d-%d %d-%d\n", minY, maxY, minX, maxX);
 	for (int y = minY; y <= maxY; ++y)
 	{
 		int w0 = startW0;
@@ -259,17 +260,17 @@ void Rasterizer::DrawTriangle(const Face& f)
 				float invW = 1.0f / (wz0 + wz1 + wz2);
 
 
-				float depth = p0.z * w1 + p1.z * w2 + p2.z * w0;
-				depth /= w1 + w2 + w0;
-				if (depth > 0.0f && depth < 1.0f && depth < canvas->GetDepth(x, y))
+				float depth = p0.depth * wz0 + p1.depth * wz1 + p2.depth * wz2;
+				depth *= invW;
+                if (depth > 0.0f && depth < 1.0f && depth < canvas->GetDepth(x, y))
 				{
 					canvas->SetDepth(x, y, depth);
-					//canvas->SetPixel(x, y, Color(1.f, 1.f - depth, 1.f - depth, 1.f - depth));
-					if (fragmentShader != nullptr)
-					{
-						Color color = fragmentShader(f, wz0, wz1, wz2, invW);
-						canvas->SetPixel(x, y, color);
-					}
+					canvas->SetPixel(x, y, Color(1.f, 1.f - depth, 1.f - depth, 1.f - depth));
+//					if (fragmentShader != nullptr)
+//					{
+//						Color color = fragmentShader(f, wz0, wz1, wz2, invW);
+//						canvas->SetPixel(x, y, color);
+//					}
 				}
 			}
 
@@ -356,14 +357,17 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform, const Co
 		vertex.projection = posP;
 
         Point2D point;
-		point.x = Mathf::RoundToInt((posP.x + 1) * width / 2);
-		point.y = Mathf::RoundToInt((posP.y + 1) * height / 2);
+		point.x = Mathf::RoundToInt((posP.x + 1) / 2 * width);
+		point.y = Mathf::RoundToInt((posP.y + 1) / 2 * height);
 		point.z = posP.z;
         point.depth = camera->GetLinearDepth(posC.z);
-        point.inView = true;
-        if (point.x < 0 || point.x >= width) point.inView = false;
-        if (point.y < 0 || point.y >= height) point.inView = false;
-        if (point.z < 0 || point.z > 1) point.inView = false;
+        point.cullMask = 0x0;
+        if (point.x < 0) point.cullMask |= 0x1;
+        if (point.x >= width) point.cullMask |= 0x2;
+        if (point.y < 0) point.cullMask |= 0x4;
+        if (point.y >= height) point.cullMask |= 0x8;
+        if (point.depth < 0) point.cullMask |= 0x10;
+        if (point.depth > 1) point.cullMask |= 0x20;
         vertex.point = point;
 
 		vertices[i] = vertex;
@@ -384,7 +388,7 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform, const Co
 		face.v[2] = vertices[i2];
 		
         if (Orient2D(face.v[0].point, face.v[1].point, face.v[2].point) <= 0) continue;
-        if ((!face.v[0].point.inView) && (!face.v[1].point.inView) && (!face.v[2].point.inView)) continue;
+        if ((face.v[0].point.cullMask & face.v[1].point.cullMask & face.v[2].point.cullMask) != 0) continue;
         
 		DrawTriangle(face);
 	}

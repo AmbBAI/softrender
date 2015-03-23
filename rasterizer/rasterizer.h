@@ -23,7 +23,7 @@ struct Rasterizer
 		int y = 0;
 		float z = 0.0f;
 		float depth = 0.0f;
-        bool inView = true;
+        u32 cullMask = 0x0;
 
         Point2D() = default;
 		Point2D(int _x, int _y) : x(_x), y(_y) {}
@@ -56,12 +56,10 @@ struct Rasterizer
 	static void DrawSmoothLine(float x0, float x1, float y0, float y1, const Color32& color);
 	static void DrawMeshPoint(const Mesh& mesh, const Matrix4x4& transform, const Color32& color);
 	static void DrawMeshWireFrame(const Mesh& mesh, const Matrix4x4& transform, const Color32& color);
-	static void DrawTriangle(const Vertex& v0, const Vertex& v1, const Vertex& v2, const Color& color);
-	static void DrawMesh(const Mesh& mesh, const Matrix4x4& transform, const Color& color);
 
-	static void DrawTriangle(const Face& f);
-
-	static Color FS(const Face& face, float w0, float w1, float w2, float invW);
+    static Color FS(const Face& face, float w0, float w1, float w2, float invW);
+    static void DrawTriangle(const Face& f);
+    static void DrawMesh(const Mesh& mesh, const Matrix4x4& transform, const Color& color);
 
 private:
 	static float FloatPart(float v);
