@@ -331,18 +331,18 @@ Color Rasterizer::FS(const Face& face, float w0, float w1, float w2, float invW)
 		color = color.Modulate(material->diffuseTexture->Sample(uv.x, uv.y));
 	}
 
-	//if (material && material->normalTexture)
-	//{
-	//	Vector3 tangent = (v0.tangent * w0 + v1.tangent * w1 + v2.tangent * w2).Normalize();
-	//	Vector3 binormal = normal.Cross(tangent).Normalize();
-	//	Matrix4x4 tbn = Matrix4x4::TBN(tangent, binormal, normal);
+	if (material && material->normalTexture)
+	{
+		Vector3 tangent = (v0.tangent * w0 + v1.tangent * w1 + v2.tangent * w2).Normalize();
+		Vector3 binormal = normal.Cross(tangent).Normalize();
+		Matrix4x4 tbn = Matrix4x4::TBN(tangent, binormal, normal);
 
-	//	Color normalColor = material->normalTexture->Sample(uv.x, uv.y);
-	//	normal = Vector3(normalColor.r * 2 - 1, normalColor.g * 2 - 1, normalColor.b * 2 - 1);
+		Color normalColor = material->normalTexture->Sample(uv.x, uv.y);
+		normal = Vector3(normalColor.r * 2 - 1, normalColor.g * 2 - 1, normalColor.b * 2 - 1);
 
-	//	normal = tbn.MultiplyVector(normal);
-	//	//normalColor = Color(1, (normal.x + 1) / 2, (normal.y + 1) / 2, (normal.z + 1) / 2);
-	//}
+		normal = tbn.MultiplyVector(normal);
+		//normalColor = Color(1, (normal.x + 1) / 2, (normal.y + 1) / 2, (normal.z + 1) / 2);
+	}
 
 	float lightVal = Mathf::Max(0.f, normal.Dot(lightDir.Negate()));
 	color = color.Multiply(lightVal);

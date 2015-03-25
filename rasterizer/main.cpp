@@ -34,11 +34,11 @@ void MainLoop()
         Rasterizer::canvas = canvas;
         Rasterizer::camera = CreateCamera();
 
-        mesh.push_back(CreatePlane());
-		MaterialPtr material(new Material());
-		material->diffuseTexture = Texture::LoadTexture("resources/cube/default.png");
-        mesh[0]->materials.push_back(material);
-		//Mesh::LoadMesh(mesh, "resources/crytek-sponza/sponza.obj");
+        //mesh.push_back(CreatePlane());
+		//MaterialPtr material(new Material());
+		//material->diffuseTexture = Texture::LoadTexture("resources/cube/default.png");
+        //mesh[0]->materials.push_back(material);
+		Mesh::LoadMesh(mesh, "resources/crytek-sponza/sponza.obj");
 
 		for (auto m : mesh)
 		{
@@ -47,8 +47,8 @@ void MainLoop()
 		}
         
         position = Vector3(0, 0, 0);
-        rotation = Vector3(45, 45, 0);
-        scale = Vector3(10, 10, 10);
+        rotation = Vector3(0, 0, 0);
+        scale = Vector3(1, 1, 1);
 
 		Rasterizer::fragmentShader = Rasterizer::FS;
     }
