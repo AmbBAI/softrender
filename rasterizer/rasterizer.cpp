@@ -18,6 +18,24 @@ Rasterizer::FragmentShader Rasterizer::fragmentShader = nullptr;
 
 rasterizer::Vector3 Rasterizer::lightDir = Vector3(-1.f, -1.f, -1.f).Normalize();
 
+void Rasterizer::Initialize()
+{
+    viewFrustumPlanes[0].cullMask = 0x01;
+    viewFrustumPlanes[0].clippingFunc = [](float& t, const Vector4& v0, const Vector4& v1)
+    {
+        float d = (v0.w - v1.w) - (v0.x - v1.x);
+        if (d == 0.f) return false;
+        t = (v0.w - v0.x) / d;
+        if (t >= 0.f && t <= 1.f) return true;
+        return false;
+    };
+    viewFrustumPlanes[1].cullMask = 0x02;
+    viewFrustumPlanes[2].cullMask = 0x04;
+    viewFrustumPlanes[3].cullMask = 0x08;
+    viewFrustumPlanes[4].cullMask = 0x10;
+    viewFrustumPlanes[5].cullMask = 0x20;
+}
+    
 void TestColor(Canvas* canvas)
 {
 	int w = canvas->GetWidth();

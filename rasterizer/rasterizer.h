@@ -48,7 +48,7 @@ struct Rasterizer
     struct Plane
     {
         u32 cullMask = 0x0;
-        typedef float (*ClippingFunc)();
+        typedef bool (*ClippingFunc)(float& t, const Vector4& v0, const Vector4& v1);
         ClippingFunc clippingFunc = nullptr;
     };
     static Plane viewFrustumPlanes[6];
@@ -60,6 +60,8 @@ struct Rasterizer
 	typedef Color (*FragmentShader)(const Face& face, float w0, float w1, float w2, float invW);
 	static FragmentShader fragmentShader;
 
+    static void Initialize();
+    
 	static void DrawLine(int x0, int x1, int y0, int y1, const Color32& color);
 	static void DrawSmoothLine(float x0, float x1, float y0, float y1, const Color32& color);
 	static void DrawMeshPoint(const Mesh& mesh, const Matrix4x4& transform, const Color32& color);
