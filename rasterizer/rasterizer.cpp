@@ -1,5 +1,12 @@
 #include "rasterizer.h"
 
+#define CLIPMASK_X0 0x01
+#define CLIPMASK_X1 0x02
+#define CLIPMASK_Y0 0x04
+#define CLIPMASK_Y1 0x08
+#define CLIPMASK_Z0 0x10
+#define CLIPMASK_Z1 0x20
+
 namespace rasterizer
 {
 
@@ -172,12 +179,12 @@ void Rasterizer::DrawMeshWireFrame(const Mesh& mesh, const Matrix4x4& transform,
 
 	const Matrix4x4* view = camera->GetViewMatrix();
 	const Matrix4x4* projection = camera->GetProjectionMatrix();
+    Matrix4x4 mv = (*view).Multiply(transform);
 
 	std::vector<Point2D> points;
 	for (int i = 0; i < (int)mesh.vertices.size(); ++i)
 	{
-		Vector3 posW = transform.MultiplyPoint3x4(mesh.vertices[i]);
-		Vector3 posC = view->MultiplyPoint(posW);
+		Vector3 posC = mv.MultiplyPoint3x4(mesh.vertices[i]);
 		Vector3 point = projection->MultiplyPoint(posC);
 		int x = Mathf::RoundToInt((point.x + 1) * width / 2);
 		int y = Mathf::RoundToInt((point.y + 1) * height / 2);
@@ -342,33 +349,20 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform, const Co
 	{
 		Vertex vertex;
 
-		Vector3 posC = mv.MultiplyPoint3x4(mesh.vertices[i]);
-		vertex.position = posC;
-
-		Vector3 normal = transform.MultiplyVector(mesh.normals[i]).Normalize();
-		vertex.normal = normal;
-
-		Vector3 tangent = transform.MultiplyVector(mesh.tangents[i]).Normalize();
-		vertex.tangent = tangent;
-
+		vertex.position = mv.MultiplyPoint3x4(mesh.vertices[i]);
+		vertex.normal = transform.MultiplyVector(mesh.normals[i]).Normalize();
+		vertex.tangent = transform.MultiplyVector(mesh.tangents[i]).Normalize();
 		vertex.texcoord = mesh.texcoords[i];
-
-		Vector3 posP = projection->MultiplyPoint(posC);
-		vertex.projection = posP;
-
-        Point2D point;
-		point.x = Mathf::RoundToInt((posP.x + 1) / 2 * width);
-		point.y = Mathf::RoundToInt((posP.y + 1) / 2 * height);
-		point.z = posP.z;
-        point.depth = camera->GetLinearDepth(posC.z);
-        point.cullMask = 0x0;
-        if (point.x < 0) point.cullMask |= 0x1;
-        if (point.x >= width) point.cullMask |= 0x2;
-        if (point.y < 0) point.cullMask |= 0x4;
-        if (point.y >= height) point.cullMask |= 0x8;
-        if (point.depth < 0) point.cullMask |= 0x10;
-        if (point.depth > 1) point.cullMask |= 0x20;
-        vertex.point = point;
+		vertex.projection = projection->MultiplyPoint(vertex.position);
+        
+        float w = vertex.projection.w;
+        vertex.clipCode = 0x0;
+        if (vertex.projection.x < -w) vertex.clipCode |= viewFrustumPlanes[0].cullMask;
+        if (vertex.projection.x > w) vertex.clipCode |= viewFrustumPlanes[1].cullMask;
+        if (vertex.projection.y < -w) vertex.clipCode |= viewFrustumPlanes[2].cullMask;
+        if (vertex.projection.y > w) vertex.clipCode |= viewFrustumPlanes[3].cullMask;
+        if (vertex.projection.z < 0.f) vertex.clipCode |= viewFrustumPlanes[4].cullMask;
+        if (vertex.projection.z > w) vertex.clipCode |= viewFrustumPlanes[5].cullMask;
 
 		vertices[i] = vertex;
 	}
@@ -381,17 +375,80 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform, const Co
 		int i0 = mesh.indices[i * 3];
 		int i1 = mesh.indices[i * 3 + 1];
 		int i2 = mesh.indices[i * 3 + 2];
-
-		Face face;
-		face.v[0] = vertices[i0];
-		face.v[1] = vertices[i1];
-		face.v[2] = vertices[i2];
-		
-        if (Orient2D(face.v[0].point, face.v[1].point, face.v[2].point) <= 0) continue;
-        if ((face.v[0].point.cullMask & face.v[1].point.cullMask & face.v[2].point.cullMask) != 0) continue;
         
-		DrawTriangle(face);
+        // TODO backface cull
+        
+        auto faces = ClipTriangle(vertices[i0], vertices[i1], vertices[i2]);
+        for (auto f : faces)
+        {
+            // TODO calc view point
+            DrawTriangle(f);
+        }
 	}
 
 }
+    
+std::vector<Rasterizer::Face> Rasterizer::ClipTriangle(const Vertex& v0, const Vertex& v1, const Vertex& v2)
+{
+    std::vector<Face> faces;
+    if (0 != (v0.clipCode & v1.clipCode & v2.clipCode)) return faces;
+    
+    Face face;
+    face.v[0] = v0;
+    face.v[1] = v1;
+    face.v[2] = v2;
+    
+    for (auto p : viewFrustumPlanes)
+    {
+        std::vector<Face> clippedFaces;
+        for (auto f : faces)
+        {
+            auto outFaces = ClipTriangleFromPlane(f, p);
+            clippedFaces.insert(clippedFaces.end(), outFaces.begin(), outFaces.end());
+        }
+        faces = clippedFaces;
+    }
+    return faces;
+}
+
+std::vector<Rasterizer::Face> Rasterizer::ClipTriangleFromPlane(const Face& face, const Plane& plane)
+{
+    std::vector<Face> outFaces;
+    const Vertex& v0 = face.v[0];
+    const Vertex& v1 = face.v[1];
+    const Vertex& v2 = face.v[2];
+    
+    assert (0 != (v0.clipCode & v1.clipCode & v2.clipCode & plane.cullMask));
+    
+    if (0 == ((v0.clipCode | v1.clipCode | v2.clipCode) & plane.cullMask))
+    {
+        outFaces.push_back(face);
+    }
+    else if ((~v0.clipCode) & v1.clipCode & v2.clipCode & plane.cullMask)
+    {
+        // TODO
+    }
+    else if (v0.clipCode & (~v1.clipCode) & v2.clipCode & plane.cullMask)
+    {
+        // TODO
+    }
+    else if (v0.clipCode & v1.clipCode & (~v2.clipCode) & plane.cullMask)
+    {
+        // TODO
+    }
+    else if ((~v0.clipCode) & (~v1.clipCode) & v2.clipCode & plane.cullMask)
+    {
+        // TODO
+    }
+    else if (v0.clipCode & (~v1.clipCode) & (~v2.clipCode) & plane.cullMask)
+    {
+        // TODO
+    }
+    else if ((~v0.clipCode) & v1.clipCode & (~v2.clipCode) & plane.cullMask)
+    {
+        // TODO
+    }
+    return outFaces;
+}
+    
 }

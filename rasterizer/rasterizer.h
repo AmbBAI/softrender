@@ -23,7 +23,6 @@ struct Rasterizer
 		int y = 0;
 		float z = 0.0f;
 		float depth = 0.0f;
-        u32 cullMask = 0x0;
 
         Point2D() = default;
 		Point2D(int _x, int _y) : x(_x), y(_y) {}
@@ -36,14 +35,23 @@ struct Rasterizer
 		Vector3 normal = Vector3::up;
 		Vector3 tangent = Vector3::right;
 		Vector2 texcoord = Vector2::zero;
-		Vector3 projection = Vector3::zero;
+		Vector4 projection = Vector3::zero;
 		Point2D point = Point2D(0, 0);
+        u32 clipCode;
 	};
 
 	struct Face
 	{
 		Vertex v[3];
 	};
+    
+    struct Plane
+    {
+        u32 cullMask = 0x0;
+        typedef float (*ClippingFunc)();
+        ClippingFunc clippingFunc = nullptr;
+    };
+    static Plane viewFrustumPlanes[6];
 
 	static Vector3 lightDir;
 	static Canvas* canvas;
@@ -61,6 +69,11 @@ struct Rasterizer
     static void DrawTriangle(const Face& f);
     static void DrawMesh(const Mesh& mesh, const Matrix4x4& transform, const Color& color);
 
+    //static bool ClipLine(float& t, float f0, float w0, float f1, float w1);
+    //static bool ClipLineFromPlane(float t, Vector4 v0, Vector4 v1);
+    static std::vector<Face> ClipTriangleFromPlane(const Face& face, const Plane& plane);
+    static std::vector<Face> ClipTriangle(const Vertex& v0, const Vertex& v1, const Vertex& v2);
+    
 private:
 	static float FloatPart(float v);
 	static int IntPart(float v);

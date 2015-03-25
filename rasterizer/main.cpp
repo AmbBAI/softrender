@@ -34,6 +34,7 @@ void MainLoop()
         Rasterizer::camera = CreateCamera();
 
         mesh.push_back(CreatePlane());
+        //mesh[0]->materials.push_back();
 		//Mesh::LoadMesh(mesh, "resources/crytek-sponza/sponza.obj");
 
 		for (auto m : mesh)
@@ -42,8 +43,8 @@ void MainLoop()
 				m->RecalculateNormals();
 		}
         
-        position = Vector3(0, 0, 0);
-        rotation = Vector3(0, 90, 0);
+        position = Vector3(0, 0, 100);
+        rotation = Vector3(0, 45, 0);
         scale = Vector3(500, 500, 500);
 
 		Rasterizer::fragmentShader = Rasterizer::FS;
@@ -75,7 +76,8 @@ void MainLoop()
 	for (auto m : mesh)
 	{
         if (m->materials.size() > 0) Rasterizer::material = m->materials[0];
-		Rasterizer::DrawMesh(*(m), trans, Color::white);
+		Rasterizer::DrawMesh(*m, trans, Color::white);
+        Rasterizer::DrawMeshWireFrame(*m, trans, Color::red);
 	}
 
 	canvas->Present();

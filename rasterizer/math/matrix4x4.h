@@ -3,6 +3,7 @@
 
 #include "base/header.h"
 #include "math/vector3.h"
+#include "math/vector4.h"
 #include "math/quaternion.h"
 
 namespace rasterizer
@@ -26,7 +27,7 @@ struct Matrix4x4
 	const Matrix4x4 Multiply(const Matrix4x4& mat) const;
 	const Matrix4x4 operator*(const Matrix4x4& mat) const;
 
-	const Vector3 MultiplyPoint(const Vector3& p) const;
+	const Vector4 MultiplyPoint(const Vector3& p) const;
 	const Vector3 MultiplyPoint3x4(const Vector3& p) const;
 	const Vector3 MultiplyVector(const Vector3& p) const;
 
