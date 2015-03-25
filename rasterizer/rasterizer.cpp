@@ -375,8 +375,8 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform, const Co
 		vertex.normal = transform.MultiplyVector(mesh.normals[i]).Normalize();
 		vertex.tangent = transform.MultiplyVector(mesh.tangents[i]).Normalize();
 		vertex.texcoord = mesh.texcoords[i];
-		vertex.projection = projection->MultiplyPoint(position);
-		vertex.clipCode = CalculateClipCode(vertex.projection);
+		vertex.position = projection->MultiplyPoint(position);
+		vertex.clipCode = CalculateClipCode(vertex.position);
 
 		vertices[i] = vertex;
 	}
@@ -395,9 +395,9 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform, const Co
         auto faces = ClipTriangle(vertices[i0], vertices[i1], vertices[i2]);
         for (auto f : faces)
         {
-			f.v[0].point = CalculateViewPoint(f.v[0].projection);
-			f.v[1].point = CalculateViewPoint(f.v[1].projection);
-			f.v[2].point = CalculateViewPoint(f.v[2].projection);
+			f.v[0].point = CalculateViewPoint(f.v[0].position);
+			f.v[1].point = CalculateViewPoint(f.v[1].position);
+			f.v[2].point = CalculateViewPoint(f.v[2].position);
             DrawTriangle(f);
         }
 	}
@@ -441,8 +441,8 @@ std::vector<Rasterizer::Face> Rasterizer::ClipTriangleFromPlane(const Face& face
     }
     else if ((~v0.clipCode) & v1.clipCode & v2.clipCode & plane.cullMask)
     {
-		float t1 = plane.clippingFunc(v1.projection, v0.projection);
-		float t2 = plane.clippingFunc(v2.projection, v0.projection);
+		float t1 = plane.clippingFunc(v1.position, v0.position);
+		float t2 = plane.clippingFunc(v2.position, v0.position);
 		assert(0.f <= t1 && t1 <= 1.f);
 		assert(0.f <= t2 && t2 <= 1.f);
 		Face face;
@@ -453,8 +453,8 @@ std::vector<Rasterizer::Face> Rasterizer::ClipTriangleFromPlane(const Face& face
 	}
     else if (v0.clipCode & (~v1.clipCode) & v2.clipCode & plane.cullMask)
     {
-		float t0 = plane.clippingFunc(v0.projection, v1.projection);
-		float t2 = plane.clippingFunc(v2.projection, v1.projection);
+		float t0 = plane.clippingFunc(v0.position, v1.position);
+		float t2 = plane.clippingFunc(v2.position, v1.position);
 		assert(0.f <= t0 && t0 <= 1.f);
 		assert(0.f <= t2 && t2 <= 1.f);
 		Face face;
@@ -465,8 +465,8 @@ std::vector<Rasterizer::Face> Rasterizer::ClipTriangleFromPlane(const Face& face
     }
     else if (v0.clipCode & v1.clipCode & (~v2.clipCode) & plane.cullMask)
     {
-		float t1 = plane.clippingFunc(v1.projection, v2.projection);
-		float t0 = plane.clippingFunc(v0.projection, v2.projection);
+		float t1 = plane.clippingFunc(v1.position, v2.position);
+		float t0 = plane.clippingFunc(v0.position, v2.position);
 		assert(0.f <= t1 && t1 <= 1.f);
 		assert(0.f <= t0 && t0 <= 1.f);
 		Face face;
@@ -477,8 +477,8 @@ std::vector<Rasterizer::Face> Rasterizer::ClipTriangleFromPlane(const Face& face
     }
     else if ((~v0.clipCode) & (~v1.clipCode) & v2.clipCode & plane.cullMask)
     {
-		float t1 = plane.clippingFunc(v2.projection, v1.projection);
-		float t0 = plane.clippingFunc(v2.projection, v0.projection);
+		float t1 = plane.clippingFunc(v2.position, v1.position);
+		float t0 = plane.clippingFunc(v2.position, v0.position);
 		assert(0.f <= t1 && t1 <= 1.f);
 		assert(0.f <= t0 && t0 <= 1.f);
 		Vertex extVertex0 = ClipLineFromPlane(t1, v2, v1);
@@ -495,8 +495,8 @@ std::vector<Rasterizer::Face> Rasterizer::ClipTriangleFromPlane(const Face& face
     }
     else if (v0.clipCode & (~v1.clipCode) & (~v2.clipCode) & plane.cullMask)
     {
-		float t1 = plane.clippingFunc(v0.projection, v1.projection);
-		float t2 = plane.clippingFunc(v0.projection, v2.projection);
+		float t1 = plane.clippingFunc(v0.position, v1.position);
+		float t2 = plane.clippingFunc(v0.position, v2.position);
 		assert(0.f <= t1 && t1 <= 1.f);
 		assert(0.f <= t2 && t2 <= 1.f);
 		Vertex extVertex0 = ClipLineFromPlane(t2, v0, v2);
@@ -513,8 +513,8 @@ std::vector<Rasterizer::Face> Rasterizer::ClipTriangleFromPlane(const Face& face
     }
     else if ((~v0.clipCode) & v1.clipCode & (~v2.clipCode) & plane.cullMask)
     {
-		float t0 = plane.clippingFunc(v1.projection, v0.projection);
-		float t2 = plane.clippingFunc(v1.projection, v2.projection);
+		float t0 = plane.clippingFunc(v1.position, v0.position);
+		float t2 = plane.clippingFunc(v1.position, v2.position);
 		assert(0.f <= t0 && t0 <= 1.f);
 		assert(0.f <= t2 && t2 <= 1.f);
 		Vertex extVertex0 = ClipLineFromPlane(t0, v1, v0);
@@ -542,11 +542,11 @@ Rasterizer::Vertex Rasterizer::ClipLineFromPlane(float t, const Vertex& v0, cons
 	assert(0.f <= t && t <= 1.f);
 
 	Vertex vertex;
-	vertex.projection = Vector4::Lerp(v0.projection, v1.projection, t);
+	vertex.position = Vector4::Lerp(v0.position, v1.position, t);
 	vertex.normal = Vector3::Lerp(v0.normal, v1.normal, t);
 	vertex.tangent = Vector3::Lerp(v0.tangent, v1.tangent, t);
 	vertex.texcoord = Vector2::Lerp(v0.texcoord, v1.texcoord, t);
-	vertex.clipCode = CalculateClipCode(vertex.projection);
+	vertex.clipCode = CalculateClipCode(vertex.position);
 
 	return vertex;
 }

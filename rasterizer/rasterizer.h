@@ -31,10 +31,10 @@ struct Rasterizer
 
 	struct Vertex
 	{
+		Vector4 position = Vector3::zero;
 		Vector3 normal = Vector3::up;
 		Vector3 tangent = Vector3::right;
 		Vector2 texcoord = Vector2::zero;
-		Vector4 projection = Vector3::zero;
 		Point2D point = Point2D(0, 0);
         u32 clipCode;
 	};
