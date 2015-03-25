@@ -21,17 +21,16 @@ struct Rasterizer
 	{
 		int x = 0;
 		int y = 0;
-		float z = 0.0f;
 		float depth = 0.0f;
+		float w = 0.0f;
 
         Point2D() = default;
 		Point2D(int _x, int _y) : x(_x), y(_y) {}
-		Point2D(int _x, int _y, float _depth) : x(_x), y(_y), depth(_depth) {}
+		Point2D(int _x, int _y, float _depth) : x(_x), y(_y), w(_depth) {}
 	};
 
 	struct Vertex
 	{
-		Vector3 position = Vector3::zero;
 		Vector3 normal = Vector3::up;
 		Vector3 tangent = Vector3::right;
 		Vector2 texcoord = Vector2::zero;
@@ -48,7 +47,7 @@ struct Rasterizer
     struct Plane
     {
         u32 cullMask = 0x0;
-        typedef bool (*ClippingFunc)(float& t, const Vector4& v0, const Vector4& v1);
+        typedef float (*ClippingFunc)(const Vector4& v0, const Vector4& v1);
         ClippingFunc clippingFunc = nullptr;
     };
     static Plane viewFrustumPlanes[6];
@@ -71,8 +70,7 @@ struct Rasterizer
     static void DrawTriangle(const Face& f);
     static void DrawMesh(const Mesh& mesh, const Matrix4x4& transform, const Color& color);
 
-    //static bool ClipLine(float& t, float f0, float w0, float f1, float w1);
-    //static bool ClipLineFromPlane(float t, Vector4 v0, Vector4 v1);
+    static Vertex ClipLineFromPlane(float t, const Vertex& v0, const Vertex& v1);
     static std::vector<Face> ClipTriangleFromPlane(const Face& face, const Plane& plane);
     static std::vector<Face> ClipTriangle(const Vertex& v0, const Vertex& v1, const Vertex& v2);
     
@@ -82,7 +80,11 @@ private:
 	static int Orient2D(const Point2D& v1, const Point2D& v2, const Point2D& p);
 	static void Plot(int x, int y, const Color32& color);
 	static void Plot(int x, int y, const Color32& color, float alpha, bool swapXY = false);
-    
+
+	static float ClipLine(float f0, float w0, float f1, float w1);
+	static u32 CalculateClipCode(const Vector4& position);
+	static Point2D CalculateViewPoint(const Vector4& position);
+
     static std::vector<Vertex> vertices;
 };
 

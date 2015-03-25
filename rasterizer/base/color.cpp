@@ -37,10 +37,10 @@ const Color Color::Lerp(const Color& a, const Color& b, float t)
 {
 	t = Mathf::Clamp01(t);
 	Color color;
-	color.a = a.a * (1 - t) + b.a * t;
-	color.r = a.r * (1 - t) + b.r * t;
-	color.g = a.g * (1 - t) + b.g * t;
-	color.b = a.b * (1 - t) + b.b * t;
+	color.a = Mathf::Lerp(a.a, b.a, t);
+	color.r = Mathf::Lerp(a.r, b.r, t);
+	color.g = Mathf::Lerp(a.g, b.g, t);
+	color.b = Mathf::Lerp(a.b, b.b, t);
 	return color;
 }
 

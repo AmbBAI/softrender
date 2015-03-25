@@ -60,4 +60,9 @@ const float Vector2::Dot(const Vector2& v) const
 	return x * v.x + y * v.y;
 }
 
+rasterizer::Vector2 Vector2::Lerp(const Vector2& a, const Vector2& b, float t)
+{
+	return Vector2(Mathf::Lerp(a.x, b.x, t), Mathf::Lerp(a.y, b.y, t));
+}
+
 }

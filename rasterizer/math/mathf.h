@@ -27,6 +27,8 @@ public:
 	static float Round(float f);
 	static int RoundToInt(float f);
 
+	static float Lerp(float a, float b, float t);
+
 	template<class T>
 	static T Clamp(T value, T min, T max);
 	static float Clamp01(float value);

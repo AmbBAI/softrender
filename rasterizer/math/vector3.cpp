@@ -85,4 +85,12 @@ std::string Vector3::ToString() const
 	return str;
 }
 
+rasterizer::Vector3 Vector3::Lerp(const Vector3& a, const Vector3& b, float t)
+{
+	return Vector3(
+		Mathf::Lerp(a.x, b.x, t),
+		Mathf::Lerp(a.y, b.y, t),
+		Mathf::Lerp(a.z, b.z, t));
+}
+
 }

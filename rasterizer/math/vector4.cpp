@@ -24,4 +24,13 @@ Vector4::operator Vector3() const
 	return Vector3(x, y, z);
 }
 
+rasterizer::Vector4 Vector4::Lerp(const Vector4& a, const Vector4& b, float t)
+{
+	return Vector4(
+		Mathf::Lerp(a.x, b.x, t),
+		Mathf::Lerp(a.y, b.y, t),
+		Mathf::Lerp(a.z, b.z, t),
+		Mathf::Lerp(a.w, b.w, t));
+}
+
 }

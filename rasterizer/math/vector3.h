@@ -32,6 +32,8 @@ struct Vector3
 	const Vector3 operator /(float f) const { return Divide(f); }
 
 	std::string ToString() const;
+	
+	static Vector3 Lerp(const Vector3& a, const Vector3& b, float t);
 
 	static const Vector3 zero;
 	static const Vector3 one;

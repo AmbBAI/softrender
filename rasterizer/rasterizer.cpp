@@ -1,12 +1,5 @@
 #include "rasterizer.h"
 
-#define CLIPMASK_X0 0x01
-#define CLIPMASK_X1 0x02
-#define CLIPMASK_Y0 0x04
-#define CLIPMASK_Y1 0x08
-#define CLIPMASK_Z0 0x10
-#define CLIPMASK_Z1 0x20
-
 namespace rasterizer
 {
 
@@ -18,22 +11,33 @@ Rasterizer::FragmentShader Rasterizer::fragmentShader = nullptr;
 
 rasterizer::Vector3 Rasterizer::lightDir = Vector3(-1.f, -1.f, -1.f).Normalize();
 
+Rasterizer::Plane Rasterizer::viewFrustumPlanes[6];
+
 void Rasterizer::Initialize()
 {
     viewFrustumPlanes[0].cullMask = 0x01;
-    viewFrustumPlanes[0].clippingFunc = [](float& t, const Vector4& v0, const Vector4& v1)
-    {
-        float d = (v0.w - v1.w) - (v0.x - v1.x);
-        if (d == 0.f) return false;
-        t = (v0.w - v0.x) / d;
-        if (t >= 0.f && t <= 1.f) return true;
-        return false;
-    };
+    viewFrustumPlanes[0].clippingFunc =
+		[](const Vector4& v0, const Vector4& v1) { return ClipLine(v0.x, -v0.w, v1.x, -v1.w); };
+
     viewFrustumPlanes[1].cullMask = 0x02;
+	viewFrustumPlanes[1].clippingFunc =
+		[](const Vector4& v0, const Vector4& v1) { return ClipLine(v0.x, v0.w, v1.x, v1.w); };
+
     viewFrustumPlanes[2].cullMask = 0x04;
-    viewFrustumPlanes[3].cullMask = 0x08;
-    viewFrustumPlanes[4].cullMask = 0x10;
-    viewFrustumPlanes[5].cullMask = 0x20;
+	viewFrustumPlanes[2].clippingFunc =
+		[](const Vector4& v0, const Vector4& v1) { return ClipLine(v0.y, -v0.w, v1.y, -v1.w);};
+
+	viewFrustumPlanes[3].cullMask = 0x08;
+	viewFrustumPlanes[3].clippingFunc =
+		[](const Vector4& v0, const Vector4& v1) { return ClipLine(v0.y, v0.w, v1.y, v1.w); };
+
+	viewFrustumPlanes[4].cullMask = 0x10;
+	viewFrustumPlanes[4].clippingFunc =
+		[](const Vector4& v0, const Vector4& v1) { return ClipLine(v0.z, -v0.w, v1.z, -v1.w); };
+
+	viewFrustumPlanes[5].cullMask = 0x20;
+	viewFrustumPlanes[5].clippingFunc =
+		[](const Vector4& v0, const Vector4& v1) { return ClipLine(v0.z, v0.w, v1.z, v1.w); };
 }
     
 void TestColor(Canvas* canvas)
@@ -264,11 +268,11 @@ void Rasterizer::DrawTriangle(const Face& f)
 	if (dy12 < 0 || (dy12 == 0 && dx12 < 0)) startW1 += 1;
 	if (dy20 < 0 || (dy20 == 0 && dx20 < 0)) startW2 += 1;
 
-	float invZ0 = 1.f / p0.depth;
-	float invZ1 = 1.f / p1.depth;
-	float invZ2 = 1.f / p2.depth;
+	float invZ0 = 1.f / p0.w;
+	float invZ1 = 1.f / p1.w;
+	float invZ2 = 1.f / p2.w;
 
-    printf("%d-%d %d-%d\n", minY, maxY, minX, maxX);
+    //printf("%d-%d %d-%d\n", minY, maxY, minX, maxX);
 	for (int y = minY; y <= maxY; ++y)
 	{
 		int w0 = startW0;
@@ -290,12 +294,12 @@ void Rasterizer::DrawTriangle(const Face& f)
                 if (depth > 0.0f && depth < 1.0f && depth < canvas->GetDepth(x, y))
 				{
 					canvas->SetDepth(x, y, depth);
-					canvas->SetPixel(x, y, Color(1.f, 1.f - depth, 1.f - depth, 1.f - depth));
-//					if (fragmentShader != nullptr)
-//					{
-//						Color color = fragmentShader(f, wz0, wz1, wz2, invW);
-//						canvas->SetPixel(x, y, color);
-//					}
+					//canvas->SetPixel(x, y, Color(1.f, 1.f - depth, 1.f - depth, 1.f - depth));
+					if (fragmentShader != nullptr)
+					{
+						Color color = fragmentShader(f, wz0, wz1, wz2, invW);
+						canvas->SetPixel(x, y, color);
+					}
 				}
 			}
 
@@ -320,12 +324,12 @@ Color Rasterizer::FS(const Face& face, float w0, float w1, float w2, float invW)
 	Vector2 uv = (v0.texcoord * w0 + v1.texcoord * w1 + v2.texcoord * w2) * invW;
 
 	Color color = Color::white;
-	//MaterialPtr material = Rasterizer::material;
+	MaterialPtr material = Rasterizer::material;
 
-	//if (material && material->diffuseTexture)
-	//{
-	//	color = color.Modulate(material->diffuseTexture->Sample(uv.x, uv.y));
-	//}
+	if (material && material->diffuseTexture)
+	{
+		color = color.Modulate(material->diffuseTexture->Sample(uv.x, uv.y));
+	}
 
 	//if (material && material->normalTexture)
 	//{
@@ -367,20 +371,12 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform, const Co
 	{
 		Vertex vertex;
 
-		vertex.position = mv.MultiplyPoint3x4(mesh.vertices[i]);
+		Vector3 position = mv.MultiplyPoint3x4(mesh.vertices[i]);
 		vertex.normal = transform.MultiplyVector(mesh.normals[i]).Normalize();
 		vertex.tangent = transform.MultiplyVector(mesh.tangents[i]).Normalize();
 		vertex.texcoord = mesh.texcoords[i];
-		vertex.projection = projection->MultiplyPoint(vertex.position);
-        
-        float w = vertex.projection.w;
-        vertex.clipCode = 0x0;
-        if (vertex.projection.x < -w) vertex.clipCode |= viewFrustumPlanes[0].cullMask;
-        if (vertex.projection.x > w) vertex.clipCode |= viewFrustumPlanes[1].cullMask;
-        if (vertex.projection.y < -w) vertex.clipCode |= viewFrustumPlanes[2].cullMask;
-        if (vertex.projection.y > w) vertex.clipCode |= viewFrustumPlanes[3].cullMask;
-        if (vertex.projection.z < 0.f) vertex.clipCode |= viewFrustumPlanes[4].cullMask;
-        if (vertex.projection.z > w) vertex.clipCode |= viewFrustumPlanes[5].cullMask;
+		vertex.projection = projection->MultiplyPoint(position);
+		vertex.clipCode = CalculateClipCode(vertex.projection);
 
 		vertices[i] = vertex;
 	}
@@ -399,7 +395,9 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform, const Co
         auto faces = ClipTriangle(vertices[i0], vertices[i1], vertices[i2]);
         for (auto f : faces)
         {
-            // TODO calc view point
+			f.v[0].point = CalculateViewPoint(f.v[0].projection);
+			f.v[1].point = CalculateViewPoint(f.v[1].projection);
+			f.v[2].point = CalculateViewPoint(f.v[2].projection);
             DrawTriangle(f);
         }
 	}
@@ -415,6 +413,7 @@ std::vector<Rasterizer::Face> Rasterizer::ClipTriangle(const Vertex& v0, const V
     face.v[0] = v0;
     face.v[1] = v1;
     face.v[2] = v2;
+	faces.push_back(face);
     
     for (auto p : viewFrustumPlanes)
     {
@@ -436,37 +435,152 @@ std::vector<Rasterizer::Face> Rasterizer::ClipTriangleFromPlane(const Face& face
     const Vertex& v1 = face.v[1];
     const Vertex& v2 = face.v[2];
     
-    assert (0 != (v0.clipCode & v1.clipCode & v2.clipCode & plane.cullMask));
-    
     if (0 == ((v0.clipCode | v1.clipCode | v2.clipCode) & plane.cullMask))
     {
         outFaces.push_back(face);
     }
     else if ((~v0.clipCode) & v1.clipCode & v2.clipCode & plane.cullMask)
     {
-        // TODO
-    }
+		float t1 = plane.clippingFunc(v1.projection, v0.projection);
+		float t2 = plane.clippingFunc(v2.projection, v0.projection);
+		assert(0.f <= t1 && t1 <= 1.f);
+		assert(0.f <= t2 && t2 <= 1.f);
+		Face face;
+		face.v[0] = v0;
+		face.v[1] = ClipLineFromPlane(t1, v1, v0);
+		face.v[2] = ClipLineFromPlane(t2, v2, v0);
+		outFaces.push_back(face);
+	}
     else if (v0.clipCode & (~v1.clipCode) & v2.clipCode & plane.cullMask)
     {
-        // TODO
+		float t0 = plane.clippingFunc(v0.projection, v1.projection);
+		float t2 = plane.clippingFunc(v2.projection, v1.projection);
+		assert(0.f <= t0 && t0 <= 1.f);
+		assert(0.f <= t2 && t2 <= 1.f);
+		Face face;
+		face.v[0] = v1;
+		face.v[1] = ClipLineFromPlane(t2, v2, v1);
+		face.v[2] = ClipLineFromPlane(t0, v0, v1);
+		outFaces.push_back(face);
     }
     else if (v0.clipCode & v1.clipCode & (~v2.clipCode) & plane.cullMask)
     {
-        // TODO
+		float t1 = plane.clippingFunc(v1.projection, v2.projection);
+		float t0 = plane.clippingFunc(v0.projection, v2.projection);
+		assert(0.f <= t1 && t1 <= 1.f);
+		assert(0.f <= t0 && t0 <= 1.f);
+		Face face;
+		face.v[0] = v2;
+		face.v[1] = ClipLineFromPlane(t0, v0, v2);
+		face.v[2] = ClipLineFromPlane(t1, v1, v2);
+		outFaces.push_back(face);
     }
     else if ((~v0.clipCode) & (~v1.clipCode) & v2.clipCode & plane.cullMask)
     {
-        // TODO
+		float t1 = plane.clippingFunc(v2.projection, v1.projection);
+		float t0 = plane.clippingFunc(v2.projection, v0.projection);
+		assert(0.f <= t1 && t1 <= 1.f);
+		assert(0.f <= t0 && t0 <= 1.f);
+		Vertex extVertex0 = ClipLineFromPlane(t1, v2, v1);
+		Vertex extVertex1 = ClipLineFromPlane(t0, v2, v0);
+		Face face;
+		face.v[0] = v0;
+		face.v[1] = v1;
+		face.v[2] = extVertex0;
+		outFaces.push_back(face);
+		face.v[0] = v0;
+		face.v[1] = extVertex0;
+		face.v[2] = extVertex1;
+		outFaces.push_back(face);
     }
     else if (v0.clipCode & (~v1.clipCode) & (~v2.clipCode) & plane.cullMask)
     {
-        // TODO
+		float t1 = plane.clippingFunc(v0.projection, v1.projection);
+		float t2 = plane.clippingFunc(v0.projection, v2.projection);
+		assert(0.f <= t1 && t1 <= 1.f);
+		assert(0.f <= t2 && t2 <= 1.f);
+		Vertex extVertex0 = ClipLineFromPlane(t2, v0, v2);
+		Vertex extVertex1 = ClipLineFromPlane(t1, v0, v1);
+		Face face;
+		face.v[0] = v1;
+		face.v[1] = v2;
+		face.v[2] = extVertex0;
+		outFaces.push_back(face);
+		face.v[0] = v1;
+		face.v[1] = extVertex0;
+		face.v[2] = extVertex1;
+		outFaces.push_back(face);
     }
     else if ((~v0.clipCode) & v1.clipCode & (~v2.clipCode) & plane.cullMask)
     {
-        // TODO
+		float t0 = plane.clippingFunc(v1.projection, v0.projection);
+		float t2 = plane.clippingFunc(v1.projection, v2.projection);
+		assert(0.f <= t0 && t0 <= 1.f);
+		assert(0.f <= t2 && t2 <= 1.f);
+		Vertex extVertex0 = ClipLineFromPlane(t0, v1, v0);
+		Vertex extVertex1 = ClipLineFromPlane(t2, v1, v2);
+		Face face;
+		face.v[0] = v2;
+		face.v[1] = v0;
+		face.v[2] = extVertex0;
+		outFaces.push_back(face);
+		face.v[0] = v2;
+		face.v[1] = extVertex0;
+		face.v[2] = extVertex1;
+		outFaces.push_back(face);
     }
     return outFaces;
 }
-    
+
+float Rasterizer::ClipLine(float f0, float w0, float f1, float w1)
+{
+	return (w0 - f0) / ((w0 - f0) - (w1 - f1));
+}
+
+Rasterizer::Vertex Rasterizer::ClipLineFromPlane(float t, const Vertex& v0, const Vertex& v1)
+{
+	assert(0.f <= t && t <= 1.f);
+
+	Vertex vertex;
+	vertex.projection = Vector4::Lerp(v0.projection, v1.projection, t);
+	vertex.normal = Vector3::Lerp(v0.normal, v1.normal, t);
+	vertex.tangent = Vector3::Lerp(v0.tangent, v1.tangent, t);
+	vertex.texcoord = Vector2::Lerp(v0.texcoord, v1.texcoord, t);
+	vertex.clipCode = CalculateClipCode(vertex.projection);
+
+	return vertex;
+}
+
+u32 Rasterizer::CalculateClipCode(const Vector4& position)
+{
+	float w = position.w;
+	u32 clipCode = 0x0;
+	if (position.x < -w) clipCode |= viewFrustumPlanes[0].cullMask;
+	if (position.x > w) clipCode |= viewFrustumPlanes[1].cullMask;
+	if (position.y < -w) clipCode |= viewFrustumPlanes[2].cullMask;
+	if (position.y > w) clipCode |= viewFrustumPlanes[3].cullMask;
+	if (position.z < -w) clipCode |= viewFrustumPlanes[4].cullMask;
+	if (position.z > w) clipCode |= viewFrustumPlanes[5].cullMask;
+	return clipCode;
+}
+
+Rasterizer::Point2D Rasterizer::CalculateViewPoint(const Vector4& position)
+{
+	assert(canvas != nullptr);
+
+	int width = canvas->GetWidth();
+	int height = canvas->GetHeight();
+
+	float w = position.w;
+	float invW = 1.f / w;
+
+	Point2D point;
+	point.x = Mathf::RoundToInt(((position.x * invW) + 1.f) / 2.f * width);
+	point.y = Mathf::RoundToInt(((position.y * invW) + 1.f) / 2.f * height);
+	point.depth = (position.z * invW + 1.f) / 2.f;
+	point.w = w;
+	return point;
+}
+
+
 }

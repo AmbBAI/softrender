@@ -29,6 +29,8 @@ struct Vector2
     const Vector2 operator *(float f) const { return Multiply(f); }
     const Vector2 operator /(float f) const { return Divide(f); }
     
+	static Vector2 Lerp(const Vector2& a, const Vector2& b, float t);
+
 	static const Vector2 zero;
 	static const Vector2 one;
 };

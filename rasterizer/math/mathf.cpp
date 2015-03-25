@@ -168,4 +168,9 @@ int Mathf::NextPowerOfTwo(int value)
 	return value;
 }
 
+float Mathf::Lerp(float a, float b, float t)
+{
+	return a * (1.f - t) + b * t;
+}
+
 }

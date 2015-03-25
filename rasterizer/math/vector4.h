@@ -19,6 +19,8 @@ struct Vector4
 	Vector4(const Vector4& v);
 	Vector4(const Vector3& v);
 
+	static Vector4 Lerp(const Vector4& a, const Vector4& b, float t);
+
 	operator Vector3() const;
 };
 
