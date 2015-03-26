@@ -33,6 +33,8 @@ struct Rasterizer
     {
         Vector4 position = Vector4();
         u32 clipCode = 0x0;
+        
+        //static Vertex_p Lerp(const Vertex_p& a, const Vertex_p& b, float t);
     };
     
 	struct Vertex
@@ -43,6 +45,8 @@ struct Rasterizer
 		Vector2 texcoord = Vector2::zero;
 		Point2D point = Point2D(0, 0);
         u32 clipCode = 0x0;
+        
+        //static Vertex Lerp(const Vertex& a, const Vertex& b, float t);
 	};
 
     template<class VertexType, int VertexCount>
@@ -95,6 +99,8 @@ private:
     static Vertex_p LerpVertex(const Vertex_p& v0, const Vertex_p& v1, float t);
     static void ClipLineFromPlane(std::vector<Line>& clippedLines, const Line& line, const Plane& plane);
     static void ClipTriangleFromPlane(std::vector<Triangle>& clippedTriangles, const Triangle& face, const Plane& plane);
+    static void ClipTriangleWithOneVertexOut(std::vector<Triangle>& clippedTriangles, const Vertex& v0, const Vertex& v1, const Vertex& v2, const Plane& plane);
+    static void ClipTriangleWithTwoVertexOut(std::vector<Triangle>& clippedTriangles, const Vertex& v0, const Vertex& v1, const Vertex& v2, const Plane& plane);
     static u32 CalculateClipCode(const Vector4& position);
 	static Point2D CalculateViewPoint(const Vector4& position);
 

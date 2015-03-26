@@ -500,96 +500,64 @@ void Rasterizer::ClipTriangleFromPlane(std::vector<Triangle>& clippedTriangles, 
     }
     else if ((~v0.clipCode) & v1.clipCode & v2.clipCode & plane.cullMask)
     {
-		float t1 = plane.clippingFunc(v1.position, v0.position);
-		float t2 = plane.clippingFunc(v2.position, v0.position);
-		assert(0.f <= t1 && t1 <= 1.f);
-		assert(0.f <= t2 && t2 <= 1.f);
-		Triangle f;
-		f.v[0] = v0;
-		f.v[1] = LerpVertex(v1, v0, t1);
-		f.v[2] = LerpVertex(v2, v0, t2);
-		clippedTriangles.push_back(f);
+        ClipTriangleWithTwoVertexOut(clippedTriangles, v0, v1, v2, plane);
 	}
     else if (v0.clipCode & (~v1.clipCode) & v2.clipCode & plane.cullMask)
     {
-		float t0 = plane.clippingFunc(v0.position, v1.position);
-		float t2 = plane.clippingFunc(v2.position, v1.position);
-		assert(0.f <= t0 && t0 <= 1.f);
-		assert(0.f <= t2 && t2 <= 1.f);
-		Triangle f;
-		f.v[0] = v1;
-		f.v[1] = LerpVertex(v2, v1, t2);
-		f.v[2] = LerpVertex(v0, v1, t0);
-		clippedTriangles.push_back(f);
+        ClipTriangleWithTwoVertexOut(clippedTriangles, v1, v2, v0, plane);
     }
     else if (v0.clipCode & v1.clipCode & (~v2.clipCode) & plane.cullMask)
     {
-		float t1 = plane.clippingFunc(v1.position, v2.position);
-		float t0 = plane.clippingFunc(v0.position, v2.position);
-		assert(0.f <= t1 && t1 <= 1.f);
-		assert(0.f <= t0 && t0 <= 1.f);
-		Triangle f;
-		f.v[0] = v2;
-		f.v[1] = LerpVertex(v0, v2, t0);
-		f.v[2] = LerpVertex(v1, v2, t1);
-		clippedTriangles.push_back(f);
+		ClipTriangleWithTwoVertexOut(clippedTriangles, v2, v0, v1, plane);
     }
     else if ((~v0.clipCode) & (~v1.clipCode) & v2.clipCode & plane.cullMask)
     {
-		float t1 = plane.clippingFunc(v2.position, v1.position);
-		float t0 = plane.clippingFunc(v2.position, v0.position);
-		assert(0.f <= t1 && t1 <= 1.f);
-		assert(0.f <= t0 && t0 <= 1.f);
-		Vertex extVertex0 = LerpVertex(v2, v1, t1);
-		Vertex extVertex1 = LerpVertex(v2, v0, t0);
-		Triangle f;
-		f.v[0] = v0;
-		f.v[1] = v1;
-		f.v[2] = extVertex0;
-		clippedTriangles.push_back(f);
-		f.v[0] = v0;
-		f.v[1] = extVertex0;
-		f.v[2] = extVertex1;
-		clippedTriangles.push_back(f);
+		ClipTriangleWithOneVertexOut(clippedTriangles, v0, v1, v2, plane);
     }
     else if (v0.clipCode & (~v1.clipCode) & (~v2.clipCode) & plane.cullMask)
     {
-		float t1 = plane.clippingFunc(v0.position, v1.position);
-		float t2 = plane.clippingFunc(v0.position, v2.position);
-		assert(0.f <= t1 && t1 <= 1.f);
-		assert(0.f <= t2 && t2 <= 1.f);
-		Vertex extVertex0 = LerpVertex(v0, v2, t2);
-		Vertex extVertex1 = LerpVertex(v0, v1, t1);
-		Triangle f;
-		f.v[0] = v1;
-		f.v[1] = v2;
-		f.v[2] = extVertex0;
-		clippedTriangles.push_back(f);
-		f.v[0] = v1;
-		f.v[1] = extVertex0;
-		f.v[2] = extVertex1;
-		clippedTriangles.push_back(f);
+        ClipTriangleWithOneVertexOut(clippedTriangles, v1, v2, v0, plane);
     }
     else if ((~v0.clipCode) & v1.clipCode & (~v2.clipCode) & plane.cullMask)
     {
-		float t0 = plane.clippingFunc(v1.position, v0.position);
-		float t2 = plane.clippingFunc(v1.position, v2.position);
-		assert(0.f <= t0 && t0 <= 1.f);
-		assert(0.f <= t2 && t2 <= 1.f);
-		Vertex extVertex0 = LerpVertex(v1, v0, t0);
-		Vertex extVertex1 = LerpVertex(v1, v2, t2);
-		Triangle f;
-		f.v[0] = v2;
-		f.v[1] = v0;
-		f.v[2] = extVertex0;
-		clippedTriangles.push_back(f);
-		f.v[0] = v2;
-		f.v[1] = extVertex0;
-		f.v[2] = extVertex1;
-		clippedTriangles.push_back(f);
+        ClipTriangleWithOneVertexOut(clippedTriangles, v2, v0, v1, plane);
     }
 }
+    
+void Rasterizer::ClipTriangleWithOneVertexOut(std::vector<Triangle>& clippedTriangles, const Vertex& v0, const Vertex& v1, const Vertex& v2, const Plane& plane)
+{
+    // v0 & v1 in, v2 out
+    float t1 = plane.clippingFunc(v2.position, v1.position);
+    float t0 = plane.clippingFunc(v2.position, v0.position);
+    assert(0.f <= t1 && t1 <= 1.f);
+    assert(0.f <= t0 && t0 <= 1.f);
+    Vertex newVertex0 = LerpVertex(v2, v1, t1);
+    Vertex newVertex1 = LerpVertex(v2, v0, t0);
+    Triangle f;
+    f.v[0] = v0;
+    f.v[1] = v1;
+    f.v[2] = newVertex0;
+    clippedTriangles.push_back(f);
+    f.v[0] = v0;
+    f.v[1] = newVertex0;
+    f.v[2] = newVertex1;
+    clippedTriangles.push_back(f);
+}
 
+void Rasterizer::ClipTriangleWithTwoVertexOut(std::vector<Triangle>& clippedTriangles, const Vertex& v0, const Vertex& v1, const Vertex& v2, const Plane& plane)
+{
+    // v0 in, v1, v2 out
+    float t1 = plane.clippingFunc(v1.position, v0.position);
+    float t2 = plane.clippingFunc(v2.position, v0.position);
+    assert(0.f <= t1 && t1 <= 1.f);
+    assert(0.f <= t2 && t2 <= 1.f);
+    Triangle f;
+    f.v[0] = v0;
+    f.v[1] = LerpVertex(v1, v0, t1);
+    f.v[2] = LerpVertex(v2, v0, t2);
+    clippedTriangles.push_back(f);
+}
+    
 float Rasterizer::Clip(float f0, float w0, float f1, float w1)
 {
 	return (w0 - f0) / ((w0 - f0) - (w1 - f1));
