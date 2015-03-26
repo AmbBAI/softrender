@@ -55,21 +55,6 @@ void MainLoop()
 
 	UpdateCamera(Rasterizer::camera);
 
-//	Vector3 position = Vector3::zero;
-//	Vector3 scale = Vector3::one;
-//	std::vector<MeshPtr> meshes;
-//	//Mesh::LoadMesh(meshes, "resources/cube/cube.obj");
-//	//position = Vector3(0, 0, 0);
-//	//scale = Vector3(20, 20, 20);
-//	//Mesh::LoadMesh(meshes, "resources/teapot/teapot.obj");
-//	//position = Vector3(0, -50, 0);
-//	//scale = Vector3(1, 1, 1);
-//	Mesh::LoadMesh(meshes, "resources/head/head.obj");
-//	//meshes.push_back(Plane());
-//	Vector3 position = Vector3(0, 0, -100.3/2);
-//	Vector3 rotation = Vector3(45, 45, 0);
-//	Vector3 scale = Vector3(50, 50, 50);
-
 	Application* app = Application::GetInstance();
 	float startTime = app->GetTime();
 	canvas->Clear();
@@ -81,6 +66,7 @@ void MainLoop()
         if (m->materials.size() > 0) Rasterizer::material = m->materials[0];
 		Rasterizer::DrawMesh(*m, trans, Color::white);
         //Rasterizer::DrawMeshWireFrame(*m, trans, Color::red);
+        //Rasterizer::DrawMeshPoint(*m, trans, Color::red);
 	}
 
 	canvas->Present();

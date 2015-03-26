@@ -29,20 +29,30 @@ struct Rasterizer
 		Point2D(int _x, int _y, float _depth) : x(_x), y(_y), w(_depth) {}
 	};
 
+    struct Vertex_p
+    {
+        Vector4 position = Vector4();
+        u32 clipCode = 0x0;
+    };
+    
 	struct Vertex
 	{
-		Vector4 position = Vector3::zero;
+		Vector4 position = Vector4();
 		Vector3 normal = Vector3::up;
 		Vector3 tangent = Vector3::right;
 		Vector2 texcoord = Vector2::zero;
 		Point2D point = Point2D(0, 0);
-        u32 clipCode;
+        u32 clipCode = 0x0;
 	};
 
+    template<class VertexType, int VertexCount>
 	struct Face
 	{
-		Vertex v[3];
+		VertexType v[VertexCount];
 	};
+    
+    typedef Face<Vertex, 3> Triangle;
+    typedef Face<Vertex_p, 2> Line;
     
     struct Plane
     {
@@ -56,7 +66,7 @@ struct Rasterizer
 	static Canvas* canvas;
 	static CameraPtr camera;
 	static MaterialPtr material;
-	typedef Color (*FragmentShader)(const Face& face, float w0, float w1, float w2, float invW);
+	typedef Color (*FragmentShader)(const Triangle& face, float w0, float w1, float w2, float invW);
 	static FragmentShader fragmentShader;
 
     static void Initialize();
@@ -66,13 +76,12 @@ struct Rasterizer
 	static void DrawMeshPoint(const Mesh& mesh, const Matrix4x4& transform, const Color32& color);
 	static void DrawMeshWireFrame(const Mesh& mesh, const Matrix4x4& transform, const Color32& color);
 
-    static Color FS(const Face& face, float w0, float w1, float w2, float invW);
-    static void DrawTriangle(const Face& f);
+    static Color FS(const Triangle& face, float w0, float w1, float w2, float invW);
+    static void DrawTriangle(const Triangle& f);
     static void DrawMesh(const Mesh& mesh, const Matrix4x4& transform, const Color& color);
-
-    static Vertex ClipLineFromPlane(float t, const Vertex& v0, const Vertex& v1);
-    static std::vector<Face> ClipTriangleFromPlane(const Face& face, const Plane& plane);
-    static std::vector<Face> ClipTriangle(const Vertex& v0, const Vertex& v1, const Vertex& v2);
+    
+    static std::vector<Line> ClipLine(const Vertex_p& v0, const Vertex_p& v1);
+    static std::vector<Triangle> ClipTriangle(const Vertex& v0, const Vertex& v1, const Vertex& v2);
     
 private:
 	static float FloatPart(float v);
@@ -81,8 +90,12 @@ private:
 	static void Plot(int x, int y, const Color32& color);
 	static void Plot(int x, int y, const Color32& color, float alpha, bool swapXY = false);
 
-	static float ClipLine(float f0, float w0, float f1, float w1);
-	static u32 CalculateClipCode(const Vector4& position);
+	static float Clip(float f0, float w0, float f1, float w1);
+    static Vertex LerpVertex(const Vertex& v0, const Vertex& v1, float t);
+    static Vertex_p LerpVertex(const Vertex_p& v0, const Vertex_p& v1, float t);
+    static void ClipLineFromPlane(std::vector<Line>& clippedLines, const Line& line, const Plane& plane);
+    static void ClipTriangleFromPlane(std::vector<Triangle>& clippedTriangles, const Triangle& face, const Plane& plane);
+    static u32 CalculateClipCode(const Vector4& position);
 	static Point2D CalculateViewPoint(const Vector4& position);
 
     static std::vector<Vertex> vertices;

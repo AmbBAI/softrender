@@ -11,8 +11,8 @@ bool Mesh::LoadMesh(std::vector<MeshPtr>& meshes, const char* file)
 	std::vector<tinyobj::material_t> material;
 	std::string filePath(file);
 	std::replace(filePath.begin(), filePath.end(), '\\', '/');
-	u32 pos = (u32)filePath.rfind('/');
-	std::string fileDir = "./";
+    std::string::size_type pos = filePath.rfind('/');
+	std::string fileDir = "";
 	if (pos != filePath.npos) fileDir = filePath.substr(0, pos + 1);
 	std::string ret = tinyobj::LoadObj(shape, material, filePath.c_str(), fileDir.c_str());
 
@@ -34,6 +34,7 @@ bool Mesh::LoadMesh(std::vector<MeshPtr>& meshes, const char* file)
 		if (m.diffuse_texname.size() > 0)
 		{
 			std::string texPath = fileDir + m.diffuse_texname;
+            std::replace(texPath.begin(), texPath.end(), '\\', '/');
 			newM->diffuseTexture = Texture::LoadTexture(texPath.c_str());
 		}
 		if (m.normal_texname.size() > 0)
