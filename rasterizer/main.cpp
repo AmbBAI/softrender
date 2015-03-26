@@ -38,7 +38,8 @@ void MainLoop()
 		//MaterialPtr material(new Material());
 		//material->diffuseTexture = Texture::LoadTexture("resources/cube/default.png");
         //mesh[0]->materials.push_back(material);
-		Mesh::LoadMesh(mesh, "resources/crytek-sponza/sponza.obj");
+		//Mesh::LoadMesh(mesh, "resources/crytek-sponza/sponza.obj");
+        Mesh::LoadMesh(mesh, "resources/head/head.OBJ");
 
 		for (auto m : mesh)
 		{
@@ -47,8 +48,8 @@ void MainLoop()
 		}
         
         position = Vector3(0, 0, 0);
-        rotation = Vector3(0, 0, 0);
-        scale = Vector3(1, 1, 1);
+        rotation = Vector3(10, 10, 0);
+        scale = Vector3(500, 500, 500);
 
 		Rasterizer::fragmentShader = Rasterizer::FS;
     }

@@ -101,6 +101,7 @@ private:
     static void ClipTriangleFromPlane(std::vector<Triangle>& clippedTriangles, const Triangle& face, const Plane& plane);
     static void ClipTriangleWithOneVertexOut(std::vector<Triangle>& clippedTriangles, const Vertex& v0, const Vertex& v1, const Vertex& v2, const Plane& plane);
     static void ClipTriangleWithTwoVertexOut(std::vector<Triangle>& clippedTriangles, const Vertex& v0, const Vertex& v1, const Vertex& v2, const Plane& plane);
+    static bool IsBackFace(const Vector4& v0, const Vector4& v1, const Vector4& v2);
     static u32 CalculateClipCode(const Vector4& position);
 	static Point2D CalculateViewPoint(const Vector4& position);
 
