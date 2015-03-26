@@ -220,7 +220,7 @@ void Rasterizer::DrawMeshWireFrame(const Mesh& mesh, const Matrix4x4& transform,
 		int v1 = mesh.indices[i + 1];
 		int v2 = mesh.indices[i + 2];
         
-        if (IsBackFace(vertices[v0].position, vertices[v1].position, vertices[v2].position)) continue;
+        //if (IsBackFace(vertices[v0].position, vertices[v1].position, vertices[v2].position)) continue;
 
         std::vector<Line> lines;
         auto l1 = ClipLine(vertices[v0], vertices[v1]);
@@ -247,7 +247,8 @@ int Rasterizer::Orient2D(const Point2D& v1, const Point2D& v2, const Point2D& p)
     
 bool Rasterizer::IsBackFace(const Vector4& v0, const Vector4& v1, const Vector4& v2)
 {
-    return ((v1.x / v1.w - v0.x / v0.w) * (v2.y / v2.w - v0.y / v0.w) - (v1.y / v1.w - v0.y / v0.w) * (v2.x / v2.w - v0.x / v0.w)) < 0;
+    //
+    return false;
 }
 
 void Rasterizer::DrawTriangle(const Triangle& f)
@@ -403,7 +404,7 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform, const Co
 		int i2 = mesh.indices[i * 3 + 2];
         
         // TODO backface cull
-        if (IsBackFace(vertices[i0].position, vertices[i1].position, vertices[i2].position)) continue;
+        //if (IsBackFace(vertices[i0].position, vertices[i1].position, vertices[i2].position)) continue;
         
         // TODO Guard-band clipping
         auto faces = ClipTriangle(vertices[i0], vertices[i1], vertices[i2]);
@@ -412,6 +413,8 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform, const Co
 			f.v[0].point = CalculateViewPoint(f.v[0].position);
 			f.v[1].point = CalculateViewPoint(f.v[1].position);
 			f.v[2].point = CalculateViewPoint(f.v[2].position);
+            
+            if (Orient2D(f.v[0].point, f.v[1].point, f.v[2].point) < 0.f) continue;
             
             DrawTriangle(f);
         }
