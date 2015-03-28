@@ -9,7 +9,19 @@ namespace rasterizer
 struct Color32;
 struct Color
 {
-	float a, r, g, b;
+
+
+	union
+	{
+		struct
+		{
+			float a, r, g, b;
+		};
+#if _MATH_SIMD_INTRINSIC_
+		__m128 m;
+#endif
+	};
+	
 	Color() = default;
 	Color(float _a, float _r, float _g, float _b);
 
@@ -26,6 +38,7 @@ struct Color
 	static const Color green;
 	static const Color blue;
 };
+
 
 struct Color32
 {
@@ -47,6 +60,7 @@ struct Color32
 	static const Color32 white;
 	static const Color32 black;
 };
+
 
 }
 #endif //!_BASE_COLOR_H_

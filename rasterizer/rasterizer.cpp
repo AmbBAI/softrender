@@ -114,43 +114,33 @@ void Rasterizer::DrawSmoothLine(float x0, float x1, float y0, float y1, const Co
 
 	xend = Mathf::Round(x0);
 	yend = y0 + gradient * (xend - x0);
-	xgap = 1.f - FloatPart(x0 + 0.5f);
+	xgap = 1.f - Mathf::Fractional(x0 + 0.5f);
 	xpxl1 = Mathf::RoundToInt(xend);
-	ypxl1 = IntPart(yend);
-	yfpart = FloatPart(yend);
+	ypxl1 = Mathf::TruncToInt(yend);
+	yfpart = Mathf::Fractional(yend);
 	Plot(xpxl1, ypxl1, color, xgap * (1 - yfpart), steep);
 	Plot(xpxl1, ypxl1 + 1, color, xgap * yfpart, steep);
 	intery = yend + gradient;
 
 	xend = Mathf::Round(x1);
 	yend = y1 + gradient * (xend - x1);
-	xgap = 1.f - FloatPart(x1 + 0.5f);
+	xgap = 1.f - Mathf::Fractional(x1 + 0.5f);
 	xpxl2 = Mathf::RoundToInt(xend);
-	ypxl2 = IntPart(yend);
-	yfpart = FloatPart(yend);
+	ypxl2 = Mathf::TruncToInt(yend);
+	yfpart = Mathf::Fractional(yend);
 	Plot(xpxl2, ypxl2, color, xgap * (1 - yfpart), steep);
 	Plot(xpxl2, ypxl2 + 1, color, xgap * yfpart, steep);
 
 	for (int x = xpxl1 + 1; x <= xpxl2 - 1; ++x)
 	{
-		int ipartIntery = IntPart(intery);
-		float fpartIntery = FloatPart(intery);
+		int ipartIntery = Mathf::TruncToInt(intery);
+		float fpartIntery = Mathf::Fractional(intery);
 		Plot(x, ipartIntery, color, 1.0f - fpartIntery, steep);
 		Plot(x, ipartIntery + 1, color, fpartIntery, steep);
 
 		intery += gradient;
 	}
 
-}
-
-float Rasterizer::FloatPart(float v)
-{
-	return v - Mathf::Floor(v);
-}
-
-int Rasterizer::IntPart(float v)
-{
-	return Mathf::FloorToInt(v);
 }
 
 void Rasterizer::Plot(int x, int y, const Color32& color, float alpha, bool swapXY /*= false*/)
@@ -348,7 +338,8 @@ Color Rasterizer::FS(const Triangle& face, float w0, float w1, float w2, float i
 
 	if (material && material->diffuseTexture)
 	{
-		color = color.Modulate(material->diffuseTexture->Sample(uv.x, uv.y));
+		Color texColor = material->diffuseTexture->Sample(uv.x, uv.y);
+		color = color.Modulate(texColor);
 	}
 
 	if (material && material->normalTexture)

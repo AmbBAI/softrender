@@ -4,7 +4,7 @@
 namespace rasterizer
 {
 
-const Matrix4x4 Matrix4x4::identity = Matrix4x4(Vector3(), Quaternion(), Vector3(1.f, 1.f, 1.f));
+const Matrix4x4 Matrix4x4::identity = Matrix4x4(Vector3(0.f, 0.f, 0.f), Quaternion(0.f, 0.f, 0.f, 1.f), Vector3(1.f, 1.f, 1.f));
 
 Matrix4x4::Matrix4x4(float* _m)
 {

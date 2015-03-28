@@ -29,7 +29,7 @@ solution "rasterizer"
         links {"glfw_d", "tinyobjloader_d", "freeimage"}
 
     configuration "Release"
-        defines { "NDEBUG" }
+        defines { "NDEBUG", "_MATH_SIMD_INTRINSIC_"}
         flags { "Optimize"}
         links {"glfw", "tinyobjloader", "freeimage"}
 

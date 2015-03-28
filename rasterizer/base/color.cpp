@@ -30,17 +30,29 @@ const Color Color::Multiply(float s) const
 
 const Color Color::Modulate(const Color& c) const
 {
+#if _MATH_SIMD_INTRINSIC_
+	Color color;
+	color.m = _mm_mul_ps(m, c.m);
+	return color;
+#else
 	return Color(a * c.a, r * c.r, g * c.g, b * c.b);
+#endif
 }
 
 const Color Color::Lerp(const Color& a, const Color& b, float t)
 {
 	t = Mathf::Clamp01(t);
 	Color color;
+#if _MATH_SIMD_INTRINSIC_
+	__m128 t2 = _mm_set_ps(t, t, t, t);
+	__m128 t1 = _mm_sub_ps(_mm_set_ps(1.f, 1.f, 1.f, 1.f), t2);
+	color.m = _mm_add_ps(_mm_mul_ps(a.m, t1), _mm_mul_ps(b.m, t2));
+#else
 	color.a = Mathf::Lerp(a.a, b.a, t);
 	color.r = Mathf::Lerp(a.r, b.r, t);
 	color.g = Mathf::Lerp(a.g, b.g, t);
 	color.b = Mathf::Lerp(a.b, b.b, t);
+#endif
 	return color;
 }
 

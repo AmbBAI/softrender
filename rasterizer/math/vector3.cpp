@@ -17,7 +17,6 @@ const Vector3 Vector3::left = Vector3(-1.f, 0.f, 0.f);
 Vector3::Vector3(float _x, float _y, float _z)
 	: x(_x), y(_y), z(_z)
 {
-	//printf("Vector3:ctor(x,y,z)\n");
 }
 
 float Vector3::Length() const

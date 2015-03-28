@@ -68,7 +68,7 @@ void MainLoop()
 	{
         if (m->materials.size() > 0) Rasterizer::material = m->materials[0];
 		Rasterizer::DrawMesh(*m, trans, Color::white);
-        Rasterizer::DrawMeshWireFrame(*m, trans, Color::red);
+        //Rasterizer::DrawMeshWireFrame(*m, trans, Color::red);
         //Rasterizer::DrawMeshPoint(*m, trans, Color::red);
 	}
 

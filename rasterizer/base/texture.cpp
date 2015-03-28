@@ -111,9 +111,9 @@ void Texture::ConvertBumpToNormal(float strength/* = 2.0f*/)
         bump[i] = colors[i].b;
     }
     
-    for (int y = 0; y < height; ++y)
+    for (int y = 0; y < (int)height; ++y)
     {
-    	for (int x = 0; x < width; ++x)
+    	for (int x = 0; x < (int)width; ++x)
         {
         	int offset = y * width + x;
         	int x1 = x - 1;
@@ -122,9 +122,9 @@ void Texture::ConvertBumpToNormal(float strength/* = 2.0f*/)
         	int y2 = y + 1;
 
             if (x1 < 0) x1 = 0;
-        	if (x2 >= width) x2 = width - 1;
+        	if (x2 >= (int)width) x2 = width - 1;
         	if (y1 < 0) y1 = 0;
-        	if (y2 >= height) y2 = height - 1;
+        	if (y2 >= (int)height) y2 = height - 1;
             
         	float px1 = bump[y * width + x1];
         	float px2 = bump[y * width + x2];
@@ -133,9 +133,9 @@ void Texture::ConvertBumpToNormal(float strength/* = 2.0f*/)
         	Vector3 normal = Vector3(px1 - px2, py1 - py2, 0.25f / strength).Normalize();
         
             Color& color = colors[offset];
-        	color.r = (normal.x + 1.0f) / 2.0;
-        	color.g = (normal.y + 1.0f) / 2.0;
-        	color.b = (normal.z + 1.0f) / 2.0;
+        	color.r = (normal.x + 1.0f) / 2.0f;
+        	color.g = (normal.y + 1.0f) / 2.0f;
+        	color.b = (normal.z + 1.0f) / 2.0f;
         	color.a = 1.f;
         }
     }
@@ -143,8 +143,8 @@ void Texture::ConvertBumpToNormal(float strength/* = 2.0f*/)
     
 const Color Texture::GetColor(int x, int y) const
 {
-	if (x < 0 || x >= width) return Color::black;
-	if (y < 0 || y >= height) return Color::black;
+	if (x < 0 || x >= (int)width) return Color::black;
+	if (y < 0 || y >= (int)height) return Color::black;
 
 	return colors[y * width + x];
 }
@@ -174,27 +174,27 @@ const Color Texture::Sample(float u, float v) const
 	int x = Mathf::FloorToInt(fx);
 	int y = Mathf::FloorToInt(fy);
 	float fpartX = fx - x;
-	float fpartY = fx - y;
+	float fpartY = fy - y;
 	int x2 = x + 1;
 	int y2 = y + 1;
 
 	switch (addressMode)
 	{
 	case Texture::AddressMode_Warp:
-		if (x2 >= width) x2 = 0;
-		if (y2 >= height) y2 = 0;
+		if (x2 >= (int)width) x2 = 0;
+		if (y2 >= (int)height) y2 = 0;
 		break;
     case Texture::AddressMode_Clamp:
         break;
     case Texture::AddressMode_Mirror:
-		if (x2 >= width) x2 = width - 1;
-		if (y2 >= height) y2 = height - 1;
+		if (x2 >= (int)width) x2 = width - 1;
+		if (y2 >= (int)height) y2 = height - 1;
 		break;
 	}
 
 	Color c0 = GetColor(x, y);
-	Color c1 = GetColor(x2, y);
 	Color c2 = GetColor(x, y2);
+	Color c1 = GetColor(x2, y);
 	Color c3 = GetColor(x2, y2);
 
 	return Color::Lerp(Color::Lerp(c0, c1, fpartX), Color::Lerp(c2, c3, fpartX), fpartY);

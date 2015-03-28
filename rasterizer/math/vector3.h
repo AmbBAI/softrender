@@ -8,9 +8,19 @@ namespace rasterizer
 
 struct Vector3
 {
-	float x = 0.f;
-	float y = 0.f;
-	float z = 0.f;
+	union
+	{
+		float f[3];
+		struct
+		{
+			float x;
+			float y;
+			float z;
+		};
+//#if _MATH_SIMD_INTRINSIC_
+//		__m128 m;
+//#endif
+	};
 
 	Vector3() = default;
 	Vector3(float _x, float _y, float _z);

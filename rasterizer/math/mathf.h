@@ -15,63 +15,66 @@ public:
 	static const float deg2rad;
 	static const float rad2deg;
 
-	static float Abs(float f);
-	static int Abs(int i);
-	static float Sign(float f);
-	static bool Approximately(float a, float b);
+	static inline float Abs(float f);
+	static inline int Abs(int i);
+	static inline float Sign(float f);
+	static inline bool Approximately(float a, float b);
 
-	static float Floor(float f);
-	static int FloorToInt(float f);
-	static float Ceil(float f);
-	static int CeilToInt(float f);
-	static float Round(float f);
-	static int RoundToInt(float f);
+	static inline float Trunc(float f);
+	static inline int TruncToInt(float f);
+	static inline float Fractional(float f);
+	static inline float Floor(float f);
+	static inline int FloorToInt(float f);
+	static inline float Ceil(float f);
+	static inline int CeilToInt(float f);
+	static inline float Round(float f);
+	static inline int RoundToInt(float f);
 
-	static float Lerp(float a, float b, float t);
-
-	template<class T>
-	static T Clamp(T value, T min, T max);
-	static float Clamp01(float value);
-	static float Repeat(float t, float length);
-	static float PingPong(float t, float length);
+	static inline float Lerp(float a, float b, float t);
 
 	template<class T>
-	static T Min(T a, T b);
-	template<class T>
-	static T Min(T a, T b, T c);
-	template<class T>
-	static T MinElement(const T* values, int count);
-	template<class T>
-	static T MinElement(const std::vector<T>& values);
-	template<class T>
-	static T Max(T a, T b);
-	template<class T>
-	static T Max(T a, T b, T c);
-	template<class T>
-	static T MaxElement(const T* values, int count);
-	template<class T>
-	static T MaxElement(const std::vector<T>& values);
+	static inline T Clamp(T value, T min, T max);
+	static inline float Clamp01(float value);
+	static inline float Repeat(float t, float length);
+	static inline float PingPong(float t, float length);
 
-	static float Sqrt(float value);
-	static float Pow(float f, float p);
-	static float Exp(float f);
-	static float Log(float f);
-	static float Log10(float f);
+	template<class T>
+	static inline T Min(T a, T b);
+	template<class T>
+	static inline T Min(T a, T b, T c);
+	template<class T>
+	static inline T MinElement(const T* values, int count);
+	template<class T>
+	static inline T MinElement(const std::vector<T>& values);
+	template<class T>
+	static inline T Max(T a, T b);
+	template<class T>
+	static inline T Max(T a, T b, T c);
+	template<class T>
+	static inline T MaxElement(const T* values, int count);
+	template<class T>
+	static inline T MaxElement(const std::vector<T>& values);
 
-	static bool IsPowerOfTwo(int value);
-	static int NextPowerOfTwo(int value);
+	static inline float Sqrt(float value);
+	static inline float Pow(float f, float p);
+	static inline float Exp(float f);
+	static inline float Log(float f);
+	static inline float Log10(float f);
 
-	static float Sin(float f);
-	static float Cos(float f);
-	static float Tan(float f);
-	static float Asin(float f);
-	static float Acos(float f);
-	static float Atan(float f);
-	static float Atan2(float y, float x);
+	static inline bool IsPowerOfTwo(int value);
+	static inline int NextPowerOfTwo(int value);
+
+	static inline float Sin(float f);
+	static inline float Cos(float f);
+	static inline float Tan(float f);
+	static inline float Asin(float f);
+	static inline float Acos(float f);
+	static inline float Atan(float f);
+	static inline float Atan2(float y, float x);
 };
 
-#include "mathf.inl"
-
 } // namespace rasterizer
+
+#include "mathf.inl"
 
 #endif //!_BASE_MATHF_H_
