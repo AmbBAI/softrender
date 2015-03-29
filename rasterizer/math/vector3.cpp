@@ -1,5 +1,4 @@
 #include "vector3.h"
-#include "math/mathf.h"
 
 namespace rasterizer
 {
@@ -17,48 +16,6 @@ const Vector3 Vector3::left = Vector3(-1.f, 0.f, 0.f);
 Vector3::Vector3(float _x, float _y, float _z)
 	: x(_x), y(_y), z(_z)
 {
-}
-
-float Vector3::Length() const
-{
-	return Mathf::Sqrt(x * x + y * y + z * z);
-}
-
-float Vector3::SqrLength() const
-{
-	return (x * x + y * y + z * z);
-}
-
-const Vector3 Vector3::Normalize() const
-{
-	float inv = 1.f / Length();
-	return Vector3(x * inv, y * inv, z * inv);
-}
-
-const Vector3 Vector3::Negate() const
-{
-	return Vector3(-x, -y, -z);
-}
-
-const Vector3 Vector3::Add(const Vector3& v) const
-{
-	return Vector3(x + v.x, y + v.y, z + v.z);
-}
-
-const Vector3 Vector3::Subtract(const Vector3& v) const
-{
-	return Vector3(x - v.x, y - v.y, z - v.z);
-}
-
-const Vector3 Vector3::Multiply(float f) const
-{
-	return Vector3(x * f, y * f, z * f);
-}
-
-const Vector3 Vector3::Divide(float f) const
-{
-	float invf = 1.f / f;
-	return Vector3(x * invf, y * invf, z * invf);
 }
 
 float Vector3::Dot(const Vector3& v) const
@@ -84,7 +41,7 @@ std::string Vector3::ToString() const
 	return str;
 }
 
-rasterizer::Vector3 Vector3::Lerp(const Vector3& a, const Vector3& b, float t)
+const Vector3 Vector3::Lerp(const Vector3& a, const Vector3& b, float t)
 {
 	return Vector3(
 		Mathf::Lerp(a.x, b.x, t),

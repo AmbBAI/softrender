@@ -1,4 +1,8 @@
-using namespace rasterizer;
+#ifndef _MATH_INLINE_
+#define _MATH_INLINE_
+
+namespace rasterizer
+{
 
 float Mathf::Abs(float f)
 {
@@ -268,3 +272,7 @@ float Mathf::Lerp(float a, float b, float t)
 {
 	return a * (1.f - t) + b * t;
 }
+
+} // namespace rasterizer
+
+#endif // !_MATH_INLINE_

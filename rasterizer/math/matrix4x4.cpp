@@ -470,6 +470,11 @@ const Matrix4x4 Matrix4x4::LookAt(const Vector3& eye, const Vector3& target, con
 	return mat;
 }
 
+const Matrix4x4 Matrix4x4::TRS(const Vector3& p, const Quaternion& q, const Vector3& s)
+{
+	return Matrix4x4(p, q, s);
+}
+
 
 
 

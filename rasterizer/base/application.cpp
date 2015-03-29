@@ -75,6 +75,9 @@ void Application::RunLoop()
     assert(window != nullptr);
 	while (!glfwWindowShouldClose(window))
     {
+		lastFrameTime = thisFrameTime;
+		thisFrameTime = GetTime();
+		deltaTime = thisFrameTime - lastFrameTime;
         if (loopFunc != nullptr) loopFunc();
 		glfwPollEvents();
     }
@@ -84,6 +87,11 @@ void Application::RunLoop()
 float Application::GetTime()
 {
     return (float) glfwGetTime();
+}
+
+float Application::GetDeltaTime()
+{
+	return deltaTime;
 }
 
 }

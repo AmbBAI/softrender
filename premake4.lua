@@ -19,6 +19,7 @@ solution "rasterizer"
     files {
       "rasterizer/**.h",
       "rasterizer/**.cpp",
+      "rasterizer/**.hpp",
       "rasterizer/**.inl",
     }
 

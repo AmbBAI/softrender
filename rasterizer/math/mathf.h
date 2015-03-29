@@ -75,6 +75,7 @@ public:
 
 } // namespace rasterizer
 
+
 #include "mathf.inl"
 
 #endif //!_BASE_MATHF_H_

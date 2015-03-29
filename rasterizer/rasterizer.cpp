@@ -450,8 +450,10 @@ std::vector<Rasterizer::Triangle> Rasterizer::ClipTriangle(const Vertex& v0, con
     if (0 == (v0.clipCode | v1.clipCode | v2.clipCode)) return faces;
     
     std::vector<Triangle> clippedFaces;
-    for (auto p : viewFrustumPlanes)
-    {
+	for (auto p : viewFrustumPlanes)
+	//for (int i = 0; i < 6; ++i)
+	{
+	//	Plane& p = viewFrustumPlanes[i];
         clippedFaces.clear();
         for (auto f : faces)
         {

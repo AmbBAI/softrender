@@ -22,6 +22,7 @@ public:
 	void RunLoop();
     
     float GetTime();
+	float GetDeltaTime();
 
 	Canvas* GetCanvas();
 	Input* GetInput();
@@ -36,6 +37,10 @@ private:
 
 	Canvas* canvas = nullptr;
 	Input* input = nullptr;
+
+	float lastFrameTime;
+	float thisFrameTime;
+	float deltaTime;
 };
 
 }

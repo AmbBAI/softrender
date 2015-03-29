@@ -20,9 +20,9 @@ bool Input::GetMouseButton(int button)
 
 Vector2 Input::GetMousePos()
 {
-	Vector2 pos;
-	glfwGetCursorPos(window, (double*)&pos.x, (double*)&pos.y);
-	return pos;
+	double x, y;
+	glfwGetCursorPos(window, &x, &y);
+	return Vector2((float)x, (float)y);
 }
 
 }

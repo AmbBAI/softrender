@@ -45,7 +45,7 @@ const Color Color::Lerp(const Color& a, const Color& b, float t)
 	Color color;
 #if _MATH_SIMD_INTRINSIC_
 	__m128 t2 = _mm_set_ps(t, t, t, t);
-	__m128 t1 = _mm_sub_ps(_mm_set_ps(1.f, 1.f, 1.f, 1.f), t2);
+	__m128 t1 = _mm_sub_ps(_mm_set_ps1(1.f), t2);
 	color.m = _mm_add_ps(_mm_mul_ps(a.m, t1), _mm_mul_ps(b.m, t2));
 #else
 	color.a = Mathf::Lerp(a.a, b.a, t);

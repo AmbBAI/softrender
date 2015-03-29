@@ -55,6 +55,26 @@ const Vector3 Quaternion::GetEulerAngle()
 		radz * Mathf::rad2deg);
 }
 
+const Quaternion Quaternion::Multiply(const Quaternion& q) const
+{
+	return Quaternion(
+		q.w * x + w * q.x + (y * q.z - z * q.y),
+		q.w * y + w * q.y + (z * q.x - x * q.z),
+		q.w * z + w * q.z + (x * q.y - y * q.x),
+		q.w * w - (x * q.x + y * q.y + z * q.z));
+}
+
+const Vector3 Quaternion::Rotate(const Vector3& v) const
+{
+	Quaternion vq = this->Multiply(Quaternion(v.x, v.y, v.z, 0)).Multiply(this->Inverse());
+	return Vector3(vq.x, vq.y, vq.z);
+}
+
+const Quaternion Quaternion::Inverse() const
+{
+	return Quaternion(-x, -y, -z, w);
+}
+
 
 
 }
