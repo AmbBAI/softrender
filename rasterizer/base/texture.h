@@ -49,6 +49,8 @@ public:
 
 	const Color GetColor(int x, int y) const;
 	const Color Sample(float u, float v) const;
+    const Color PointSample(float u, float v) const;
+    const Color LinearSample(float u, float v) const;
 
 protected:
 	u32 width = 0;

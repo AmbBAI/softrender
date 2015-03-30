@@ -24,6 +24,9 @@ struct Color
 	
 	Color() = default;
 	Color(float _a, float _r, float _g, float _b);
+#if _MATH_SIMD_INTRINSIC_
+    Color(__m128 m);
+#endif
 
 	const Color Add(const Color& c) const;
 	const Color Multiply(float s) const;

@@ -16,6 +16,10 @@
 #include <map>
 #include <algorithm>
 
+#if _MATH_SIMD_INTRINSIC_
+#include "smmintrin.h"
+#endif
+
 #include "glfw/include/GLFW/glfw3.h"
 
 typedef unsigned char u8;

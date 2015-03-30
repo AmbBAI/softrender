@@ -22,6 +22,7 @@ solution "rasterizer"
       "rasterizer/**.hpp",
       "rasterizer/**.inl",
     }
+    defines { "_MATH_SIMD_INTRINSIC_" }
 
     configuration "Debug"
         defines { "DEBUG" }
@@ -30,7 +31,7 @@ solution "rasterizer"
         links {"glfw_d", "tinyobjloader_d", "freeimage"}
 
     configuration "Release"
-        defines { "NDEBUG", "_MATH_SIMD_INTRINSIC_"}
+        defines { "NDEBUG"}
         flags { "Optimize"}
         links {"glfw", "tinyobjloader", "freeimage"}
 
@@ -39,7 +40,7 @@ solution "rasterizer"
         links {"opengl32.lib"}
 
     configuration "macosx"
-      buildoptions {"-std=c++11", "-Wno-deprecated-declarations"}
+      buildoptions {"-std=c++11", "-msse4.1", "-Wno-deprecated-declarations"}
       links {"Cocoa.framework", "OpenGL.framework", "IOKit.framework", "CoreVideo.framework", "Carbon.framework"}
 
   project "tinyobjloader"

@@ -151,21 +151,26 @@ const Color Texture::GetColor(int x, int y) const
 
 const Color Texture::Sample(float u, float v) const
 {
+    return LinearSample(u, v);
+}
+    
+const Color Texture::LinearSample(float u, float v) const
+{
 	assert(height > 0 && width > 0);
 
 	switch (addressMode)
 	{
 	case Texture::AddressMode_Warp:
-		u = Mathf::Repeat(u, 1.0f);
-		v = Mathf::Repeat(v, 1.0f);
+		if (u < 0.f || u >= 1.f) u = Mathf::Repeat(u, 1.0f);
+		if (v < 0.f || v >= 1.f) v = Mathf::Repeat(v, 1.0f);
 		break;
 	case Texture::AddressMode_Clamp:
 		u = Mathf::Clamp01(u);
 		v = Mathf::Clamp01(v);
 		break;
 	case Texture::AddressMode_Mirror:
-		u = Mathf::PingPong(u, 1.0f);
-		v = Mathf::PingPong(v, 1.0f);
+		if (u < 0.f || u > 1.f) u = Mathf::PingPong(u, 1.0f);
+		if (v < 0.f || v > 1.f) v = Mathf::PingPong(v, 1.0f);
 		break;
 	}
 
@@ -200,5 +205,32 @@ const Color Texture::Sample(float u, float v) const
 	return Color::Lerp(Color::Lerp(c0, c1, fpartX), Color::Lerp(c2, c3, fpartX), fpartY);
 }
 
+const Color Texture::PointSample(float u, float v) const
+{
+    assert(height > 0 && width > 0);
+    
+    switch (addressMode)
+    {
+        case Texture::AddressMode_Warp:
+            if (u < 0.f || u >= 1.f) u = Mathf::Repeat(u, 1.0f);
+            if (v < 0.f || v >= 1.f) v = Mathf::Repeat(v, 1.0f);
+            break;
+        case Texture::AddressMode_Clamp:
+            u = Mathf::Clamp01(u);
+            v = Mathf::Clamp01(v);
+            break;
+        case Texture::AddressMode_Mirror:
+            if (u < 0.f || u > 1.f) u = Mathf::PingPong(u, 1.0f);
+            if (v < 0.f || v > 1.f) v = Mathf::PingPong(v, 1.0f);
+            break;
+    }
+        
+    float fx = u * (width - 1);
+    float fy = v * (height - 1);
+    int x = Mathf::FloorToInt(fx);
+    int y = Mathf::FloorToInt(fy);
+        
+    return GetColor(x, y);
+}
 
 }
