@@ -21,12 +21,12 @@ struct Rasterizer
 	{
 		int x = 0;
 		int y = 0;
-		float depth = 0.0f;
-		float w = 0.0f;
+		float invZ = 0.0f;
+		float invW = 0.0f;
 
         Point2D() = default;
 		Point2D(int _x, int _y) : x(_x), y(_y) {}
-		Point2D(int _x, int _y, float _depth) : x(_x), y(_y), w(_depth) {}
+		Point2D(int _x, int _y, float _depth) : x(_x), y(_y), invW(_depth) {}
 	};
 
     struct Vertex_p

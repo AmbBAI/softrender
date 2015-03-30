@@ -279,10 +279,6 @@ void Rasterizer::DrawTriangle(const Triangle& f)
 	if (dy12 < 0 || (dy12 == 0 && dx12 < 0)) startW1 += 1;
 	if (dy20 < 0 || (dy20 == 0 && dx20 < 0)) startW2 += 1;
 
-	float invZ0 = 1.f / p0.w;
-	float invZ1 = 1.f / p1.w;
-	float invZ2 = 1.f / p2.w;
-
 	for (int y = minY; y <= maxY; ++y)
 	{
 		int w0 = startW0;
@@ -293,15 +289,13 @@ void Rasterizer::DrawTriangle(const Triangle& f)
 		{
 			if (w0 > 0 && w1 > 0 && w2 > 0)
 			{
-				float wz0 = w1 * invZ0;
-				float wz1 = w2 * invZ1;
-				float wz2 = w0 * invZ2;
+				float wz0 = w1 * p0.invW;
+				float wz1 = w2 * p1.invW;
+				float wz2 = w0 * p2.invW;
 				float invW = 1.0f / (wz0 + wz1 + wz2);
 
-
-				float depth = p0.depth * wz0 + p1.depth * wz1 + p2.depth * wz2;
-				depth *= invW;
-                if (depth > 0.0f && depth < 1.0f && depth < canvas->GetDepth(x, y))
+				float depth = (w0 + w1 + w2) / (w1 * p0.invZ + w2 * p1.invZ + w0 * p2.invZ);
+                if (depth > 0.f && depth < 1.f && depth < canvas->GetDepth(x, y))
 				{
 					canvas->SetDepth(x, y, depth);
 					//canvas->SetPixel(x, y, Color(1.f, 1.f - depth, 1.f - depth, 1.f - depth));
@@ -356,6 +350,7 @@ Color Rasterizer::FS(const Triangle& face, float w0, float w1, float w2, float i
 	}
 
 	float lightVal = Mathf::Max(0.f, normal.Dot(lightDir.Negate()));
+	lightVal = Mathf::Clamp01(lightVal) * 0.8f + 0.2f;
 	color = color.Multiply(lightVal);
 	return color;
 }
@@ -621,8 +616,8 @@ Rasterizer::Point2D Rasterizer::CalculateViewPoint(const Vector4& position)
 	Point2D point;
 	point.x = Mathf::RoundToInt(((position.x * invW) + 1.f) / 2.f * width);
 	point.y = Mathf::RoundToInt(((position.y * invW) + 1.f) / 2.f * height);
-	point.depth = (position.z * invW + 1.f) / 2.f;
-	point.w = w;
+	point.invZ = 1.f / (position.z * invW);
+	point.invW = invW;
 	return point;
 }
 

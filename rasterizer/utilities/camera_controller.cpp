@@ -18,8 +18,8 @@ void CameraController::InitCamera(CameraPtr camera)
 	CameraController::camera = camera;
 	if (camera != nullptr)
 	{
-		camera->SetPerspective(90, 1, 0.3f, 10000);
-		//camera.SetOrthographic(-100, 100, -100, 100, 0.3f, 1000);
+		camera->SetPerspective(90.f, 1.f, 0.3f, 1000.f);
+		//camera->SetOrthographic(-100.f, 100.f, -100.f, 100.f, 0.3f, 1000.f);
 
 		_UpdateCamera(true);
 	}
@@ -37,24 +37,24 @@ void CameraController::UpdateCamera()
 	if (input->GetKey(GLFW_KEY_Q)) MoveCamera(+y);
 	if (input->GetKey(GLFW_KEY_E)) MoveCamera(-y);
 
-	//if (input->GetMouseButton(0))
-	//{
-	//	Vector2 nowMousePos = input->GetMousePos();
-	//	if (isMouseDown)
-	//	{
-	//		Vector2 moveDelta = nowMousePos - lastMousePos;
-	//		Matrix4x4 cameraMat = camera->GetViewMatrix()->Inverse();
-	//		Vector3 rotateVector = cameraMat.MultiplyVector(Vector3(moveDelta.y, moveDelta.x, 0.f));
-	//		rotation = Quaternion(rotateVector).Multiply(rotation);
-	//		x = rotation.Rotate(Vector3::right);
-	//		y = rotation.Rotate(Vector3::up);
-	//		z = rotation.Rotate(Vector3::front);
-	//		dirty = true;
-	//	}
-	//	lastMousePos = nowMousePos;
-	//	isMouseDown = true;
-	//}
-	//else isMouseDown = false;
+	if (input->GetMouseButton(0))
+	{
+		Vector2 nowMousePos = input->GetMousePos();
+		if (isMouseDown)
+		{
+			Vector2 moveDelta = nowMousePos - lastMousePos;
+			Matrix4x4 cameraMat = camera->GetViewMatrix()->Inverse();
+			Vector3 rotateVector = cameraMat.MultiplyVector(Vector3(moveDelta.y, moveDelta.x, 0.f));
+			rotation = Quaternion(rotateVector).Multiply(rotation);
+			x = rotation.Rotate(Vector3::right);
+			y = rotation.Rotate(Vector3::up);
+			z = rotation.Rotate(Vector3::front);
+			dirty = true;
+		}
+		lastMousePos = nowMousePos;
+		isMouseDown = true;
+	}
+	else isMouseDown = false;
 
 	_UpdateCamera();
 }

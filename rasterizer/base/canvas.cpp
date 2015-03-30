@@ -78,7 +78,7 @@ int Canvas::GetHeight()
 void Canvas::Clear()
 {
 	pixels.assign(width * height, 0);
-	depths.assign(width * height, 1.0f);
+	depths.assign(width * height, 1.f);
 }
 
 void Canvas::Present()
