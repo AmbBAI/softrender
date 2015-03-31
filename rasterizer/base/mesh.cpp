@@ -40,12 +40,18 @@ bool Mesh::LoadMesh(std::vector<MeshPtr>& meshes, const char* file)
 		if (m.normal_texname.size() > 0)
 		{
 			std::string texPath = fileDir + m.normal_texname;
+			std::replace(texPath.begin(), texPath.end(), '\\', '/');
 			newM->normalTexture = Texture::LoadTexture(texPath.c_str());
-			if (newM->normalTexture && newM->normalTexture->GetBPP() == 1)
+		}
+		else
+		{ // check bump
+			auto param_itor = m.unknown_parameter.find("map_bump");
+			if (param_itor != m.unknown_parameter.end())
 			{
-				newM->normalTexture->ConvertBumpToNormal(1.25);
+				
 			}
 		}
+
 		materials.push_back(newM);
 	}
 

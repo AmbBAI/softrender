@@ -28,7 +28,7 @@ struct Vector3
 
 	float Length() const { return Mathf::Sqrt(SqrLength()); }
 	float SqrLength() const { return (x * x + y * y + z * z); }
-	const Vector3 Normalize() const { return (*this) / Length(); }
+	const Vector3 Normalize() const { return (*this) * Mathf::InvSqrt(SqrLength()); }
 	const Vector3 Negate() const { return Vector3(-x, -y, -z); }
 	const Vector3 Add(const Vector3& v) const { return Vector3(x + v.x, y + v.y, z + v.z); }
 	const Vector3 Subtract(const Vector3& v) const { return Vector3(x - v.x, y - v.y, z - v.z); }

@@ -56,6 +56,7 @@ public:
 	static inline T MaxElement(const std::vector<T>& values);
 
 	static inline float Sqrt(float value);
+	static inline float InvSqrt(float value);
 	static inline float Pow(float f, float p);
 	static inline float Exp(float f);
 	static inline float Log(float f);

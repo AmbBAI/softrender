@@ -13,8 +13,7 @@ const Color Color::blue = Color(1.f, 0.f, 0.f, 1.f);
 Color::Color(float _a, float _r, float _g, float _b)
 #if _MATH_SIMD_INTRINSIC_
     : Color(_mm_setr_ps(_a, _r, _g, _b))
-    {
-    }
+    {}
 #else
     : a(Mathf::Clamp01(_a))
     , r(Mathf::Clamp01(_r))

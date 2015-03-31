@@ -224,7 +224,20 @@ float Mathf::Atan2(float y, float x)
 
 float Mathf::Sqrt(float value)
 {
+#ifdef _MATH_SIMD_INTRINSIC_
+	return _mm_cvtss_f32(_mm_sqrt_ss(_mm_set_ss(value)));
+#else
 	return ::sqrt(value);
+#endif
+}
+
+float Mathf::InvSqrt(float value)
+{
+#ifdef _MATH_SIMD_INTRINSIC_
+	return _mm_cvtss_f32(_mm_rsqrt_ss(_mm_set_ss(value)));
+#else
+	return 1.f / Sqrt(value);
+#endif
 }
 
 float Mathf::Pow(float f, float p)

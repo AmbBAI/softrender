@@ -25,8 +25,7 @@ float Vector2::SqrLength() const
 
 const Vector2 Vector2::Normalize() const
 {
-	float inv = 1.f / Length();
-	return Vector2(x * inv, y * inv);
+	return (*this) * Mathf::InvSqrt(Length());
 }
 
 const Vector2 Vector2::Negate() const

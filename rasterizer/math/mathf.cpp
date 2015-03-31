@@ -3,7 +3,6 @@
 namespace rasterizer
 {
 
-
 const float Mathf::epsilon = FLT_EPSILON;
 const float Mathf::inifinity = FLT_MAX;
 const float Mathf::PI = (float)M_PI;
