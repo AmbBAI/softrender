@@ -53,10 +53,10 @@ Color::operator Color32() const
 #if _MATH_SIMD_INTRINSIC_
     __m128 tmp = _mm_min_ps(_mm_set1_ps(1.f), _mm_max_ps(_mm_set1_ps(0.f), m));
     __m128i im = _mm_cvtps_epi32(_mm_mul_ps(tmp, _mm_set1_ps(255.f)));
-    color.a = _mm_extract_epi8(im, 0);
-    color.r = _mm_extract_epi8(im, 4);
-    color.g = _mm_extract_epi8(im, 8);
-    color.b = _mm_extract_epi8(im, 12);
+    color.r = _mm_extract_epi8(im, 0);
+    color.g = _mm_extract_epi8(im, 4);
+    color.b = _mm_extract_epi8(im, 8);
+    color.a = _mm_extract_epi8(im, 12);
 #else
 	color.a = (u8)(a * 255);
 	color.r = (u8)(r * 255);

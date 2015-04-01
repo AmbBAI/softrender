@@ -57,7 +57,7 @@ protected:
 	u32 height = 0;
 	u32 bpp = 3;
 	AddressMode addressMode = AddressMode_Warp;
-	std::vector<Color> colors;
+	std::vector<Color32> colors;
 };
 
 }

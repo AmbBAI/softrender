@@ -111,9 +111,9 @@ void Mesh::RecalculateNormals()
 		Vector3 edge2 = vertices[v2] - vertices[v0];
 
 		Vector3 normal = edge1.Cross(edge2);
-		normals[v0] = normals[v0] + normal;
-		normals[v1] = normals[v1] + normal;
-		normals[v2] = normals[v2] + normal;
+		normals[v0] += normal;
+		normals[v1] += normal;
+		normals[v2] += normal;
 	}
 
 	for (int i = 0; i < (int)vertexCount; ++i)

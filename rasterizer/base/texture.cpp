@@ -75,7 +75,7 @@ bool Texture::UnparkColor(u8* bytes, u32 width, u32 height, u32 pitch, u32 bpp)
     this->width = width;
     this->height = height;
 	this->bpp = bpp;
-    this->colors.assign(width * height, Color::black);
+    this->colors.assign(width * height, Color32::black);
     
     u8* line = bytes;
     for (u32 y = 0; y < height; ++y)
@@ -83,18 +83,18 @@ bool Texture::UnparkColor(u8* bytes, u32 width, u32 height, u32 pitch, u32 bpp)
         u8* byte = line;
         for (u32 x = 0; x < width; ++x)
         {
-            Color& color = this->colors[y * width + x];
+            Color32& color = this->colors[y * width + x];
             if (bpp == 1)
             {
-                color.r = color.g = color.b = byte[0] / 255.f;
-                color.a = 1.f;
+                color.r = color.g = color.b = byte[0];
+                color.a = 255;
             }
             else
             {
-                color.b = byte[0] / 255.f;
-                color.g = byte[1] / 255.f;
-                color.r = byte[2] / 255.f;
-                color.a = (bpp == 4) ? byte[3] / 255.f : 1.f ;
+                color.b = byte[0];
+                color.g = byte[1];
+                color.r = byte[2];
+                color.a = (bpp == 4) ? byte[3] : 255 ;
             }
             byte += bpp;
         }
@@ -135,11 +135,12 @@ void Texture::ConvertBumpToNormal(float strength/* = 2.0f*/)
             Vector3 yOff = Vector3(0.f, strength, py1 - py2).Normalize();
         	Vector3 normal = xOff.Cross(yOff);
         
-            Color& color = colors[offset];
+            Color color;
         	color.r = (normal.x + 1.0f) / 2.0f;
         	color.g = (normal.y + 1.0f) / 2.0f;
         	color.b = (normal.z + 1.0f) / 2.0f;
         	color.a = ph;
+			colors[offset] = color;
         }
     }
 }
@@ -157,7 +158,7 @@ const Color Texture::GetColor(int x, int y) const
 
 const Color Texture::Sample(float u, float v) const
 {
-    return LinearSample(u, v);
+	return PointSample(u, v);
 }
     
 const Color Texture::LinearSample(float u, float v) const
@@ -233,8 +234,8 @@ const Color Texture::PointSample(float u, float v) const
         
     float fx = u * (width - 1);
     float fy = v * (height - 1);
-    int x = Mathf::FloorToInt(fx);
-    int y = Mathf::FloorToInt(fy);
+    int x = Mathf::RoundToInt(fx);
+    int y = Mathf::RoundToInt(fy);
         
     return GetColor(x, y);
 }
