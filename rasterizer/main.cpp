@@ -40,14 +40,14 @@ void MainLoop()
 		//MaterialPtr material(new Material());
 		//material->diffuseTexture = Texture::LoadTexture("resources/cube/default.png");
         //mesh[0]->materials.push_back(material);
-		//Mesh::LoadMesh(mesh, "resources/crytek-sponza/sponza.obj");
-        //position = Vector3(0, 0, 0);
-        //rotation = Vector3(0, 0, 0);
-        //scale = Vector3(1, 1, 1);
-        Mesh::LoadMesh(mesh, "resources/head/head.OBJ");
-		position = Vector3(0, 20, -50);
-		rotation = Vector3(10, 10, 0);
-		scale = Vector3(250, 250, 250);
+		Mesh::LoadMesh(mesh, "resources/crytek-sponza/sponza.obj");
+        position = Vector3(0, 0, 0);
+        rotation = Vector3(0, 0, 0);
+        scale = Vector3(1, 1, 1);
+//      Mesh::LoadMesh(mesh, "resources/head/head.OBJ");
+//		position = Vector3(0, 20, -50);
+//		rotation = Vector3(10, 10, 0);
+//		scale = Vector3(250, 250, 250);
 
 		for (auto m : mesh)
 		{

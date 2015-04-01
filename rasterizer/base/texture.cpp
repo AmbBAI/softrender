@@ -126,27 +126,33 @@ void Texture::ConvertBumpToNormal(float strength/* = 2.0f*/)
         	if (y1 < 0) y1 = 0;
         	if (y2 >= (int)height) y2 = height - 1;
             
+            float ph = bump[offset];
         	float px1 = bump[y * width + x1];
         	float px2 = bump[y * width + x2];
         	float py1 = bump[y1 * width + x];
         	float py2 = bump[y2 * width + x];
-        	Vector3 normal = Vector3(px1 - px2, py1 - py2, 0.25f / strength).Normalize();
+            Vector3 xOff = Vector3(strength, 0.f, px1 - px2).Normalize();
+            Vector3 yOff = Vector3(0.f, strength, py1 - py2).Normalize();
+        	Vector3 normal = xOff.Cross(yOff);
         
             Color& color = colors[offset];
         	color.r = (normal.x + 1.0f) / 2.0f;
         	color.g = (normal.y + 1.0f) / 2.0f;
         	color.b = (normal.z + 1.0f) / 2.0f;
-        	color.a = 1.f;
+        	color.a = ph;
         }
     }
 }
     
 const Color Texture::GetColor(int x, int y) const
 {
-	if (x < 0 || x >= (int)width) return Color::black;
-	if (y < 0 || y >= (int)height) return Color::black;
+    assert(x >= 0 && x < (int)width);
+    assert(y >= 0 && y < (int)height);
 
-	return colors[y * width + x];
+    int offset = y * width + x;
+    assert(offset < (int)colors.size());
+    
+	return colors[offset];
 }
 
 const Color Texture::Sample(float u, float v) const
