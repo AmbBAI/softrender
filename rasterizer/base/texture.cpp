@@ -86,8 +86,7 @@ bool Texture::UnparkColor(u8* bytes, u32 width, u32 height, u32 pitch, u32 bpp)
             Color32& color = this->colors[y * width + x];
             if (bpp == 1)
             {
-                color.r = color.g = color.b = byte[0];
-                color.a = 255;
+				color.a = color.r = color.g = color.b = byte[0];
             }
             else
             {
@@ -238,6 +237,46 @@ const Color Texture::PointSample(float u, float v) const
     int y = Mathf::RoundToInt(fy);
         
     return GetColor(x, y);
+}
+
+bool Texture::GenerateMipmaps()
+{
+	if (width != height) return false;
+	if (!Mathf::IsPowerOfTwo(width)) return false;
+	if (colors.size() != width * height) return false;
+
+	mipmaps.clear();
+
+	Bitmap* source = &colors;
+	u32 s = (width >> 1);
+	for (int l = 0;; ++l)
+	{
+		Bitmap mipmap(s * s, Color32::black);
+		for (u32 y = 0; y < s; ++y)
+		{
+			u32 y0 = y * 2;
+			u32 y1 = y0 + 1;
+			for (u32 x = 0; x < s; ++x)
+			{
+				u32 x0 = x * 2;
+				u32 x1 = x0 + 1;
+				Color c0 = (*source)[y0 * s + x0];
+				Color c1 = (*source)[y0 * s + x1];
+				Color c2 = (*source)[y1 * s + x0];
+				Color c3 = (*source)[y1 * s + x1];
+
+				mipmap[y * s + x] = Color::Lerp(
+					Color::Lerp(c0, c1, 0.5f),
+					Color::Lerp(c2, c3, 0.5f), 0.5f);
+			}
+		}
+		
+		mipmaps.push_back(mipmap);
+		source = &mipmaps[l];
+		s >>= 1;
+		if (s <= 0) break;
+	}
+	return true;
 }
 
 }
