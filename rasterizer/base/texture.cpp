@@ -238,9 +238,7 @@ bool Texture::GenerateMipmaps()
 				Color c2 = (*source)[y1 * s + x0];
 				Color c3 = (*source)[y1 * s + x1];
 
-				mipmap[y * s + x] = Color::Lerp(
-					Color::Lerp(c0, c1, 0.5f),
-					Color::Lerp(c2, c3, 0.5f), 0.5f);
+				mipmap[y * s + x] = Color::Lerp(c0, c1,c2, c3, 0.5f, 0.5f);
 			}
 		}
 

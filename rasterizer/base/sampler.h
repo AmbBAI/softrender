@@ -75,22 +75,22 @@ struct LinearSampler
 		assert(height > 0 && width > 0);
 
 		float fx = XAddresserType::CalcAddress(u, width);
-		int x = Mathf::FloorToInt(fx);
+		int x0 = Mathf::FloorToInt(fx);
 		float fy = YAddresserType::CalcAddress(v, height);
-		int y = Mathf::FloorToInt(fy);
-		float xFrac = fx - x;
-		float yFrac = fy - y;
-		x = XAddresserType::FixAddress(x, width);
-		y = YAddresserType::FixAddress(y, height);
-		int x2 = XAddresserType::FixAddress(x + 1, width);
-		int y2 = YAddresserType::FixAddress(y + 1, height);
+		int y0 = Mathf::FloorToInt(fy);
+		float xFrac = fx - x0;
+		float yFrac = fy - y0;
+		x0 = XAddresserType::FixAddress(x0, width);
+		y0 = YAddresserType::FixAddress(y0, height);
+		int x1 = XAddresserType::FixAddress(x0 + 1, width);
+		int y1 = YAddresserType::FixAddress(y0 + 1, height);
 
-		Color c0 = bitmap[y * width + x];
-		Color c1 = bitmap[y * width + x2];
-		Color c2 = bitmap[y2 * width + x];
-		Color c3 = bitmap[y2 * width + x2];
+		Color c0 = bitmap[y0 * width + x0];
+		Color c1 = bitmap[y0 * width + x1];
+		Color c2 = bitmap[y1 * width + x0];
+		Color c3 = bitmap[y1 * width + x1];
 
-		return Color::Lerp(Color::Lerp(c0, c1, xFrac), Color::Lerp(c2, c3, xFrac), yFrac);
+		return Color::Lerp(c0, c1, c2, c3, xFrac, yFrac);
 	}
 };
 

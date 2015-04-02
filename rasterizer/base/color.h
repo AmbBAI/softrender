@@ -45,6 +45,7 @@ struct Color
 	inline const Color Multiply(float s) const;
 	inline const Color Modulate(const Color& c) const;
 	static inline const Color Lerp(const Color& a, const Color& b, float t);
+	static inline const Color Lerp(const Color& a, const Color& b, const Color& c, const Color& d, float t1, float t2);
 
 	inline operator Color32() const;
 
