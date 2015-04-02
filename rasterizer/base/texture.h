@@ -26,6 +26,13 @@ public:
 		TextureType_Texture,
 		TextureType_NormalMap,
 	};
+    
+    enum FilterMode
+    {
+        FilterMode_Point,
+        FilterMode_Bilinear,
+        FilterMode_Trilinear
+    };
 
 	typedef std::vector<Color32> Bitmap;
 
@@ -49,21 +56,26 @@ public:
 	void ConvertBumpToNormal(float strength = 2.0f);
 	bool GenerateMipmaps();
 
-	const Color GetColor(int x, int y) const;
+	const Color GetColor(u32 x, u32 y) const;
 	const Color Sample(float u, float v) const;
     const Color PointSample(float u, float v) const;
     const Color LinearSample(float u, float v) const;
 
 protected:
-	bool UnparkColor(u8* bytes, u32 width, u32 height, u32 pitch, u32 bpp);
+    bool UnparkColor(u8* bytes, u32 width, u32 height, u32 pitch, u32 bpp);
 
+public:
+    AddressMode addressMode = AddressMode_Warp;
+    FilterMode filterMode = FilterMode_Bilinear;
+    
 protected:
 	u32 width = 0;
 	u32 height = 0;
 	u32 bpp = 3;
-	AddressMode addressMode = AddressMode_Warp;
 
 	Bitmap colors;
+    
+    bool isMipmapCreated = false;
 	std::vector<Bitmap> mipmaps;
 };
 

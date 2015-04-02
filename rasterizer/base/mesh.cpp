@@ -36,6 +36,7 @@ bool Mesh::LoadMesh(std::vector<MeshPtr>& meshes, const char* file)
 			std::string texPath = fileDir + m.diffuse_texname;
             std::replace(texPath.begin(), texPath.end(), '\\', '/');
 			newM->diffuseTexture = Texture::LoadTexture(texPath.c_str());
+            newM->diffuseTexture->GenerateMipmaps();
 		}
 		if (m.normal_texname.size() > 0)
 		{
@@ -48,7 +49,7 @@ bool Mesh::LoadMesh(std::vector<MeshPtr>& meshes, const char* file)
 			auto param_itor = m.unknown_parameter.find("map_bump");
 			if (param_itor != m.unknown_parameter.end())
 			{
-				
+				//TODO convert bump to normal
 			}
 		}
 

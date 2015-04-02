@@ -144,19 +144,33 @@ void Texture::ConvertBumpToNormal(float strength/* = 2.0f*/)
     }
 }
     
-const Color Texture::GetColor(int x, int y) const
+const Color Texture::GetColor(u32 x, u32 y) const
 {
-    assert(x >= 0 && x < (int)width);
-    assert(y >= 0 && y < (int)height);
+    assert(x < width);
+    assert(y < height);
 
-    int offset = y * width + x;
+    u32 offset = y * width + x;
     assert(offset < (int)colors.size());
     
-	return colors[offset];
+	return Color32(colors[offset]);
 }
 
 const Color Texture::Sample(float u, float v) const
 {
+    switch (filterMode) {
+        case FilterMode_Point:
+            return PointSample(u, v);
+        case FilterMode_Bilinear:
+            //TODO bilinear with mipmap
+            //if (isMipmapCreated) ; else
+            return LinearSample(u, v);
+        case FilterMode_Trilinear:
+            //TODO trilinear
+            return LinearSample(u, v);
+        default:
+            return LinearSample(u, v);
+    }
+    
 	return PointSample(u, v);
 }
     
@@ -235,7 +249,7 @@ const Color Texture::PointSample(float u, float v) const
     float fy = v * (height - 1);
     int x = Mathf::RoundToInt(fx);
     int y = Mathf::RoundToInt(fy);
-        
+    
     return GetColor(x, y);
 }
 
