@@ -14,27 +14,30 @@ typedef std::shared_ptr<Texture> TexturePtr;
 class Texture
 {
 public:
-	enum AddressMode
-	{
-		AddressMode_Warp,
-		AddressMode_Clamp,
-		AddressMode_Mirror,
-	};
-
 	enum TextureType
 	{
 		TextureType_Texture,
 		TextureType_NormalMap,
 	};
-    
-    enum FilterMode
-    {
-        FilterMode_Point,
-        FilterMode_Bilinear,
-        FilterMode_Trilinear
-    };
 
+	enum AddressMode
+	{
+		AddressMode_Warp = 0,
+		AddressMode_Mirror = 1,
+		AddressMode_Clamp = 2,
+		AddressModeCount = 3
+	};
+
+	enum FilterMode
+	{
+		FilterMode_Point = 0,
+		FilterMode_Bilinear,
+		FilterMode_Trilinear
+	};
+    
 	typedef std::vector<Color32> Bitmap;
+	typedef Color(*SampleFunc)(const Texture::Bitmap& bitmap, u32 width, u32 height, float u, float v);
+	static SampleFunc sampleFunc[2][AddressModeCount][AddressModeCount];
 
 public:
 	static void Initialize();
@@ -58,20 +61,13 @@ public:
 
 	const Color GetColor(u32 x, u32 y) const;
 	const Color Sample(float u, float v) const;
-    const Color PointSample(float u, float v) const;
-    const Color LinearSample(float u, float v) const;
 
 protected:
     bool UnparkColor(u8* bytes, u32 width, u32 height, u32 pitch, u32 bpp);
-    static float WarpTexcoord(float coord, u32 size);
-    static float MirrorTexcoord(float coord, u32 size);
-    static float ClampTexcoord(float coord, u32 size);
-    static int WarpTexcoordFix(int coord, u32 size);
-    static int MirrorTexcoordFix(int coord, u32 size);
-    static int ClampTexcoordFix(int coord, u32 size);
     
 public:
-    AddressMode addressMode = AddressMode_Warp;
+    AddressMode xAddressMode = AddressMode_Warp;
+	AddressMode yAddressMode = AddressMode_Warp;
     FilterMode filterMode = FilterMode_Bilinear;
     
 protected:
@@ -79,10 +75,11 @@ protected:
 	u32 height = 0;
 	u32 bpp = 3;
 
-	Bitmap colors;
+	Bitmap bitmap;
     
     bool isMipmapCreated = false;
 	std::vector<Bitmap> mipmaps;
+
 };
 
 }
