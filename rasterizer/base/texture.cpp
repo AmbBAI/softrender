@@ -178,78 +178,97 @@ const Color Texture::LinearSample(float u, float v) const
 {
 	assert(height > 0 && width > 0);
 
-	switch (addressMode)
-	{
-	case Texture::AddressMode_Warp:
-		if (u < 0.f || u >= 1.f) u = Mathf::Repeat(u, 1.0f);
-		if (v < 0.f || v >= 1.f) v = Mathf::Repeat(v, 1.0f);
-		break;
-	case Texture::AddressMode_Clamp:
-		u = Mathf::Clamp01(u);
-		v = Mathf::Clamp01(v);
-		break;
-	case Texture::AddressMode_Mirror:
-		if (u < 0.f || u > 1.f) u = Mathf::PingPong(u, 1.0f);
-		if (v < 0.f || v > 1.f) v = Mathf::PingPong(v, 1.0f);
-		break;
-	}
-
-	float fx = u * (width - 1);
-	float fy = v * (height - 1);
-	int x = Mathf::FloorToInt(fx);
-	int y = Mathf::FloorToInt(fy);
-	float fpartX = fx - x;
-	float fpartY = fy - y;
-	int x2 = x + 1;
-	int y2 = y + 1;
-
-	switch (addressMode)
-	{
-	case Texture::AddressMode_Warp:
-		if (x2 >= (int)width) x2 = 0;
-		if (y2 >= (int)height) y2 = 0;
-		break;
-    case Texture::AddressMode_Clamp:
-        break;
-    case Texture::AddressMode_Mirror:
-		if (x2 >= (int)width) x2 = width - 1;
-		if (y2 >= (int)height) y2 = height - 1;
-		break;
-	}
+    int x = -1, y = -1, x2 = -1, y2 = -1;
+    float xFrac = 0.f, yFrac;
+    switch (addressMode)
+    {
+            // to template interface
+        case Texture::AddressMode_Warp:
+        {
+            float fx = WarpTexcoord(u, width);
+            x = Mathf::FloorToInt(fx);
+            float fy = WarpTexcoord(v, height);
+            y = Mathf::FloorToInt(fy);
+            xFrac = fx - x;
+            yFrac = fy - y;
+            x = WarpTexcoordFix(x, width);
+            y = WarpTexcoordFix(y, height);
+            x2 = WarpTexcoordFix(x + 1, width);
+            y2 = WarpTexcoordFix(y + 1, height);
+        }
+            break;
+        case Texture::AddressMode_Clamp:
+        {
+            float fx = ClampTexcoord(u, width);
+            x = Mathf::FloorToInt(fx);
+            float fy = ClampTexcoord(v, height);
+            y = Mathf::FloorToInt(fy);
+            xFrac = fx - x;
+            yFrac = fy - y;
+            x = ClampTexcoordFix(x, width);
+            y = ClampTexcoordFix(y, height);
+            x2 = ClampTexcoordFix(x + 1, width);
+            y2 = ClampTexcoordFix(y + 1, height);
+        }
+            break;
+        case Texture::AddressMode_Mirror:
+        {
+            float fx = MirrorTexcoord(u, width);
+            x = Mathf::FloorToInt(fx);
+            float fy = MirrorTexcoord(v, height);
+            y = Mathf::FloorToInt(fy);
+            xFrac = fx - x;
+            yFrac = fy - y;
+            x = MirrorTexcoordFix(x, width);
+            y = MirrorTexcoordFix(y, height);
+            x2 = MirrorTexcoordFix(x + 1, width);
+            y2 = MirrorTexcoordFix(y + 1, height);
+        }
+            break;
+    }
 
 	Color c0 = GetColor(x, y);
-	Color c2 = GetColor(x, y2);
 	Color c1 = GetColor(x2, y);
-	Color c3 = GetColor(x2, y2);
+    Color c2 = GetColor(x, y2);
+    Color c3 = GetColor(x2, y2);
 
-	return Color::Lerp(Color::Lerp(c0, c1, fpartX), Color::Lerp(c2, c3, fpartX), fpartY);
+	return Color::Lerp(Color::Lerp(c0, c1, xFrac), Color::Lerp(c2, c3, xFrac), yFrac);
 }
 
 const Color Texture::PointSample(float u, float v) const
 {
     assert(height > 0 && width > 0);
     
+    int x = -1;
+    int y = -1;
     switch (addressMode)
     {
         case Texture::AddressMode_Warp:
-            if (u < 0.f || u >= 1.f) u = Mathf::Repeat(u, 1.0f);
-            if (v < 0.f || v >= 1.f) v = Mathf::Repeat(v, 1.0f);
+        {
+            float fx = WarpTexcoord(u, width);
+            x = WarpTexcoordFix(Mathf::RoundToInt(fx), width);
+            float fy = WarpTexcoord(v, height);
+            y = WarpTexcoordFix(Mathf::RoundToInt(fy), height);
+        }
             break;
         case Texture::AddressMode_Clamp:
-            u = Mathf::Clamp01(u);
-            v = Mathf::Clamp01(v);
+        {
+            float fx = ClampTexcoord(u, width);
+            x = ClampTexcoordFix(Mathf::RoundToInt(fx), width);
+            float fy = ClampTexcoord(v, height);
+            y = ClampTexcoordFix(Mathf::RoundToInt(fy), height);
+        }
             break;
         case Texture::AddressMode_Mirror:
-            if (u < 0.f || u > 1.f) u = Mathf::PingPong(u, 1.0f);
-            if (v < 0.f || v > 1.f) v = Mathf::PingPong(v, 1.0f);
+        {
+            float fx = MirrorTexcoord(u, width);
+            x = MirrorTexcoordFix(Mathf::RoundToInt(fx), width);
+            float fy = MirrorTexcoord(v, height);
+            y = MirrorTexcoordFix(Mathf::RoundToInt(fy), height);
+        }
             break;
     }
-        
-    float fx = u * (width - 1);
-    float fy = v * (height - 1);
-    int x = Mathf::RoundToInt(fx);
-    int y = Mathf::RoundToInt(fy);
-    
+
     return GetColor(x, y);
 }
 
@@ -293,4 +312,42 @@ bool Texture::GenerateMipmaps()
 	return true;
 }
 
+float Texture::WarpTexcoord(float coord, u32 length)
+{
+    return (coord - Mathf::Floor(coord)) * length - 0.5f;
+}
+
+float Texture::MirrorTexcoord(float coord, u32 length)
+{
+    int round = Mathf::FloorToInt(coord);
+    float tmpCoord = (round & 1) ? (1 + round - coord) : (coord - round);
+    return tmpCoord * length - 0.5f;
+}
+
+float Texture::ClampTexcoord(float coord, u32 length)
+{
+    return Mathf::Clamp(coord * length, 0.5f, length - 0.5f) - 0.5f;
+}
+
+int Texture::WarpTexcoordFix(int coord, u32 length)
+{
+    if (coord < 0) return length - 1;
+    if (coord >= length) return 0;
+    return coord;
+}
+
+int Texture::MirrorTexcoordFix(int coord, u32 length)
+{
+    if (coord < 0) return 0;
+    if (coord >= length) return length - 1;
+    return coord;
+}
+    
+int Texture::ClampTexcoordFix(int coord, u32 length)
+{
+    if (coord < 0) return 0;
+    if (coord >= length) return length - 1;
+    return coord;
+}
+    
 }

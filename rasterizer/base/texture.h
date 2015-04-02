@@ -63,7 +63,13 @@ public:
 
 protected:
     bool UnparkColor(u8* bytes, u32 width, u32 height, u32 pitch, u32 bpp);
-
+    static float WarpTexcoord(float coord, u32 size);
+    static float MirrorTexcoord(float coord, u32 size);
+    static float ClampTexcoord(float coord, u32 size);
+    static int WarpTexcoordFix(int coord, u32 size);
+    static int MirrorTexcoordFix(int coord, u32 size);
+    static int ClampTexcoordFix(int coord, u32 size);
+    
 public:
     AddressMode addressMode = AddressMode_Warp;
     FilterMode filterMode = FilterMode_Bilinear;
