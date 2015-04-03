@@ -21,20 +21,25 @@ struct Rasterizer
 	{
 		int x = 0;
 		int y = 0;
-		float invZ = 0.0f;
-		float invW = 0.0f;
-
-        Point2D() = default;
-		Point2D(int _x, int _y) : x(_x), y(_y) {}
-		Point2D(int _x, int _y, float _depth) : x(_x), y(_y), invW(_depth) {}
+		float invZ = 1.0f;
+		float invW = 1.0f;
 	};
 
-    struct Vertex_p
+    struct VertexMini
     {
         Vector4 position = Vector4();
         u32 clipCode = 0x0;
         
-        //static Vertex_p Lerp(const Vertex_p& a, const Vertex_p& b, float t);
+        static VertexMini Lerp(const VertexMini& a, const VertexMini& b, float t)
+        {
+            assert(0.f <= t && t <= 1.f);
+            
+            VertexMini vertex;
+            vertex.position = Vector4::Lerp(a.position, b.position, t);
+            vertex.clipCode = CalculateClipCode(vertex.position);
+            
+            return vertex;
+        }
     };
     
 	struct Vertex
@@ -43,26 +48,39 @@ struct Rasterizer
 		Vector3 normal = Vector3::up;
 		Vector3 tangent = Vector3::right;
 		Vector2 texcoord = Vector2::zero;
-		Point2D point = Point2D(0, 0);
+		Point2D point = Point2D();
         u32 clipCode = 0x0;
         
-        //static Vertex Lerp(const Vertex& a, const Vertex& b, float t);
+        static Vertex Lerp(const Vertex& a, const Vertex& b, float t)
+        {
+            assert(0.f <= t && t <= 1.f);
+            
+            Vertex vertex;
+            vertex.position = Vector4::Lerp(a.position, b.position, t);
+            vertex.normal = Vector3::Lerp(a.normal, b.normal, t);
+            vertex.tangent = Vector3::Lerp(a.tangent, b.tangent, t);
+            vertex.texcoord = Vector2::Lerp(a.texcoord, b.texcoord, t);
+            vertex.clipCode = CalculateClipCode(vertex.position);
+            
+            return vertex;
+        }
 	};
 
-    template<class VertexType, int VertexCount>
-	struct Face
+    template<typename VertexType, int VertexCount>
+	struct VertexSet
 	{
 		VertexType v[VertexCount];
 	};
     
-    typedef Face<Vertex, 3> Triangle;
-    typedef Face<Vertex_p, 2> Line;
+    typedef VertexSet<Vertex, 3> Triangle;
+    typedef VertexSet<VertexMini, 2> Line;
     
     struct Plane
     {
         u32 cullMask = 0x0;
         typedef float (*ClippingFunc)(const Vector4& v0, const Vector4& v1);
         ClippingFunc clippingFunc = nullptr;
+        Plane(u32 _cullMask, ClippingFunc _clippingFunc): cullMask(_cullMask), clippingFunc(_clippingFunc) {}
     };
     static Plane viewFrustumPlanes[6];
 
@@ -70,7 +88,7 @@ struct Rasterizer
 	static Canvas* canvas;
 	static CameraPtr camera;
 	static MaterialPtr material;
-	typedef Color (*FragmentShader)(const Triangle& face, float w0, float w1, float w2, float invW);
+    typedef Color (*FragmentShader)(const Vertex& v0, const Vertex& v1, const Vertex& v2, const Vector4& interp);
 	static FragmentShader fragmentShader;
 
     static void Initialize();
@@ -80,12 +98,14 @@ struct Rasterizer
 	static void DrawMeshPoint(const Mesh& mesh, const Matrix4x4& transform, const Color32& color);
 	static void DrawMeshWireFrame(const Mesh& mesh, const Matrix4x4& transform, const Color32& color);
 
-    static Color FS(const Triangle& face, float w0, float w1, float w2, float invW);
-    static void DrawTriangle(const Triangle& f);
+    static Color FS(const Vertex& v0, const Vertex& v1, const Vertex& v2, const Vector4& interp);
+    static void DrawTriangle(const Vertex& v0, const Vertex& v1, const Vertex& v2);
     static void DrawMesh(const Mesh& mesh, const Matrix4x4& transform, const Color& color);
-    
-    static std::vector<Line> ClipLine(const Vertex_p& v0, const Vertex_p& v1);
-    static std::vector<Triangle> ClipTriangle(const Vertex& v0, const Vertex& v1, const Vertex& v2);
+
+    template<typename VertexType>
+    static std::vector<VertexType> ClipLine(const VertexType& v0, const VertexType& v1);
+    template<typename VertexType>
+    static std::vector<VertexType> ClipTriangle(const VertexType& v0, const VertexType& v1, const VertexType& v2);
     
 private:
 	static int Orient2D(const Point2D& v1, const Point2D& v2, const Point2D& p);
@@ -93,12 +113,25 @@ private:
 	static void Plot(int x, int y, const Color32& color, float alpha, bool swapXY = false);
 
 	static float Clip(float f0, float w0, float f1, float w1);
-    static Vertex LerpVertex(const Vertex& v0, const Vertex& v1, float t);
-    static Vertex_p LerpVertex(const Vertex_p& v0, const Vertex_p& v1, float t);
-    static void ClipLineFromPlane(std::vector<Line>& clippedLines, const Line& line, const Plane& plane);
-    static void ClipTriangleFromPlane(std::vector<Triangle>& clippedTriangles, const Triangle& face, const Plane& plane);
-    static void ClipTriangleWithOneVertexOut(std::vector<Triangle>& clippedTriangles, const Vertex& v0, const Vertex& v1, const Vertex& v2, const Plane& plane);
-    static void ClipTriangleWithTwoVertexOut(std::vector<Triangle>& clippedTriangles, const Vertex& v0, const Vertex& v1, const Vertex& v2, const Plane& plane);
+    
+    template<typename VertexType>
+    static void ClipLineFromPlane(std::vector<VertexType>& clippedLines,
+                                  const VertexType& v0, const VertexType& v1, const Plane& plane);
+    
+    template<typename VertexType>
+    static void ClipTriangleFromPlane(std::vector<VertexType>& clippedTriangles,
+                                      const VertexType& v0, const VertexType& v1, const VertexType& v2, const Plane& plane);
+
+    template<typename VertexType>
+    static void ClipTriangleWithOneVertexOut(std::vector<VertexType>& clippedTriangles,
+                                             const VertexType& v0, const VertexType& v1, const VertexType& v2, const Plane& plane);
+    template<typename VertexType>
+    static void ClipTriangleWithTwoVertexOut(std::vector<VertexType>& clippedTriangles,
+                                             const VertexType& v0, const VertexType& v1, const VertexType& v2, const Plane& plane);
+    
+    template<typename Type>
+    static Type TriangleInterpolation(const Type& v0, const Type& v1, const Type& v2, const Vector4& interp);
+    
     static bool IsBackFace(const Vector4& v0, const Vector4& v1, const Vector4& v2);
     static u32 CalculateClipCode(const Vector4& position);
 	static Point2D CalculateViewPoint(const Vector4& position);

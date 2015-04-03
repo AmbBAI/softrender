@@ -72,8 +72,6 @@ struct LinearSampler
 	template<typename XAddresserType, typename YAddresserType>
 	static Color Sample(const Texture::Bitmap& bitmap, u32 width, u32 height, float u, float v)
 	{
-		assert(height > 0 && width > 0);
-
 		float fx = XAddresserType::CalcAddress(u, width);
 		int x0 = Mathf::FloorToInt(fx);
 		float fy = YAddresserType::CalcAddress(v, height);
