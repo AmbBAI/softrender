@@ -1,7 +1,7 @@
 #include "texture.h"
 #include "math/mathf.h"
 #include "freeimage/FreeImage.h"
-#include "sampler.h"
+#include "sampler.hpp"
 
 namespace rasterizer
 {

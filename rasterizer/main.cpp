@@ -54,8 +54,6 @@ void MainLoop()
 			if (m->normals.size() <= 0)
 				m->RecalculateNormals();
 		}
-
-		Rasterizer::fragmentShader = Rasterizer::FS;
     }
 
 	CameraController::UpdateCamera();
@@ -67,7 +65,7 @@ void MainLoop()
 	for (auto m : mesh)
 	{
         if (m->materials.size() > 0) Rasterizer::material = m->materials[0];
-		Rasterizer::DrawMesh(*m, trans, Color::white);
+		Rasterizer::DrawMesh(*m, trans);
         //Rasterizer::DrawMeshWireFrame(*m, trans, Color::red);
         //Rasterizer::DrawMeshPoint(*m, trans, Color::red);
 	}

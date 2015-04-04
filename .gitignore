@@ -170,4 +170,5 @@ resources/
 *.vcxproj.filters
 *.sln
 *.vspx
+*.etl
 *.xcodeproj

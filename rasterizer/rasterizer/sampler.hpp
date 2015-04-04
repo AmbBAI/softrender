@@ -1,10 +1,10 @@
-#ifndef _BASE_TEXTURE_SAMPLER_H_
-#define _BASE_TEXTURE_SAMPLER_H_
+#ifndef _BASE_TEXTURE_SAMPLER_HPP_
+#define _BASE_TEXTURE_SAMPLER_HPP_
 
 #include "base/header.h"
-#include "base/texture.h"
 #include "math/vector3.h"
 #include "math/mathf.h"
+#include "rasterizer/texture.h"
 
 namespace rasterizer
 {
@@ -94,4 +94,4 @@ struct LinearSampler
 
 }
 
-#endif //! _BASE_TEXTURE_SAMPLER_H_
+#endif //! _BASE_TEXTURE_SAMPLER_HPP_

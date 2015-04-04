@@ -2,8 +2,8 @@
 #define _BASE_MATERIAL_H_
 
 #include "base/header.h"
-#include "base/texture.h"
 #include "base/color.h"
+#include "rasterizer/texture.h"
 
 namespace rasterizer
 {
