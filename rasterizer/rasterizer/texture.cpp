@@ -118,6 +118,7 @@ bool Texture::UnparkColor(u8* bytes, u32 width, u32 height, u32 pitch, u32 bpp)
 	this->bpp = bpp;
 	this->bitmap.assign(width * height, Color32::black);
 
+	//TODO S3TC
 	u8* line = bytes;
 	for (u32 y = 0; y < height; ++y)
 	{

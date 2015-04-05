@@ -78,8 +78,6 @@ protected:
 	u32 bpp = 3;
 
 	Bitmap bitmap;
-    
-    bool isMipmapCreated = false;
 	std::vector<Bitmap> mipmaps;
 
 };

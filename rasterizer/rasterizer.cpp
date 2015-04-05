@@ -231,6 +231,7 @@ int Rasterizer::Orient2D(int x0, int y0, int x1, int y1, int x2, int y2)
 
 void Rasterizer::DrawTriangle(const Projection& p0, const Projection& p1, const Projection& p2, const Triangle<VertexStd>& triangle)
 {
+	//TODO 2x2 for mipmap level
 	int minX = Mathf::Min(p0.x, p1.x, p2.x);
 	int minY = Mathf::Min(p0.y, p1.y, p2.y);
 	int maxX = Mathf::Max(p0.x, p1.x, p2.x);
@@ -342,10 +343,10 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform)
 		int i1 = mesh.indices[i * 3 + 1];
 		int i2 = mesh.indices[i * 3 + 2];
         
-        // TODO backface cull
+        //TODO pre backface cull
         //if (IsBackFace(vertices[i0].position, vertices[i1].position, vertices[i2].position)) continue;
         
-        // TODO Guard-band clipping
+        //TODO Guard-band clipping
         auto triangles = Clipper::ClipTriangle(vertices[i0], vertices[i1], vertices[i2]);
         for (auto triangle : triangles)
         {
