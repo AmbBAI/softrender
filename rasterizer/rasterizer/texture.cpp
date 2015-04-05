@@ -59,6 +59,7 @@ std::map<std::string, TexturePtr> Texture::texturePool;
 TexturePtr Texture::CreateTexture(const char* file)
 {
 	FREE_IMAGE_FORMAT imageFormat = FreeImage_GetFileType(file);
+	printf("%s %d\n", file, imageFormat);
 	FIBITMAP* fiBitmap = FreeImage_Load(imageFormat, file);
 	if (fiBitmap == nullptr) return nullptr;
 
@@ -184,33 +185,56 @@ void Texture::ConvertBumpToNormal(float strength/* = 2.0f*/)
 	}
 }
 
-const Color Texture::GetColor(u32 x, u32 y) const
+const Color Texture::GetColor(u32 x, u32 y, int miplv/* = 0*/) const
 {
-	assert(x < width);
-	assert(y < height);
+	u32 bmp_width = width;
+	u32 bmp_height = height;
+	const Bitmap* bmp = CheckMipmap(bmp_width, bmp_height, miplv);
+	assert(bmp != nullptr);
 
-	u32 offset = y * width + x;
+	assert(x < bmp_width);
+	assert(y < bmp_height);
+
+	u32 offset = y * bmp_width + x;
 	assert(offset < (int)bitmap.size());
 
-	return Color32(bitmap[offset]);
+	return (*bmp)[offset];
+}
+
+
+const Color Texture::Sample(float u, float v, int miplv) const
+{
+	u32 bmp_width = width;
+	u32 bmp_height = height;
+	const Bitmap* bmp = CheckMipmap(bmp_width, bmp_height, miplv);
+	if (bmp == nullptr) return Color::black;
+
+	switch (filterMode)
+	{
+	case rasterizer::Texture::FilterMode_Point:
+		return sampleFunc[0][xAddressMode][xAddressMode](*bmp, bmp_width, bmp_height, u, v);
+	default:
+		return sampleFunc[1][xAddressMode][xAddressMode](*bmp, bmp_width, bmp_height, u, v);
+	}
 }
 
 const Color Texture::Sample(float u, float v) const
 {
 	switch (filterMode) {
 	case FilterMode_Point:
-		return sampleFunc[0][xAddressMode][xAddressMode](bitmap, width, height, u, v);
+		return Sample(u, v, 0);
 	case FilterMode_Bilinear:
 		//TODO bilinear with mipmap
 		//if (isMipmapCreated) ; else
-		return sampleFunc[1][xAddressMode][xAddressMode](bitmap, width, height, u, v);
+		return Sample(u, v, 0);
 	case FilterMode_Trilinear:
 		//TODO trilinear
-		return sampleFunc[1][xAddressMode][xAddressMode](bitmap, width, height, u, v);
+		return Sample(u, v, 0);
 	default:
-		return sampleFunc[1][xAddressMode][xAddressMode](bitmap, width, height, u, v);
+		return Sample(u, v, 0);
 	}
 }
+
 
 bool Texture::GenerateMipmaps()
 {
@@ -222,6 +246,7 @@ bool Texture::GenerateMipmaps()
 
 	Bitmap* source = &bitmap;
 	u32 s = (width >> 1);
+	u32 ss = width;
 	for (int l = 0;; ++l)
 	{
 		Bitmap mipmap(s * s, Color32::black);
@@ -233,20 +258,39 @@ bool Texture::GenerateMipmaps()
 			{
 				u32 x0 = x * 2;
 				u32 x1 = x0 + 1;
-				Color c0 = (*source)[y0 * s + x0];
-				Color c1 = (*source)[y0 * s + x1];
-				Color c2 = (*source)[y1 * s + x0];
-				Color c3 = (*source)[y1 * s + x1];
-
-				mipmap[y * s + x] = Color::Lerp(c0, c1,c2, c3, 0.5f, 0.5f);
+				Color c0 = (*source)[y0 * ss + x0];
+				Color c1 = (*source)[y0 * ss + x1];
+				Color c2 = (*source)[y1 * ss + x0];
+				Color c3 = (*source)[y1 * ss + x1];
+				mipmap[y * s + x] = Color::Lerp(c0, c1, c2, c3, 0.5f, 0.5f);
 			}
 		}
 
 		mipmaps.push_back(mipmap);
 		source = &mipmaps[l];
+		ss = s;
 		s >>= 1;
 		if (s <= 0) break;
 	}
 	return true;
 }
+
+const Texture::Bitmap* Texture::CheckMipmap(u32& bmp_width, u32& bmp_height, int miplv) const
+{
+	if (mipmaps.size() <= 0) miplv = 0;
+	const Bitmap* bmp = nullptr;
+	bmp_width = width;
+	bmp_height = height;
+	if (miplv == 0) bmp = &bitmap;
+	else
+	{
+		miplv = Mathf::Clamp(miplv, 0, (int)mipmaps.size());
+		bmp = &mipmaps[miplv - 1];
+		bmp_width >>= miplv;
+		bmp_height >>= miplv;
+	}
+	assert(bmp != nullptr);
+	return bmp;
+}
+
 }

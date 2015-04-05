@@ -63,11 +63,10 @@ struct VertexStd : VertexBase
 	{
 		assert(0.f <= t && t <= 1.f);
 		VertexStd out;
-		out.position = Vector4::Lerp(a.position, b.position, t);
+		*((VertexBase*)&out) = VertexBase::Lerp(a, b, t);
 		out.normal = Vector3::Lerp(a.normal, b.normal, t);
 		out.tangent = Vector3::Lerp(a.tangent, b.tangent, t);
 		out.texcoord = Vector2::Lerp(a.texcoord, b.texcoord, t);
-		out.clipCode = Clipper::CalculateClipCode(out.position);
 		return out;
 	}
 };

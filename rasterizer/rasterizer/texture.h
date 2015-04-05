@@ -59,11 +59,13 @@ public:
 	void ConvertBumpToNormal(float strength = 2.0f);
 	bool GenerateMipmaps();
 
-	const Color GetColor(u32 x, u32 y) const;
+	const Color GetColor(u32 x, u32 y, int miplv = 0) const;
+	const Color Sample(float u, float v, int miplv) const;
 	const Color Sample(float u, float v) const;
 
 protected:
     bool UnparkColor(u8* bytes, u32 width, u32 height, u32 pitch, u32 bpp);
+	const Bitmap* CheckMipmap(u32& bmp_width, u32& bmp_height, int miplv) const;
     
 public:
     AddressMode xAddressMode = AddressMode_Warp;

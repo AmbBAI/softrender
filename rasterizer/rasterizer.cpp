@@ -30,6 +30,27 @@ void TestColor(Canvas* canvas)
 	}
 }
 
+void TestTexture(Canvas* canvas, const Vector4& rect, const Texture& texture, int miplv /*= 0*/)
+{
+	int width = (int)canvas->GetWidth();
+	int height = (int)canvas->GetHeight();
+
+	int minX = Mathf::Clamp(Mathf::FloorToInt(rect.x), 0, width);
+	int maxX = Mathf::Clamp(Mathf::FloorToInt(rect.z), 0, width);
+	int minY = Mathf::Clamp(Mathf::CeilToInt(rect.y), 0, height);
+	int maxY = Mathf::Clamp(Mathf::CeilToInt(rect.w), 0, height);
+
+	for (int y = minY; y < maxY; ++y)
+	{
+		float v = ((float)y - rect.y) / (rect.w - rect.y);
+		for (int x = minX; x < maxX; ++x)
+		{
+			float u = ((float)x - rect.x) / (rect.z - rect.x);
+			canvas->SetPixel(x, y, texture.Sample(u, v, miplv));
+		}
+	}
+}
+
 void Rasterizer::DrawLine(int x0, int x1, int y0, int y1, const Color32& color)
 {
 	bool steep = Mathf::Abs(y1 - y0) > Mathf::Abs(x1 - x0);

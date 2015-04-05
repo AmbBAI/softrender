@@ -6,13 +6,14 @@ Canvas* canvas;
 Application* app;
 
 void MainLoop();
+void TestTextureLoop();
 
 int main(int argc, char *argv[])
 {
 	app = Application::GetInstance();
 	app->CreateApplication("rasterizer", 512, 512);
 	canvas = app->GetCanvas();
-	app->SetRunLoop(MainLoop);
+	app->SetRunLoop(TestTextureLoop);
 	app->RunLoop();
 	return 0;
 }
@@ -40,7 +41,7 @@ void MainLoop()
 		//MaterialPtr material(new Material());
 		//material->diffuseTexture = Texture::LoadTexture("resources/cube/default.png");
         //mesh[0]->materials.push_back(material);
-		Mesh::LoadMesh(mesh, "resources/crytek-sponza/sponza.obj");
+		Mesh::LoadMesh(mesh, "resources/sponza/sponza.obj");
 		position = Vector3(0, 0, 0);
 		rotation = Vector3(0, 0, 0);
 		scale = Vector3(1, 1, 1);
@@ -93,4 +94,24 @@ MeshPtr CreatePlane()
 	mesh->indices.push_back(3);
 	mesh->indices.push_back(0);
 	return mesh;
+}
+
+void TestTextureLoop()
+{
+	static TexturePtr tex = nullptr;
+	if (tex == nullptr)
+	{
+		tex = Texture::LoadTexture("resources/head/lambertian.jpg");
+		if (tex != nullptr)
+		{
+			tex->filterMode = Texture::FilterMode_Point;
+			tex->GenerateMipmaps();
+		}
+	}
+
+	canvas->Clear();
+
+	TestTexture(canvas, Vector4(0, 0, 512, 512), *tex, 6);
+	//TestTexture(canvas, Vector4(256, 256, 512, 512), *tex, 1);
+	canvas->Present();
 }

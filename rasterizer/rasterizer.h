@@ -18,6 +18,8 @@ namespace rasterizer
 {
 
 void TestColor(Canvas* canvas);
+void TestTexture(Canvas* canvas, const Vector4& rect, const Texture& texture, int miplv = 0);
+
 
 template<typename Type>
 static Type TriangleInterpolation(const Type& v0, const Type& v1, const Type& v2, const Vector4& interp)
