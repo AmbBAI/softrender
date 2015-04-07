@@ -33,6 +33,7 @@ struct PSInput
 	Vector3 normal;
 	Vector3 tangent;
 
+    PSInput() = default;
 	PSInput(
 		const VertexStd& v0,
 		const VertexStd& v1,

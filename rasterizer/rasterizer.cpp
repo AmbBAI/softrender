@@ -263,42 +263,102 @@ void Rasterizer::DrawTriangle(const Projection& p0, const Projection& p1, const 
 	if (dy12 < 0 || (dy12 == 0 && dx12 < 0)) startW1 += 1;
 	if (dy20 < 0 || (dy20 == 0 && dx20 < 0)) startW2 += 1;
 
-	for (int y = minY; y <= maxY; ++y)
+	for (int y = minY; y <= maxY; y+=2)
 	{
 		int w0 = startW0;
 		int w1 = startW1;
 		int w2 = startW2;
 
-		for (int x = minX; x <= maxX; ++x)
+		for (int x = minX; x <= maxX; x+=2)
 		{
-			if (w0 > 0 && w1 > 0 && w2 > 0)
-			{
+            int xOffset[4] = {0, 1, 0, 1};
+            int yOffset[4] = {0, 0, 1, 1};
+            //int xOffset[4] = {1, 0, 1, 0};
+            //int yOffset[4] = {1, 1, 0, 0};
+            
+#if _MATH_SIMD_INTRINSIC_
+            __m128i mi_w0 = _mm_add_epi32(_mm_set1_epi32(w0), _mm_setr_epi32(0, dy01, -dx01, dy01 - dx01));
+            __m128i mi_w1 = _mm_add_epi32(_mm_set1_epi32(w1), _mm_setr_epi32(0, dy12, -dx12, dy12 - dx12));
+            __m128i mi_w2 = _mm_add_epi32(_mm_set1_epi32(w2), _mm_setr_epi32(0, dy20, -dx20, dy20 - dx20));
+            
+            u32 maskCode = 0x00;
+            if (_mm_extract_epi32(mi_w0, 0) > 0 && _mm_extract_epi32(mi_w1, 0) > 0 && _mm_extract_epi32(mi_w2, 0) > 0) maskCode |= 0x1;
+            if (_mm_extract_epi32(mi_w0, 1) > 0 && _mm_extract_epi32(mi_w1, 1) > 0 && _mm_extract_epi32(mi_w2, 1) > 0) maskCode |= 0x2;
+            if (_mm_extract_epi32(mi_w0, 2) > 0 && _mm_extract_epi32(mi_w1, 2) > 0 && _mm_extract_epi32(mi_w2, 2) > 0) maskCode |= 0x4;
+            if (_mm_extract_epi32(mi_w0, 3) > 0 && _mm_extract_epi32(mi_w1, 3) > 0 && _mm_extract_epi32(mi_w2, 3) > 0) maskCode |= 0x8;
+            if (maskCode == 0) continue;
+            
+            __m128 mf_w0 = _mm_cvtepi32_ps(mi_w0);
+            __m128 mf_w1 = _mm_cvtepi32_ps(mi_w1);
+            __m128 mf_w2 = _mm_cvtepi32_ps(mi_w2);
+            
+            __m128 mf_x = _mm_mul_ps(mf_w1, _mm_set1_ps(p0.invW));
+            __m128 mf_y = _mm_mul_ps(mf_w2, _mm_set1_ps(p1.invW));
+            __m128 mf_z = _mm_mul_ps(mf_w0, _mm_set1_ps(p2.invW));
+            __m128 mf_invw = _mm_rcp_ps(_mm_add_ps(_mm_add_ps(mf_x, mf_y), mf_z));
+
+            __m128 mf_w0_invz = _mm_mul_ps(mf_w1, _mm_set1_ps(p0.invZ));
+            __m128 mf_w1_invz = _mm_mul_ps(mf_w2, _mm_set1_ps(p1.invZ));
+            __m128 mf_w2_invz = _mm_mul_ps(mf_w0, _mm_set1_ps(p2.invZ));
+            __m128 mf_w012 = _mm_add_ps(_mm_add_ps(mf_w1, mf_w2), mf_w0);
+            __m128 mf_depth = _mm_div_ps(mf_w012, _mm_add_ps(_mm_add_ps(mf_w0_invz, mf_w1_invz), mf_w2_invz));
+            
+            PSInput psInput[4];
+            for (int i=0; i<4; ++i)
+            {
+                float depth = mf_depth[i];
                 Vector4 interp;
-				interp.x = w1 * p0.invW;
-				interp.y = w2 * p1.invW;
-				interp.z = w0 * p2.invW;
-				interp.w = 1.0f / (interp.x + interp.y + interp.z);
+                interp.x = mf_x[i];
+                interp.y = mf_y[i];
+                interp.z = mf_z[i];
+                interp.w = mf_invw[i];
+                
+                psInput[i] = PSInput(triangle.v0, triangle.v1, triangle.v2, interp);
+                
+                int tx = x + xOffset[i];
+                int ty = y + yOffset[i];
+                
+                if (maskCode & (1<<i))
+                {
+                    if (depth > 0.f && depth < 1.f && depth < canvas->GetDepth(tx, ty))
+                    {
+                        canvas->SetDepth(tx, ty, depth);
+                        Color color = shader.PixelShader(psInput[i]);
+                        canvas->SetPixel(tx, ty, color);
+                    }
+                    else maskCode &= ~(1<<i);
+                }
+            }
+#else
+//			if (w0 > 0 && w1 > 0 && w2 > 0)
+//			{
+//                Vector4 interp;
+//				interp.x = w1 * p0.invW;
+//				interp.y = w2 * p1.invW;
+//				interp.z = w0 * p2.invW;
+//				interp.w = 1.0f / (interp.x + interp.y + interp.z);
+//
+//				float depth = (w0 + w1 + w2) / (w1 * p0.invZ + w2 * p1.invZ + w0 * p2.invZ);
+//                if (depth > 0.f && depth < 1.f && depth < canvas->GetDepth(x, y))
+//				{
+//					canvas->SetDepth(x, y, depth);
+//					//canvas->SetPixel(x, y, Color(1.f, 1.f - depth, 1.f - depth, 1.f - depth));
+//					
+//					PSInput psInput(triangle.v0, triangle.v1, triangle.v2, interp);
+//					Color color = shader.PixelShader(psInput);
+//					canvas->SetPixel(x, y, color);
+//				}
+//			}
 
-				float depth = (w0 + w1 + w2) / (w1 * p0.invZ + w2 * p1.invZ + w0 * p2.invZ);
-                if (depth > 0.f && depth < 1.f && depth < canvas->GetDepth(x, y))
-				{
-					canvas->SetDepth(x, y, depth);
-					//canvas->SetPixel(x, y, Color(1.f, 1.f - depth, 1.f - depth, 1.f - depth));
-					
-					PSInput psInput(triangle.v0, triangle.v1, triangle.v2, interp);
-					Color color = shader.PixelShader(psInput);
-					canvas->SetPixel(x, y, color);
-				}
-			}
-
-			w0 += dy01;
-			w1 += dy12;
-			w2 += dy20;
+#endif
+			w0 += dy01 * 2;
+			w1 += dy12 * 2;
+			w2 += dy20 * 2;
 		}
 
-		startW0 -= dx01;
-		startW1 -= dx12;
-		startW2 -= dx20;
+		startW0 -= dx01 * 2;
+		startW1 -= dx12 * 2;
+		startW2 -= dx20 * 2;
 	}
 }
 
