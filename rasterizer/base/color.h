@@ -2,6 +2,7 @@
 #define _BASE_COLOR_H_
 
 #include "header.h"
+#include "math/mathf.h"
 
 namespace rasterizer
 {

@@ -263,10 +263,11 @@ void Rasterizer::DrawTriangle(const Projection& p0, const Projection& p1, const 
 	if (dy12 < 0 || (dy12 == 0 && dx12 < 0)) startW1 += 1;
 	if (dy20 < 0 || (dy20 == 0 && dx20 < 0)) startW2 += 1;
 
+    static int quadX[4] = {0, 1, 0, 1};
+    static int quadY[4] = {0, 0, 1, 1};
+
 #if _MATH_SIMD_INTRINSIC_
 	static __m128 _mf_one = _mm_set1_ps(1.f);
-	static __m128i mi_quad_x = _mm_setr_epi32(0, 1, 0, 1);
-	static __m128i mi_quad_y = _mm_setr_epi32(0, 0, 1, 1);
 
 	__m128i mi_w0_delta = _mm_setr_epi32(0, dy01, -dx01, dy01 - dx01);
 	__m128i mi_w1_delta = _mm_setr_epi32(0, dy12, -dx12, dy12 - dx12);
@@ -283,6 +284,12 @@ void Rasterizer::DrawTriangle(const Projection& p0, const Projection& p1, const 
 	SIMD_ALIGN float f_x[4], f_y[4], f_z[4];
 	SIMD_ALIGN float f_depth[4];
 	SIMD_ALIGN int i_x[4], i_y[4];
+#else
+    int i_w0_delta[4] = {0, dy01, -dx01, dy01 - dx01};
+    int i_w1_delta[4] = {0, dy12, -dx12, dy12 - dx12};
+    int i_w2_delta[4] = {0, dy20, -dx20, dy20 - dx20};
+    
+    int i_x[4], i_y[4];
 #endif
 
 	for (int y = minY; y <= maxY; y+=2)
@@ -293,16 +300,17 @@ void Rasterizer::DrawTriangle(const Projection& p0, const Projection& p1, const 
 
 		for (int x = minX; x <= maxX; x+=2)
 		{
+            u32 maskCode = 0x00;
 #if _MATH_SIMD_INTRINSIC_
 			__m128i mi_w0 = _mm_add_epi32(_mm_set1_epi32(w0), mi_w0_delta);
 			__m128i mi_w1 = _mm_add_epi32(_mm_set1_epi32(w1), mi_w1_delta);
 			__m128i mi_w2 = _mm_add_epi32(_mm_set1_epi32(w2), mi_w2_delta);
             
-            u32 maskCode = 0x00;
-            if (_mm_extract_epi32(mi_w0, 0) > 0 && _mm_extract_epi32(mi_w1, 0) > 0 && _mm_extract_epi32(mi_w2, 0) > 0) maskCode |= 0x1;
-            if (_mm_extract_epi32(mi_w0, 1) > 0 && _mm_extract_epi32(mi_w1, 1) > 0 && _mm_extract_epi32(mi_w2, 1) > 0) maskCode |= 0x2;
-            if (_mm_extract_epi32(mi_w0, 2) > 0 && _mm_extract_epi32(mi_w1, 2) > 0 && _mm_extract_epi32(mi_w2, 2) > 0) maskCode |= 0x4;
-            if (_mm_extract_epi32(mi_w0, 3) > 0 && _mm_extract_epi32(mi_w1, 3) > 0 && _mm_extract_epi32(mi_w2, 3) > 0) maskCode |= 0x8;
+            __m128i mi_or_w = _mm_or_si128(_mm_or_si128(mi_w0, mi_w1), mi_w2);
+            if (_mm_extract_epi32(mi_or_w, 0) > 0) maskCode |= 0x1;
+            if (_mm_extract_epi32(mi_or_w, 1) > 0) maskCode |= 0x2;
+            if (_mm_extract_epi32(mi_or_w, 2) > 0) maskCode |= 0x4;
+            if (_mm_extract_epi32(mi_or_w, 3) > 0) maskCode |= 0x8;
 			if (maskCode != 0)
 			{
 				__m128 mf_w0 = _mm_cvtepi32_ps(mi_w0);
@@ -324,25 +332,48 @@ void Rasterizer::DrawTriangle(const Projection& p0, const Projection& p1, const 
 				__m128 mf_wSum = _mm_add_ps(_mm_add_ps(mf_w1, mf_w2), mf_w0);
 				__m128 mf_depth = _mm_div_ps(mf_wSum, _mm_add_ps(_mm_add_ps(mf_tmp0, mf_tmp1), mf_tmp2));
 				_mm_store_ps(f_depth, mf_depth);
+                
+                for (int i = 0; i < 4; ++i)
+                {
+                    shader.quad[i] = PSInput(triangle.v0, triangle.v1, triangle.v2, f_x[i], f_y[i], f_z[i]);
 
-				__m128i mi_x = _mm_add_epi32(_mm_set1_epi32(x), mi_quad_x);
-				__m128i mi_y = _mm_add_epi32(_mm_set1_epi32(y), mi_quad_y);
-				i_x[0] = _mm_extract_epi32(mi_x, 0);
-				i_y[0] = _mm_extract_epi32(mi_y, 0);
-				i_x[1] = _mm_extract_epi32(mi_x, 1);
-				i_y[1] = _mm_extract_epi32(mi_y, 1);
-				i_x[2] = _mm_extract_epi32(mi_x, 2);
-				i_y[2] = _mm_extract_epi32(mi_y, 2);
-				i_x[3] = _mm_extract_epi32(mi_x, 3);
-				i_y[3] = _mm_extract_epi32(mi_y, 3);
+                    float depth = f_depth[i];
+#else
+            int i_w0[4], i_w1[4], i_w2[4];
+            for (int i = 0; i < 4; ++i)
+            {
+                i_w0[i] = w0 + i_w0_delta[i];
+                i_w1[i] = w1 + i_w1_delta[i];
+                i_w2[i] = w2 + i_w2_delta[i];
+                if ((i_w0[i] | i_w1[i] | i_w2[i]) > 0) maskCode |= (1<<i);
+            }
+                
+            if (maskCode != 0)
+            {
+                for (int i=0; i<4; ++i)
+                {
+                    float f_w0 = (float)i_w0[i];
+                    float f_w1 = (float)i_w1[i];
+                    float f_w2 = (float)i_w2[i];
+                    
+                    float f_x = f_w1 * p0.invW;
+                    float f_y = f_w2 * p1.invW;
+                    float f_z = f_w0 * p2.invW;
+                    float f_invW = 1.f / (f_x + f_y + f_z);
+                    f_x *= f_invW;
+                    f_y *= f_invW;
+                    f_z *= f_invW;
+                    
+                    float depth = (f_w0 + f_w1 + f_w2) / (f_w1 * p0.invZ + f_w2 * p1.invZ + f_w0 * p2.invZ);
+                    
+                    shader.quad[i] = PSInput(triangle.v0, triangle.v1, triangle.v2, f_x, f_y, f_z);
+#endif
 
-				for (int i = 0; i < 4; ++i)
-				{
-					shader.quad[i] = PSInput(triangle.v0, triangle.v1, triangle.v2, f_x[i], f_y[i], f_z[i]);
-
+                    i_x[i] = x + quadX[i];
+                    i_y[i] = y + quadY[i];
+                    
 					if (maskCode & (1 << i))
 					{
-                        float depth = f_depth[i];
 						if (depth > 0.f && depth < 1.f && depth < canvas->GetDepth(i_x[i], i_y[i]))
 						{
 							canvas->SetDepth(i_x[i], i_y[i], depth);
@@ -361,28 +392,7 @@ void Rasterizer::DrawTriangle(const Projection& p0, const Projection& p1, const 
 				}
 			}
 
-#else
-//			if (w0 > 0 && w1 > 0 && w2 > 0)
-//			{
-//                Vector4 interp;
-//				interp.x = w1 * p0.invW;
-//				interp.y = w2 * p1.invW;
-//				interp.z = w0 * p2.invW;
-//				interp.w = 1.0f / (interp.x + interp.y + interp.z);
-//
-//				float depth = (w0 + w1 + w2) / (w1 * p0.invZ + w2 * p1.invZ + w0 * p2.invZ);
-//                if (depth > 0.f && depth < 1.f && depth < canvas->GetDepth(x, y))
-//				{
-//					canvas->SetDepth(x, y, depth);
-//					//canvas->SetPixel(x, y, Color(1.f, 1.f - depth, 1.f - depth, 1.f - depth));
-//					
-//					PSInput psInput(triangle.v0, triangle.v1, triangle.v2, interp);
-//					Color color = shader.PixelShader(psInput);
-//					canvas->SetPixel(x, y, color);
-//				}
-//			}
 
-#endif
 			w0 += dy01 * 2;
 			w1 += dy12 * 2;
 			w2 += dy20 * 2;

@@ -83,7 +83,7 @@ struct Shader0 : Shader < VertexStd, PSInput >
         Vector2 dx = (ddx() * width);
         Vector2 dy = (ddy() * height);
         float d = Mathf::Max(dx.Dot(dx), dy.Dot(dy));
-        return 0.5 * Mathf::Log(d, 2);
+        return 0.5 * Mathf::Log2(d);
     }
     
 	const Color PixelShader(const PSInput& input) override

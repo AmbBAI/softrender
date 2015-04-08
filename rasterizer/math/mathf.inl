@@ -250,6 +250,12 @@ float Mathf::Exp(float f)
 	return ::exp(f);
 }
 
+float Mathf::Log2(float f)
+{
+    static float _inv_log2 = 1.f / ::log(2);
+    return ::log(f) * _inv_log2;
+}
+    
 float Mathf::Log(float f, float d)
 {
     return ::log(f) / ::log(d);
