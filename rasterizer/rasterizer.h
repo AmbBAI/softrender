@@ -18,7 +18,7 @@ namespace rasterizer
 {
 
 void TestColor(Canvas* canvas);
-void TestTexture(Canvas* canvas, const Vector4& rect, const Texture& texture, int miplv = 0);
+void TestTexture(Canvas* canvas, const Vector4& rect, const Texture& texture, float lod = 0.f);
 
 
 template<typename Type>
@@ -80,10 +80,10 @@ struct Shader0 : Shader < VertexStd, PSInput >
     
     const float calc_lod(u32 width, u32 height) const
     {
-        Vector2 dx = (ddx() * width);
-        Vector2 dy = (ddy() * height);
+        Vector2 dx = ddx() * (float)width;
+        Vector2 dy = ddy() * (float)height;
         float d = Mathf::Max(dx.Dot(dx), dy.Dot(dy));
-        return 0.5 * Mathf::Log2(d);
+        return 0.5f * Mathf::Log2(d);
     }
     
 	const Color PixelShader(const PSInput& input) override
@@ -95,6 +95,8 @@ struct Shader0 : Shader < VertexStd, PSInput >
             u32 width = material->diffuseTexture->GetWidth();
             u32 height = material->diffuseTexture->GetHeight();
             float lod = calc_lod(width, height);
+			//float lodDepth = 1.f - lod / 10.f;
+			//Color texColor = Color(lodDepth, lodDepth, lodDepth, lodDepth);
 			Color texColor = material->diffuseTexture->Sample(input.uv.x, input.uv.y, lod);
 			color = color.Modulate(texColor);
 		}
@@ -113,7 +115,8 @@ struct Shader0 : Shader < VertexStd, PSInput >
 
 		float lightVal = Mathf::Max(0.f, normal.Dot(lightDir.Negate()));
 		lightVal = Mathf::Clamp01(lightVal) * 0.8f + 0.2f;
-		return color.Multiply(lightVal);
+		color = color.Multiply(lightVal);
+		return color;
 	}
 };
 

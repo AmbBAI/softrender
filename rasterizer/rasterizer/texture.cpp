@@ -228,7 +228,7 @@ const Color Texture::Sample(float u, float v, float lod/* = 0.f*/) const
 	case FilterMode_Trilinear:
         {
             int miplv1 = Mathf::FloorToInt(lod);
-            int miplv2 = lod + 1;
+            int miplv2 = miplv1 + 1;
             float frac = lod - miplv1;
             
             u32 bmp_width = width;

@@ -30,12 +30,12 @@ void CameraController::UpdateCamera()
 	Application* app = Application::GetInstance();
 	Input* input = app->GetInput();
 
-	if (input->GetKey(GLFW_KEY_W)) MoveCamera(+z);
-	if (input->GetKey(GLFW_KEY_S)) MoveCamera(-z);
-	if (input->GetKey(GLFW_KEY_A)) MoveCamera(-x);
-	if (input->GetKey(GLFW_KEY_D)) MoveCamera(+x);
-	if (input->GetKey(GLFW_KEY_Q)) MoveCamera(+y);
-	if (input->GetKey(GLFW_KEY_E)) MoveCamera(-y);
+	if (input->GetKey(GLFW_KEY_W)) MoveCamera(+z * moveScale);
+	if (input->GetKey(GLFW_KEY_S)) MoveCamera(-z * moveScale);
+	if (input->GetKey(GLFW_KEY_A)) MoveCamera(-x * moveScale);
+	if (input->GetKey(GLFW_KEY_D)) MoveCamera(+x * moveScale);
+	if (input->GetKey(GLFW_KEY_Q)) MoveCamera(+y * moveScale);
+	if (input->GetKey(GLFW_KEY_E)) MoveCamera(-y * moveScale);
 
 	if (input->GetMouseButton(0))
 	{
@@ -74,7 +74,6 @@ void CameraController::_UpdateCamera(bool force /*= false*/)
 	}
 }
 
-float CameraController::rotationX = 0.f;
-float CameraController::rotationY = 0.f;
+float CameraController::moveScale = 5.f;
 
 }

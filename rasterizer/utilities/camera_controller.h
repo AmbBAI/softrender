@@ -12,6 +12,7 @@ public:
 	static void InitCamera(CameraPtr camera);
 	static void UpdateCamera();
 
+	static float moveScale;
 	static void MoveCamera(Vector3 delta);
 
 private:
@@ -23,8 +24,6 @@ private:
 	static Vector3 position;
 	static Vector3 x, y, z;
 	static Quaternion rotation;
-	static float rotationX;
-	static float rotationY;
 
 	static bool dirty;
 

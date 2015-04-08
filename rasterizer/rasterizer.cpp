@@ -30,7 +30,7 @@ void TestColor(Canvas* canvas)
 	}
 }
 
-void TestTexture(Canvas* canvas, const Vector4& rect, const Texture& texture, int miplv /*= 0*/)
+void TestTexture(Canvas* canvas, const Vector4& rect, const Texture& texture, float lod /*= 0.f*/)
 {
 	int width = (int)canvas->GetWidth();
 	int height = (int)canvas->GetHeight();
@@ -46,7 +46,7 @@ void TestTexture(Canvas* canvas, const Vector4& rect, const Texture& texture, in
 		for (int x = minX; x < maxX; ++x)
 		{
 			float u = ((float)x - rect.x) / (rect.z - rect.x);
-			canvas->SetPixel(x, y, texture.Sample(u, v, miplv));
+			canvas->SetPixel(x, y, texture.Sample(u, v, lod));
 		}
 	}
 }
