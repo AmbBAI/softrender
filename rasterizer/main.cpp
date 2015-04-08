@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
 	app = Application::GetInstance();
 	app->CreateApplication("rasterizer", 512, 512);
 	canvas = app->GetCanvas();
-	app->SetRunLoop(TestTextureLoop);
+	app->SetRunLoop(MainLoop);
 	app->RunLoop();
 	return 0;
 }
@@ -36,12 +36,12 @@ void MainLoop()
 
         //mesh.push_back(CreatePlane());
         //position = Vector3(0, 0, 0);
-        //rotation = Vector3(-90, 0, 0);
+        //rotation = Vector3(0, 0, 0);
         //scale = Vector3(50, 50, 50);
 		//MaterialPtr material(new Material());
 		//material->diffuseTexture = Texture::LoadTexture("resources/cube/default.png");
         //mesh[0]->materials.push_back(material);
-		Mesh::LoadMesh(mesh, "resources/sponza/sponza.obj");
+		Mesh::LoadMesh(mesh, "resources/crytek-sponza/sponza.obj");
 		position = Vector3(0, 0, 0);
 		rotation = Vector3(0, 0, 0);
 		scale = Vector3(1, 1, 1);

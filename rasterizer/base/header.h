@@ -18,6 +18,11 @@
 
 #if _MATH_SIMD_INTRINSIC_
 #include "smmintrin.h"
+#if defined(_MSC_VER)
+#define SIMD_ALIGN __declspec(align(16))
+#else
+#define SIMD_ALIGN alignas(16)
+#endif
 #endif
 
 #include "glfw/include/GLFW/glfw3.h"

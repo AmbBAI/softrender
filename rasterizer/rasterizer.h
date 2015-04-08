@@ -22,26 +22,29 @@ void TestTexture(Canvas* canvas, const Vector4& rect, const Texture& texture, in
 
 
 template<typename Type>
-static Type TriangleInterpolation(const Type& v0, const Type& v1, const Type& v2, const Vector4& interp)
+static Type TriangleInterpolation(const Type& v0, const Type& v1, const Type& v2,
+                                  float x, float y, float z)
 {
-	return (v0 * interp.x + v1 * interp.y + v2 * interp.z) * interp.w;
+	return v0 * x + v1 * y + v2 * z;
 }
 
+    
 struct PSInput
 {
 	Vector2 uv;
 	Vector3 normal;
 	Vector3 tangent;
 
+    PSInput() = default;
 	PSInput(
 		const VertexStd& v0,
 		const VertexStd& v1,
 		const VertexStd& v2,
-		const Vector4& interp)
+		float x, float y, float z)
 	{
-		uv = TriangleInterpolation(v0.texcoord, v1.texcoord, v2.texcoord, interp);
-		normal = TriangleInterpolation(v0.normal, v1.normal, v2.normal, interp);
-		tangent = TriangleInterpolation(v0.tangent, v1.tangent, v2.tangent, interp);
+		uv = TriangleInterpolation(v0.texcoord, v1.texcoord, v2.texcoord, x, y, z);
+		normal = TriangleInterpolation(v0.normal, v1.normal, v2.normal, x, y, z);
+		tangent = TriangleInterpolation(v0.tangent, v1.tangent, v2.tangent, x, y, z);
 	}
 };
 
@@ -53,6 +56,8 @@ struct Shader0 : Shader < VertexStd, PSInput >
 	Vector2* texcoord;
 	MaterialPtr material;
 	Vector3 lightDir;
+    
+    PSInput quad[4];
 
 	void VertexShader(VertexStd& out) override
 	{
@@ -63,13 +68,34 @@ struct Shader0 : Shader < VertexStd, PSInput >
 		out.clipCode = Clipper::CalculateClipCode(out.position);
 	}
 
+    const Vector2 ddx() const
+    {
+        return quad[1].uv - quad[0].uv;
+    }
+    
+    const Vector2 ddy() const
+    {
+        return quad[2].uv - quad[0].uv;
+    }
+    
+    const float calc_lod(u32 width, u32 height) const
+    {
+        Vector2 dx = (ddx() * width);
+        Vector2 dy = (ddy() * height);
+        float d = Mathf::Max(dx.Dot(dx), dy.Dot(dy));
+        return 0.5 * Mathf::Log2(d);
+    }
+    
 	const Color PixelShader(const PSInput& input) override
 	{
 		Color color = Color::white;
 
 		if (material && material->diffuseTexture)
 		{
-			Color texColor = material->diffuseTexture->Sample(input.uv.x, input.uv.y);
+            u32 width = material->diffuseTexture->GetWidth();
+            u32 height = material->diffuseTexture->GetHeight();
+            float lod = calc_lod(width, height);
+			Color texColor = material->diffuseTexture->Sample(input.uv.x, input.uv.y, lod);
 			color = color.Modulate(texColor);
 		}
 

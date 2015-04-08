@@ -37,6 +37,7 @@ bool Mesh::LoadMesh(std::vector<MeshPtr>& meshes, const char* file)
             std::replace(texPath.begin(), texPath.end(), '\\', '/');
 			newM->diffuseTexture = Texture::LoadTexture(texPath.c_str());
             newM->diffuseTexture->GenerateMipmaps();
+            //newM->diffuseTexture->filterMode = Texture::FilterMode_Trilinear;
 		}
 		if (m.normal_texname.size() > 0)
 		{
