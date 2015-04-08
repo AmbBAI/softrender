@@ -59,7 +59,7 @@ public:
 	static inline float InvSqrt(float value);
 	static inline float Pow(float f, float p);
 	static inline float Exp(float f);
-	static inline float Log(float f);
+	static inline float Log(float f, float d);
 	static inline float Log10(float f);
 
 	static inline bool IsPowerOfTwo(int value);

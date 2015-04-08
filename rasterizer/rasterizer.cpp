@@ -280,7 +280,7 @@ void Rasterizer::DrawTriangle(const Projection& p0, const Projection& p1, const 
 	__m128 mf_p1_invZ = _mm_load1_ps(&(p1.invZ));
 	__m128 mf_p2_invZ = _mm_load1_ps(&(p2.invZ));
 
-	SIMD_ALIGN float f_x[4], f_y[4], f_z[4], f_invw[4];
+	SIMD_ALIGN float f_x[4], f_y[4], f_z[4];
 	SIMD_ALIGN float f_depth[4];
 	SIMD_ALIGN int i_x[4], i_y[4];
 #endif
@@ -314,10 +314,9 @@ void Rasterizer::DrawTriangle(const Projection& p0, const Projection& p1, const 
 				__m128 mf_tmp2 = _mm_mul_ps(mf_w0, mf_p2_invW);
 				//__m128 mf_invw = _mm_rcp_ps(_mm_add_ps(_mm_add_ps(mf_x, mf_y), mf_z));
 				__m128 mf_invW = _mm_div_ps(_mf_one, _mm_add_ps(_mm_add_ps(mf_tmp0, mf_tmp1), mf_tmp2));
-				_mm_store_ps(f_x, mf_tmp0);
-				_mm_store_ps(f_y, mf_tmp1);
-				_mm_store_ps(f_z, mf_tmp2);
-				_mm_store_ps(f_invw, mf_invW);
+				_mm_store_ps(f_x, _mm_mul_ps(mf_tmp0, mf_invW));
+				_mm_store_ps(f_y, _mm_mul_ps(mf_tmp1, mf_invW));
+				_mm_store_ps(f_z, _mm_mul_ps(mf_tmp2, mf_invW));
 
 				mf_tmp0 = _mm_mul_ps(mf_w1, mf_p0_invZ);
 				mf_tmp1 = _mm_mul_ps(mf_w2, mf_p1_invZ);
@@ -337,20 +336,13 @@ void Rasterizer::DrawTriangle(const Projection& p0, const Projection& p1, const 
 				i_x[3] = _mm_extract_epi32(mi_x, 3);
 				i_y[3] = _mm_extract_epi32(mi_y, 3);
 
-				PSInput psInput[4];
 				for (int i = 0; i < 4; ++i)
 				{
-					float depth = f_depth[i];
-					Vector4 interp;
-					interp.x = f_x[i];
-					interp.y = f_y[i];
-					interp.z = f_z[i];
-					interp.w = f_invw[i];
-
-					psInput[i] = PSInput(triangle.v0, triangle.v1, triangle.v2, interp);
+					shader.quad[i] = PSInput(triangle.v0, triangle.v1, triangle.v2, f_x[i], f_y[i], f_z[i]);
 
 					if (maskCode & (1 << i))
 					{
+                        float depth = f_depth[i];
 						if (depth > 0.f && depth < 1.f && depth < canvas->GetDepth(i_x[i], i_y[i]))
 						{
 							canvas->SetDepth(i_x[i], i_y[i], depth);
@@ -359,12 +351,11 @@ void Rasterizer::DrawTriangle(const Projection& p0, const Projection& p1, const 
 					}
 				}
 
-				// shader <= psInput[4], maskCode
 				for (int i = 0; i < 4; ++i)
 				{
 					if (maskCode & (1 << i))
 					{
-						Color color = shader.PixelShader(psInput[i]);
+						Color color = shader.PixelShader(shader.quad[i]);
 						canvas->SetPixel(i_x[i], i_y[i], color);
 					}
 				}

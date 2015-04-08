@@ -60,8 +60,7 @@ public:
 	bool GenerateMipmaps();
 
 	const Color GetColor(u32 x, u32 y, int miplv = 0) const;
-	const Color Sample(float u, float v, int miplv) const;
-	const Color Sample(float u, float v) const;
+	const Color Sample(float u, float v, float lod = 0.f) const;
 
 protected:
     bool UnparkColor(u8* bytes, u32 width, u32 height, u32 pitch, u32 bpp);

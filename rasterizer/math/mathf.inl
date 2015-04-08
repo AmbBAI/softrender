@@ -250,9 +250,9 @@ float Mathf::Exp(float f)
 	return ::exp(f);
 }
 
-float Mathf::Log(float f)
+float Mathf::Log(float f, float d)
 {
-	return ::log(f);
+    return ::log(f) / ::log(d);
 }
 
 float Mathf::Log10(float f)
