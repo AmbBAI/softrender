@@ -419,10 +419,10 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform)
     shader._MATRIX_MVP = shader._MATRIX_VP.Multiply(transform);
     shader.material = material;
     
-	shader.light = LightPtr(new Light());
+    if (shader.light == nullptr) shader.light = LightPtr(new Light());
     *(shader.light) = *light;
-    shader.light->position = shader._MATRIX_MV.MultiplyPoint(light->position);
-    shader.light->direction = shader._MATRIX_MV.MultiplyVector(light->direction);
+    shader.light->position = shader._World2Object.MultiplyPoint(light->position);
+    shader.light->direction = shader._World2Object.MultiplyVector(light->direction);
 
 	u32 width = canvas->GetWidth();
 	u32 height = canvas->GetHeight();

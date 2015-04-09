@@ -30,7 +30,7 @@ struct Shader
         assert(light != nullptr);
         float nDotL = Mathf::Clamp01(normal.Dot(lightDir.Negate()));
         Color o;
-        o.rgb = color.rgb * light->color.rgb * nDotL * (light->intensity * 2.f);
+        o.rgb = color.rgb * light->color.rgb * (nDotL * light->intensity * 2.f);
         o.a = color.a;
         return o;
     }

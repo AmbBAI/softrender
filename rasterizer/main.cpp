@@ -33,7 +33,7 @@ void MainLoop()
         Rasterizer::canvas = canvas;
 		Rasterizer::camera = CameraPtr(new Camera());
         Rasterizer::light = LightPtr(new Light());
-        Rasterizer::light->direction = Vector3(1.f, 1.f, -1.f).Normalize();
+        Rasterizer::light->direction = Vector3(-1.f, -1.f, -1.f).Normalize();
 		CameraController::InitCamera(Rasterizer::camera);
 
         //mesh.push_back(CreatePlane());

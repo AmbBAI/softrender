@@ -115,7 +115,7 @@ struct Shader0 : Shader < VertexStd, PSInput >
 
         if (light)
         {
-            color = LightingHalfLambert(color, normal, light->direction);
+            color = LightingLambert(color, normal, light->direction);
         }
 		return color;
 	}
