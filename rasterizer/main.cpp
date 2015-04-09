@@ -52,7 +52,7 @@ void MainLoop()
 		//rotation = Vector3(10, 10, 0);
 		//scale = Vector3(250, 250, 250);
 
-		for (auto m : mesh)
+		for (auto& m : mesh)
 		{
 			if (m->normals.size() <= 0)
 				m->RecalculateNormals();
@@ -65,7 +65,7 @@ void MainLoop()
 
 	Matrix4x4 trans(position, Quaternion(rotation), scale);
 
-	for (auto m : mesh)
+	for (auto& m : mesh)
 	{
         if (m->materials.size() > 0) Rasterizer::material = m->materials[0];
 		Rasterizer::DrawMesh(*m, trans);

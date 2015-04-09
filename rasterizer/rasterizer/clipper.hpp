@@ -47,10 +47,10 @@ struct Clipper
 		if (0 == (v0.clipCode | v1.clipCode)) return lines;
 
 		std::vector<Line<VertexType> > clippedLines;
-		for (auto p : viewFrustumPlanes)
+		for (auto& p : viewFrustumPlanes)
 		{
 			clippedLines.clear();
-			for (auto l : lines)
+			for (auto& l : lines)
 			{
 				Clipper::ClipLineFromPlane(clippedLines, l.v0, l.v1, p);
 			}
@@ -69,12 +69,12 @@ struct Clipper
 		if (0 == (v0.clipCode | v1.clipCode | v2.clipCode)) return triangles;
 
 		std::vector<Triangle<VertexType> > clippedTriangles;
-		for (auto p : viewFrustumPlanes)
+		for (auto& p : viewFrustumPlanes)
 			//for (int i = 0; i < 6; ++i)
 		{
 			//	Plane& p = viewFrustumPlanes[i];
 			clippedTriangles.clear();
-			for (auto f : triangles)
+			for (auto& f : triangles)
 			{
 				Clipper::ClipTriangleFromPlane(clippedTriangles, f.v0, f.v1, f.v2, p);
 			}

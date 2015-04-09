@@ -23,7 +23,7 @@ bool Mesh::LoadMesh(std::vector<MeshPtr>& meshes, const char* file)
 	}
 
 	std::vector<MaterialPtr> materials;
-    for (auto m : material)
+    for (auto& m : material)
 	{
 		MaterialPtr newM(new Material());
 		newM->ambient = Color(1.f, m.ambient[0], m.ambient[1], m.ambient[2]);
@@ -58,7 +58,7 @@ bool Mesh::LoadMesh(std::vector<MeshPtr>& meshes, const char* file)
 	}
 
 	meshes.clear();
-    for (auto s : shape)
+    for (auto& s : shape)
 	{
 		std::vector<float>& positions = s.mesh.positions;
 		std::vector<float>& normals = s.mesh.normals;

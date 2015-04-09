@@ -215,7 +215,7 @@ void Rasterizer::DrawMeshWireFrame(const Mesh& mesh, const Matrix4x4& transform,
 		auto l3 = Clipper::ClipLine(vertices[v1], vertices[v2]);
         lines.insert(lines.end(), l3.begin(), l3.end());
         
-        for (auto line : lines)
+        for (auto& line : lines)
         {
 			Projection p0 = line.v0.GetViewProjection(width, height);
 			Projection p1 = line.v1.GetViewProjection(width, height);
@@ -451,7 +451,7 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform)
         
         //TODO Guard-band clipping
         auto triangles = Clipper::ClipTriangle(vertices[i0], vertices[i1], vertices[i2]);
-        for (auto triangle : triangles)
+        for (auto& triangle : triangles)
         {
 			Projection p0 = triangle.v0.GetViewProjection(width, height);
 			Projection p1 = triangle.v1.GetViewProjection(width, height);
