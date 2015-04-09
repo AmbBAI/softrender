@@ -12,6 +12,8 @@
 #include "rasterizer/texture.h"
 #include "rasterizer/clipper.hpp"
 #include "rasterizer/vertex.hpp"
+#include "rasterizer/material.hpp"
+#include "rasterizer/light.hpp"
 #include "rasterizer/shader.hpp"
 
 namespace rasterizer
@@ -50,20 +52,18 @@ struct PSInput
 
 struct Shader0 : Shader < VertexStd, PSInput >
 {
-	Vector3* position;
-	Vector3* normal;
-	Vector3* tangent;
-	Vector2* texcoord;
-	MaterialPtr material;
-	Vector3 lightDir;
+	const Vector3* position = nullptr;
+	const Vector3* normal = nullptr;
+	const Vector3* tangent = nullptr;
+	const Vector2* texcoord = nullptr;
     
     PSInput quad[4];
 
 	void VertexShader(VertexStd& out) override
 	{
-		out.position = _MATRIX_MVP->MultiplyPoint(*position);
-		out.normal = _MATRIX_OBJ_TO_WORLD->MultiplyVector(*normal);
-		out.tangent = _MATRIX_OBJ_TO_WORLD->MultiplyVector(*tangent);
+		out.position = _MATRIX_MVP.MultiplyPoint(*position);
+		out.normal = _Object2World.MultiplyVector(*normal);
+		out.tangent = _Object2World.MultiplyVector(*tangent);
 		out.texcoord = *texcoord;
 		out.clipCode = Clipper::CalculateClipCode(out.position);
 	}
@@ -113,9 +113,10 @@ struct Shader0 : Shader < VertexStd, PSInput >
 			normal = tbn.MultiplyVector(normal);
 		}
 
-		float lightVal = Mathf::Max(0.f, normal.Dot(lightDir.Negate()));
-		lightVal = Mathf::Clamp01(lightVal) * 0.8f + 0.2f;
-		color = color.Multiply(lightVal);
+        if (light)
+        {
+            color = LightingHalfLambert(color, normal, light->direction);
+        }
 		return color;
 	}
 };
@@ -126,6 +127,7 @@ struct Rasterizer
 	static Canvas* canvas;
 	static CameraPtr camera;
 	static MaterialPtr material;
+    static LightPtr light;
 
 	static Shader0 shader;
 

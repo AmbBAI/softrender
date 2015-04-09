@@ -3,6 +3,7 @@
 
 #include "header.h"
 #include "math/mathf.h"
+#include "math/vector3.h"
 
 namespace rasterizer
 {
@@ -14,7 +15,15 @@ struct Color
 	{
 		struct
 		{
-			float r, g, b, a;
+            union
+            {
+                Vector3 rgb;
+                struct
+                {
+                    float r, g, b;
+                };
+            };
+			float a;
 		};
 #if _MATH_SIMD_INTRINSIC_
 		__m128 m;

@@ -32,6 +32,7 @@ struct Vector3
     inline const Vector3 Add(const Vector3& v) const;
     inline const Vector3 Subtract(const Vector3& v) const;
     inline const Vector3 Multiply(float f) const;
+    inline const Vector3 Multiply(const Vector3& v) const;
     inline const Vector3 Divide(float f) const;
     inline float Dot(const Vector3& v) const;
     inline const Vector3 Cross(const Vector3& v) const;
@@ -41,6 +42,7 @@ struct Vector3
     inline const Vector3 operator +(const Vector3& v) const;
     inline const Vector3 operator -(const Vector3& v) const;
     inline const Vector3 operator *(float f) const;
+    inline const Vector3 operator *(const Vector3& v) const;
     inline const Vector3 operator /(float f) const;
     inline const Vector3 operator += (const Vector3& v);
     inline const Vector3 operator -= (const Vector3& v);

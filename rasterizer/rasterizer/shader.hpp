@@ -12,13 +12,39 @@ namespace rasterizer
 template<typename VSOutputType, typename PSInputType>
 struct Shader
 {
-	Matrix4x4* _MATRIX_MVP = nullptr;
-	Matrix4x4* _MATRIX_VIEW = nullptr;
-	Matrix4x4* _MATRIX_PROJECTION = nullptr;
-	Matrix4x4* _MATRIX_OBJ_TO_WORLD = nullptr;
+	Matrix4x4 _MATRIX_MVP;
+    Matrix4x4 _MATRIX_MV;
+	Matrix4x4 _MATRIX_V;
+    Matrix4x4 _MATRIX_P;
+    Matrix4x4 _MATRIX_VP;
+    Matrix4x4 _Object2World;
+    Matrix4x4 _World2Object;
+    MaterialPtr material = nullptr;
+    LightPtr light = nullptr;
 
 	virtual void VertexShader(VSOutputType& out) = 0;
 	virtual const Color PixelShader(const PSInputType& input) = 0;
+    
+    const Color LightingLambert(const Color& color, const Vector3& normal, const Vector3& lightDir)
+    {
+        assert(light != nullptr);
+        float nDotL = Mathf::Clamp01(normal.Dot(lightDir.Negate()));
+        Color o;
+        o.rgb = color.rgb * light->color.rgb * nDotL * (light->intensity * 2.f);
+        o.a = color.a;
+        return o;
+    }
+    
+    const Color LightingHalfLambert(const Color& color, const Vector3& normal, const Vector3& lightDir)
+    {
+        assert(light != nullptr);
+        float nDotL = Mathf::Clamp01(normal.Dot(lightDir.Negate()));
+        nDotL = nDotL * 0.8f + 0.2f;
+        Color o;
+        o.rgb = color.rgb * light->color.rgb * (nDotL * light->intensity * 2.f);
+        o.a = color.a;
+        return o;
+    }
 };
 
 }

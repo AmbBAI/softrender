@@ -1,5 +1,5 @@
-#ifndef _BASE_MATERIAL_H_
-#define _BASE_MATERIAL_H_
+#ifndef _RASTERIZER_MATERIAL_HPP_
+#define _RASTERIZER_MATERIAL_HPP_
 
 #include "base/header.h"
 #include "base/color.h"
@@ -27,4 +27,4 @@ struct Material
 
 }
 
-#endif //!_BASE_MATERIAL_H_
+#endif //!_RASTERIZER_MATERIAL_HPP_

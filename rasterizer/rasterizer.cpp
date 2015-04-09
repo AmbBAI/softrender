@@ -6,9 +6,9 @@ namespace rasterizer
 Canvas* Rasterizer::canvas = nullptr;
 CameraPtr Rasterizer::camera;
 rasterizer::MaterialPtr Rasterizer::material;
-rasterizer::Vector3 Rasterizer::lightDir = Vector3(-1.f, -1.f, -1.f).Normalize();
+rasterizer::LightPtr Rasterizer::light;
+//rasterizer::Vector3 Rasterizer::lightDir = Vector3(-1.f, -1.f, -1.f).Normalize();
 rasterizer::Shader0 Rasterizer::shader;
-
 
 void Rasterizer::Initialize()
 {
@@ -409,15 +409,20 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform)
 	assert(canvas != nullptr);
 	assert(camera != nullptr);
 
-	const Matrix4x4* view = camera->GetViewMatrix();
-	const Matrix4x4* projection = camera->GetProjectionMatrix();
-    Matrix4x4 mvp = (*projection).Multiply((*view).Multiply(transform));
-	shader._MATRIX_VIEW = const_cast<Matrix4x4*>(view);
-	shader._MATRIX_PROJECTION = const_cast<Matrix4x4*>(projection);
-	shader._MATRIX_MVP = &mvp;
-	shader._MATRIX_OBJ_TO_WORLD = const_cast<Matrix4x4*>(&transform);
-	shader.material = Rasterizer::material;
-	shader.lightDir = Rasterizer::lightDir;
+    //Matrix4x4 mvp = (*projection).Multiply((*view).Multiply(transform));
+	shader._MATRIX_V = *camera->GetViewMatrix();
+	shader._MATRIX_P = *camera->GetProjectionMatrix();
+    shader._MATRIX_VP = shader._MATRIX_P.Multiply(shader._MATRIX_V);
+    shader._Object2World = transform;
+	shader._World2Object = transform.Inverse();
+    shader._MATRIX_MV = shader._MATRIX_V.Multiply(transform);
+    shader._MATRIX_MVP = shader._MATRIX_VP.Multiply(transform);
+    shader.material = material;
+    
+	shader.light = LightPtr(new Light());
+    *(shader.light) = *light;
+    shader.light->position = shader._MATRIX_MV.MultiplyPoint(light->position);
+    shader.light->direction = shader._MATRIX_MV.MultiplyVector(light->direction);
 
 	u32 width = canvas->GetWidth();
 	u32 height = canvas->GetHeight();
@@ -430,10 +435,10 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform)
 //#pragma omp parallel for private(i)
 	for (i = 0; i < vertexN; ++i)
 	{
-		shader.position = const_cast<Vector3*>(&mesh.vertices[i]);
-		shader.normal = const_cast<Vector3*>(&mesh.normals[i]);
-		shader.tangent = const_cast<Vector3*>(&mesh.tangents[i]);
-		shader.texcoord = const_cast<Vector2*>(&mesh.texcoords[i]);
+		shader.position = &mesh.vertices[i];
+		shader.normal = &mesh.normals[i];
+		shader.tangent = &mesh.tangents[i];
+		shader.texcoord = &mesh.texcoords[i];
 		shader.VertexShader(vertices[i]);
 	}
 

@@ -13,6 +13,7 @@ const Vector3 Vector3::Negate() const { return Vector3(-x, -y, -z); }
 const Vector3 Vector3::Add(const Vector3 &v) const { return Vector3(x + v.x, y + v.y, z + v.z); }
 const Vector3 Vector3::Subtract(const Vector3 &v) const { return Vector3(x - v.x, y - v.y, z - v.z); }
 const Vector3 Vector3::Multiply(float f) const { return Vector3(x * f, y * f, z * f); }
+const Vector3 Vector3::Multiply(const Vector3& v) const { return Vector3(x * v.x, y * v.y, z * v.z); }
 const Vector3 Vector3::Divide(float f) const { return Multiply(1.f / f); }
 
 const Vector3 Vector3::operator +() const { return *this; }
@@ -20,6 +21,7 @@ const Vector3 Vector3::operator -() const { return Negate(); }
 const Vector3 Vector3::operator +(const Vector3& v) const { return Add(v); }
 const Vector3 Vector3::operator -(const Vector3& v) const { return Subtract(v); }
 const Vector3 Vector3::operator *(float f) const { return Multiply(f); }
+const Vector3 Vector3::operator *(const Vector3& v) const { return Multiply(v); }
 const Vector3 Vector3::operator /(float f) const { return Divide(f); }
 const Vector3 Vector3::operator += (const Vector3& v) { x += v.x; y += v.y, z += v.z; return *this; }
 const Vector3 Vector3::operator -= (const Vector3& v) { x -= v.x; y -= v.y, z -= v.z; return *this; }
