@@ -18,16 +18,16 @@ struct Projection
 	float invZ = 1.0f;
 	float invW = 1.0f;
 
-	static Projection CalculateViewProjection(const Vector4& position, u32 width, u32 height)
+	static Projection CalculateViewProjection(const Vector4& hc, u32 width, u32 height)
 	{
-		float w = position.w;
+		float w = hc.w;
 		assert(w > 0.f);
 		float invW = 1.f / w;
 
 		Projection point;
-		point.x = Mathf::RoundToInt(((position.x * invW) + 1.f) / 2.f * width);
-		point.y = Mathf::RoundToInt(((position.y * invW) + 1.f) / 2.f * height);
-		point.invZ = 1.f / (position.z * invW);
+		point.x = Mathf::RoundToInt(((hc.x * invW) + 1.f) / 2.f * width);
+		point.y = Mathf::RoundToInt(((hc.y * invW) + 1.f) / 2.f * height);
+		point.invZ = 1.f / (hc.z * invW);
 		point.invW = invW;
 		return point;
 	}
@@ -36,25 +36,26 @@ struct Projection
 struct VertexBase
 {
 	u32 clipCode = 0x00;
-	Vector4 position = Vector4();
+	Vector4 hc = Vector4();
 
 	virtual Projection GetViewProjection(u32 width, u32 height)
 	{
-		return Projection::CalculateViewProjection(position, width, height);
+		return Projection::CalculateViewProjection(hc, width, height);
 	}
 
 	static VertexBase Lerp(const VertexBase& a, const VertexBase& b, float t)
 	{
 		assert(0.f <= t && t <= 1.f);
 		VertexBase out;
-		out.position = Vector4::Lerp(a.position, b.position, t);
-		out.clipCode = Clipper::CalculateClipCode(out.position);
+		out.hc = Vector4::Lerp(a.hc, b.hc, t);
+		out.clipCode = Clipper::CalculateClipCode(out.hc);
 		return out;
 	}
 };
 
 struct VertexStd : VertexBase
 {
+    Vector3 position = Vector3::zero;
 	Vector3 normal = Vector3::up;
 	Vector3 tangent = Vector3::right;
 	Vector2 texcoord = Vector2::zero;
@@ -64,6 +65,7 @@ struct VertexStd : VertexBase
 		assert(0.f <= t && t <= 1.f);
 		VertexStd out;
 		*((VertexBase*)&out) = VertexBase::Lerp(a, b, t);
+        out.position = Vector3::Lerp(a.position, b.position, t);
 		out.normal = Vector3::Lerp(a.normal, b.normal, t);
 		out.tangent = Vector3::Lerp(a.tangent, b.tangent, t);
 		out.texcoord = Vector2::Lerp(a.texcoord, b.texcoord, t);

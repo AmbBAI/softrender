@@ -25,23 +25,23 @@ struct Shader
 	virtual void VertexShader(VSOutputType& out) = 0;
 	virtual const Color PixelShader(const PSInputType& input) = 0;
     
-    const Color LightingLambert(const Color& color, const Vector3& normal, const Vector3& lightDir)
+    const Color LightingLambert(const Color& color, const Vector3& normal, const Vector3& lightDir, float attenuation)
     {
         assert(light != nullptr);
-        float nDotL = Mathf::Clamp01(normal.Dot(lightDir.Negate()));
+        float nDotL = Mathf::Max(normal.Dot(lightDir.Negate()), 0.f);
         Color o;
-        o.rgb = color.rgb * light->color.rgb * (nDotL * light->intensity * 2.f);
+        o.rgb = color.rgb * light->color.rgb * (nDotL * attenuation * 2.f);
         o.a = color.a;
         return o;
     }
     
-    const Color LightingHalfLambert(const Color& color, const Vector3& normal, const Vector3& lightDir)
+    const Color LightingHalfLambert(const Color& color, const Vector3& normal, const Vector3& lightDir, float attenuation)
     {
         assert(light != nullptr);
-        float nDotL = Mathf::Clamp01(normal.Dot(lightDir.Negate()));
+        float nDotL = Mathf::Max(normal.Dot(lightDir.Negate()), 0.f);
         nDotL = nDotL * 0.8f + 0.2f;
         Color o;
-        o.rgb = color.rgb * light->color.rgb * (nDotL * light->intensity * 2.f);
+        o.rgb = color.rgb * light->color.rgb * (nDotL * attenuation * 2.f);
         o.a = color.a;
         return o;
     }

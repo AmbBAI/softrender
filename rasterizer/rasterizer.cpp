@@ -166,11 +166,11 @@ void Rasterizer::DrawMeshPoint(const Mesh& mesh, const Matrix4x4& transform, con
 //#pragma omp parallel for private(i)
     for (i = 0; i < vertexN; ++i)
     {
-        Vector4 position = mvp.MultiplyPoint(mesh.vertices[i]);
-        u32 clipCode = Clipper::CalculateClipCode(position);
+        Vector4 hc = mvp.MultiplyPoint(mesh.vertices[i]);
+        u32 clipCode = Clipper::CalculateClipCode(hc);
         if (0 != clipCode) continue;
         
-		Projection point = Projection::CalculateViewProjection(position, width, height);
+		Projection point = Projection::CalculateViewProjection(hc, width, height);
         canvas->SetPixel(point.x, point.y, color);
     }
 }
@@ -194,8 +194,8 @@ void Rasterizer::DrawMeshWireFrame(const Mesh& mesh, const Matrix4x4& transform,
 	for (int i = 0; i < (int)mesh.vertices.size(); ++i)
 	{
 		VertexBase vertex;
-        vertex.position = mvp.MultiplyPoint(mesh.vertices[i]);
-		vertex.clipCode = Clipper::CalculateClipCode(vertex.position);
+        vertex.hc = mvp.MultiplyPoint(mesh.vertices[i]);
+		vertex.clipCode = Clipper::CalculateClipCode(vertex.hc);
 		vertices[i] = vertex;
 	}
 
@@ -418,11 +418,7 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform)
     shader._MATRIX_MV = shader._MATRIX_V.Multiply(transform);
     shader._MATRIX_MVP = shader._MATRIX_VP.Multiply(transform);
     shader.material = material;
-    
-    if (shader.light == nullptr) shader.light = LightPtr(new Light());
-    *(shader.light) = *light;
-    shader.light->position = shader._World2Object.MultiplyPoint(light->position);
-    shader.light->direction = shader._World2Object.MultiplyVector(light->direction);
+    shader.light = light;
 
 	u32 width = canvas->GetWidth();
 	u32 height = canvas->GetHeight();

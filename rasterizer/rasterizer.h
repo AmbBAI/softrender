@@ -33,6 +33,7 @@ static Type TriangleInterpolation(const Type& v0, const Type& v1, const Type& v2
     
 struct PSInput
 {
+    Vector3 position;
 	Vector2 uv;
 	Vector3 normal;
 	Vector3 tangent;
@@ -44,6 +45,7 @@ struct PSInput
 		const VertexStd& v2,
 		float x, float y, float z)
 	{
+        position = TriangleInterpolation(v0.position, v1.position, v2.position, x, y, z);
 		uv = TriangleInterpolation(v0.texcoord, v1.texcoord, v2.texcoord, x, y, z);
 		normal = TriangleInterpolation(v0.normal, v1.normal, v2.normal, x, y, z);
 		tangent = TriangleInterpolation(v0.tangent, v1.tangent, v2.tangent, x, y, z);
@@ -61,11 +63,12 @@ struct Shader0 : Shader < VertexStd, PSInput >
 
 	void VertexShader(VertexStd& out) override
 	{
-		out.position = _MATRIX_MVP.MultiplyPoint(*position);
+		out.hc = _MATRIX_MVP.MultiplyPoint(*position);
+        out.position = _Object2World.MultiplyPoint3x4(*position);
 		out.normal = _Object2World.MultiplyVector(*normal);
 		out.tangent = _Object2World.MultiplyVector(*tangent);
 		out.texcoord = *texcoord;
-		out.clipCode = Clipper::CalculateClipCode(out.position);
+		out.clipCode = Clipper::CalculateClipCode(out.hc);
 	}
 
     const Vector2 ddx() const
@@ -115,7 +118,7 @@ struct Shader0 : Shader < VertexStd, PSInput >
 
         if (light)
         {
-            color = LightingLambert(color, normal, light->direction);
+            color = LightingHalfLambert(color, normal, light->direction, light->intensity);
         }
 		return color;
 	}
