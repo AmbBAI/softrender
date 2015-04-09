@@ -20,12 +20,17 @@ struct Light
         LightType_Spot
     };
     LightType type = LightType_Directional;
-    Color color = Color(1.f, 1.f, 1.f, 1.f);
+	Color color = Color(1.f, 1.f, 1.f, 1.f);
     float intensity = 0.5f;
     
     Vector3 position = Vector3(0.f, 0.f, 0.f);
     Vector3 direction = Vector3(0.f, -1.f, 0.f);
     float range = 10.f;
+	
+#if _MATH_SIMD_INTRINSIC_ && defined(_MSC_VER)
+	MEMALIGN_NEW_OPERATOR_OVERRIDE(16)
+	MEMALIGN_DELETE_OPERATOR_OVERRIDE
+#endif
 };
 
 }

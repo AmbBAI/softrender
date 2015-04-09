@@ -23,6 +23,11 @@ struct Material
 	TexturePtr diffuseTexture;
 	TexturePtr normalTexture;
 	TexturePtr specularTexture;
+
+#if _MATH_SIMD_INTRINSIC_ && defined(_MSC_VER)
+	MEMALIGN_NEW_OPERATOR_OVERRIDE(16)
+	MEMALIGN_DELETE_OPERATOR_OVERRIDE
+#endif
 };
 
 }
