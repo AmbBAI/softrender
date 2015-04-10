@@ -47,10 +47,35 @@ bool Mesh::LoadMesh(std::vector<MeshPtr>& meshes, const char* file)
 		}
 		else
 		{ // check bump
-			auto param_itor = m.unknown_parameter.find("map_bump");
-			if (param_itor != m.unknown_parameter.end())
+			auto paramItor = m.unknown_parameter.find("map_bump");
+            if (paramItor == m.unknown_parameter.end()) paramItor = m.unknown_parameter.find("bump");
+			if (paramItor != m.unknown_parameter.end())
 			{
-				//TODO convert bump to normal
+                float bumpMultiply = 1.f;
+                std::string bumpPath;
+                
+                std::string param = paramItor->second;
+                if (param.find("-bm") == 0)
+                {
+                    std::stringstream ss(param.substr(4));
+                    ss >> bumpMultiply >> bumpPath;
+                }
+                else
+                {
+                    bumpPath = param;
+                }
+                
+                if (bumpPath.length() > 0)
+                {
+                    bumpPath = fileDir + bumpPath;
+                    std::replace(bumpPath.begin(), bumpPath.end(), '\\', '/');
+                    newM->normalTexture = Texture::LoadTexture(bumpPath.c_str());
+                    if (newM->normalTexture && newM->normalTexture->GetBPP() == 1)
+                    {
+                        // TODO use Bump Multiply
+                        newM->normalTexture->ConvertBumpToNormal();
+                    }
+                }
 			}
 		}
 

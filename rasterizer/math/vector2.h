@@ -22,7 +22,7 @@ struct Vector2
 	inline const Vector2 Subtract(const Vector2& v) const;
 	inline const Vector2 Multiply(float f) const;
 	inline const Vector2 Divide(float f) const;
-	inline const float Dot(const Vector2& v) const;
+	inline float Dot(const Vector2& v) const;
 
     inline const Vector2 operator +(const Vector2& v) const { return Add(v); }
     inline const Vector2 operator -(const Vector2& v) const { return Subtract(v); }

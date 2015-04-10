@@ -56,7 +56,7 @@ public:
 	u32 GetHeight();
 	u32 GetBPP();
 
-	void ConvertBumpToNormal(float strength = 2.0f);
+	void ConvertBumpToNormal(float strength = 0.01f);
 	bool GenerateMipmaps();
 
 	const Color GetColor(u32 x, u32 y, int miplv = 0) const;

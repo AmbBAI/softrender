@@ -339,7 +339,7 @@ const Matrix4x4 Matrix4x4::Inverse() const
 
 	det = m[0] * mat.m[0] + m[1] * mat.m[4] + m[2] * mat.m[8] + m[3] * mat.m[12];
 
-	if (det == 0) {
+	if (det == 0.f) {
 		return mat;
 	}
 
@@ -415,14 +415,14 @@ const Matrix4x4 Matrix4x4::Orthographic(float left, float right, float bottom, f
 	float deltaY = top - bottom;
 	float deltaZ = zFar - zNear;
 
-	assert(deltaX != 0);
-	assert(deltaY != 0);
-	assert(deltaZ != 0);
+	assert(deltaX != 0.f);
+	assert(deltaY != 0.f);
+	assert(deltaZ != 0.f);
 
 	Matrix4x4 mat = Matrix4x4::identity;
-	mat.m[0] = 2 / deltaX;
-	mat.m[5] = 2 / deltaY;
-	mat.m[10] = -2 / deltaZ;
+	mat.m[0] = 2.f / deltaX;
+	mat.m[5] = 2.f / deltaY;
+	mat.m[10] = -2.f / deltaZ;
 	mat.m[12] = -(right + left) / deltaX;
 	mat.m[13] = -(top + bottom) / deltaY;
 	mat.m[14] = -(zFar + zNear) / deltaZ;
@@ -432,13 +432,13 @@ const Matrix4x4 Matrix4x4::Orthographic(float left, float right, float bottom, f
 
 const Matrix4x4 Matrix4x4::PerspectiveFov(float fov, float aspect, float zNear, float zFar)
 {
-	float r = (fov / 2) * Mathf::deg2rad;
+	float r = (fov / 2.f) * Mathf::deg2rad;
 	float zDelta = zFar - zNear;
 	float sinR = Mathf::Sin(r);
 
-	assert(zDelta != 0);
-	assert(sinR != 0);
-	assert(aspect != 0);
+	assert(zDelta != 0.f);
+	assert(sinR != 0.f);
+	assert(aspect != 0.f);
 
 	Matrix4x4 mat = Matrix4x4::identity;
 
@@ -450,7 +450,7 @@ const Matrix4x4 Matrix4x4::PerspectiveFov(float fov, float aspect, float zNear, 
 	mat.m[10] = -zFar / zDelta;
 	mat.m[11] = -1.0f;
 	mat.m[14] = -2.0f * zNear * zFar / zDelta;
-	mat.m[15] = 0;
+	mat.m[15] = 0.f;
 	return mat;
 }
 

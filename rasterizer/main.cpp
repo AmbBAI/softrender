@@ -43,14 +43,14 @@ void MainLoop()
 		//MaterialPtr material(new Material());
 		//material->diffuseTexture = Texture::LoadTexture("resources/cube/default.png");
         //mesh[0]->materials.push_back(material);
-		Mesh::LoadMesh(mesh, "resources/crytek-sponza/sponza.obj");
-		position = Vector3(0, 0, 0);
-		rotation = Vector3(0, 0, 0);
-		scale = Vector3(1, 1, 1);
-		//Mesh::LoadMesh(mesh, "resources/head/head.OBJ");
-		//position = Vector3(0, 20, -50);
-		//rotation = Vector3(10, 10, 0);
-		//scale = Vector3(250, 250, 250);
+//		Mesh::LoadMesh(mesh, "resources/crytek-sponza/sponza.obj");
+//		position = Vector3(0, 0, 0);
+//		rotation = Vector3(0, 0, 0);
+//		scale = Vector3(1, 1, 1);
+		Mesh::LoadMesh(mesh, "resources/head/head.OBJ");
+		position = Vector3(0, 10, -50);
+		rotation = Vector3(10, 10, 0);
+		scale = Vector3(250, 250, 250);
 
 		for (auto& m : mesh)
 		{
@@ -103,17 +103,18 @@ void TestTextureLoop()
 	static TexturePtr tex = nullptr;
 	if (tex == nullptr)
 	{
-		tex = Texture::LoadTexture("resources/head/lambertian.jpg");
-		if (tex != nullptr)
-		{
-			tex->filterMode = Texture::FilterMode_Point;
-			tex->GenerateMipmaps();
-		}
+		tex = Texture::LoadTexture("resources/head/bump-lowRes.png");
+        tex->ConvertBumpToNormal();
+//		if (tex != nullptr)
+//		{
+//			tex->filterMode = Texture::FilterMode_Point;
+//			tex->GenerateMipmaps();
+//		}
 	}
 
 	canvas->Clear();
 
-	TestTexture(canvas, Vector4(0, 0, 512, 512), *tex, 6);
+	TestTexture(canvas, Vector4(0, 0, 512, 512), *tex, 0);
 	//TestTexture(canvas, Vector4(256, 256, 512, 512), *tex, 1);
 	canvas->Present();
 }

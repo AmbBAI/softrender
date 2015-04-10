@@ -15,7 +15,7 @@ const Vector2 Vector2::Subtract(const Vector2& v) const { return Vector2(x - v.x
 const Vector2 Vector2::Multiply(float f) const { return Vector2(x * f, y * f); }
 const Vector2 Vector2::Divide(float f) const { return Multiply(1.f / f); }
 
-const float Vector2::Dot(const Vector2& v) const { return x * v.x + y * v.y; }
+float Vector2::Dot(const Vector2& v) const { return x * v.x + y * v.y; }
     
 const Vector2 Vector2::Lerp(const Vector2& a, const Vector2& b, float t)
 {

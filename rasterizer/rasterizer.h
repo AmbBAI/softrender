@@ -65,8 +65,8 @@ struct Shader0 : Shader < VertexStd, PSInput >
 	{
 		out.hc = _MATRIX_MVP.MultiplyPoint(*position);
         out.position = _Object2World.MultiplyPoint3x4(*position);
-		out.normal = _Object2World.MultiplyVector(*normal);
-		out.tangent = _Object2World.MultiplyVector(*tangent);
+		out.normal = _Object2World.MultiplyVector(*normal).Normalize();
+		out.tangent = _Object2World.MultiplyVector(*tangent).Normalize();
 		out.texcoord = *texcoord;
 		out.clipCode = Clipper::CalculateClipCode(out.hc);
 	}
@@ -113,12 +113,12 @@ struct Shader0 : Shader < VertexStd, PSInput >
 			Color normalColor = material->normalTexture->Sample(input.uv.x, input.uv.y);
 			normal = Vector3(normalColor.r * 2 - 1, normalColor.g * 2 - 1, normalColor.b * 2 - 1);
 
-			normal = tbn.MultiplyVector(normal);
+			normal = tbn.MultiplyVector(normal).Normalize();
 		}
 
         if (light)
         {
-            color = LightingHalfLambert(color, normal, light->direction, light->intensity);
+            color = LightingLambert(color, normal, light->direction, light->intensity);
         }
 		return color;
 	}

@@ -144,7 +144,7 @@ bool Texture::UnparkColor(u8* bytes, u32 width, u32 height, u32 pitch, u32 bpp)
 	return true;
 }
 
-void Texture::ConvertBumpToNormal(float strength/* = 2.0f*/)
+void Texture::ConvertBumpToNormal(float strength/* = 0.01f*/)
 {
 	std::vector<float> bump(width * height, 0.f);
 	for (int i = 0; i < (int)bitmap.size(); ++i)
@@ -172,9 +172,7 @@ void Texture::ConvertBumpToNormal(float strength/* = 2.0f*/)
 			float px2 = bump[y * width + x2];
 			float py1 = bump[y1 * width + x];
 			float py2 = bump[y2 * width + x];
-			Vector3 xOff = Vector3(strength, 0.f, px1 - px2).Normalize();
-			Vector3 yOff = Vector3(0.f, strength, py1 - py2).Normalize();
-			Vector3 normal = xOff.Cross(yOff);
+            Vector3 normal = Vector3(px1 - px2, py1 - py2, 1.f / strength).Normalize();
 
 			Color color;
 			color.r = (normal.x + 1.0f) / 2.0f;
