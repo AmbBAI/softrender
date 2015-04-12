@@ -56,7 +56,7 @@ public:
 	u32 GetHeight();
 	u32 GetBPP();
 
-	void ConvertBumpToNormal(float strength = 0.01f);
+	void ConvertBumpToNormal(float strength = 0.04f);
 	bool GenerateMipmaps();
 
 	const Color GetColor(u32 x, u32 y, int miplv = 0) const;
@@ -72,6 +72,7 @@ public:
     FilterMode filterMode = FilterMode_Bilinear;
     
 protected:
+	std::string file;
 	u32 width = 0;
 	u32 height = 0;
 	u32 bpp = 3;

@@ -16,11 +16,16 @@ struct Clipper
 {
 	struct Plane
 	{
+		typedef bool(*GetClipCodeFunc)(const Vector4& v);
 		typedef float(*ClippingFunc)(const Vector4& v0, const Vector4& v1);
 
 		u32 cullMask = 0x0;
+		GetClipCodeFunc getClipCodeFunc = nullptr;
 		ClippingFunc clippingFunc = nullptr;
-		Plane(u32 _cullMask, ClippingFunc _clippingFunc) : cullMask(_cullMask), clippingFunc(_clippingFunc) {}
+		Plane(u32 _cullMask, GetClipCodeFunc _getClipCodeFunc, ClippingFunc _clippingFunc) :
+			cullMask(_cullMask),
+			getClipCodeFunc(_getClipCodeFunc),
+			clippingFunc(_clippingFunc) {}
 	};
 
 	static Plane viewFrustumPlanes[6];
@@ -28,12 +33,13 @@ struct Clipper
 	{
 		float w = hc.w;
 		u32 clipCode = 0x0;
-		if (hc.x < -w) clipCode |= viewFrustumPlanes[0].cullMask;
-		if (hc.x > w) clipCode |= viewFrustumPlanes[1].cullMask;
-		if (hc.y < -w) clipCode |= viewFrustumPlanes[2].cullMask;
-		if (hc.y > w) clipCode |= viewFrustumPlanes[3].cullMask;
-		if (hc.z < -w) clipCode |= viewFrustumPlanes[4].cullMask;
-		if (hc.z > w) clipCode |= viewFrustumPlanes[5].cullMask;
+		for (auto& p : viewFrustumPlanes)
+		{
+			if (p.getClipCodeFunc(hc))
+			{
+				clipCode |= p.cullMask;
+			}
+		}
 		return clipCode;
 	}
 
@@ -76,8 +82,13 @@ struct Clipper
 			clippedTriangles.clear();
 			for (auto& f : triangles)
 			{
+				//printf("%f, %f, %f, %f\n", f.v0.hc.x, f.v0.hc.y, f.v0.hc.z, f.v0.hc.w);
+				//printf("%f, %f, %f, %f\n", f.v1.hc.x, f.v1.hc.y, f.v1.hc.z, f.v1.hc.w);
+				//printf("%f, %f, %f, %f\n", f.v2.hc.x, f.v2.hc.y, f.v2.hc.z, f.v2.hc.w);
+				//printf("--------------\n");
 				Clipper::ClipTriangleFromPlane(clippedTriangles, f.v0, f.v1, f.v2, p);
 			}
+			//printf("==========\n");
 			std::swap(triangles, clippedTriangles);
 		}
 		return triangles;

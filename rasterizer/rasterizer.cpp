@@ -321,23 +321,19 @@ void Rasterizer::DrawTriangle(const Projection& p0, const Projection& p1, const 
 				__m128 mf_tmp1 = _mm_mul_ps(mf_w2, mf_p1_invW);
 				__m128 mf_tmp2 = _mm_mul_ps(mf_w0, mf_p2_invW);
 				//__m128 mf_invw = _mm_rcp_ps(_mm_add_ps(_mm_add_ps(mf_x, mf_y), mf_z));
-				__m128 mf_invW = _mm_div_ps(_mf_one, _mm_add_ps(_mm_add_ps(mf_tmp0, mf_tmp1), mf_tmp2));
-				_mm_store_ps(f_x, _mm_mul_ps(mf_tmp0, mf_invW));
-				_mm_store_ps(f_y, _mm_mul_ps(mf_tmp1, mf_invW));
-				_mm_store_ps(f_z, _mm_mul_ps(mf_tmp2, mf_invW));
+				__m128 mf_invSum = _mm_div_ps(_mf_one, _mm_add_ps(_mm_add_ps(mf_tmp0, mf_tmp1), mf_tmp2));
+				_mm_store_ps(f_x, _mm_mul_ps(mf_tmp0, mf_invSum));
+				_mm_store_ps(f_y, _mm_mul_ps(mf_tmp1, mf_invSum));
+				_mm_store_ps(f_z, _mm_mul_ps(mf_tmp2, mf_invSum));
 
-				mf_tmp0 = _mm_mul_ps(mf_w1, mf_p0_invZ);
-				mf_tmp1 = _mm_mul_ps(mf_w2, mf_p1_invZ);
-				mf_tmp2 = _mm_mul_ps(mf_w0, mf_p2_invZ);
-				__m128 mf_wSum = _mm_add_ps(_mm_add_ps(mf_w1, mf_w2), mf_w0);
-				__m128 mf_depth = _mm_div_ps(mf_wSum, _mm_add_ps(_mm_add_ps(mf_tmp0, mf_tmp1), mf_tmp2));
+				__m128 mf_depth = _mm_mul_ps(_mm_add_ps(mf_w0, _mm_add_ps(mf_w1, mf_w2)), mf_invSum);
 				_mm_store_ps(f_depth, mf_depth);
                 
                 for (int i = 0; i < 4; ++i)
                 {
                     shader.quad[i] = PSInput(triangle.v0, triangle.v1, triangle.v2, f_x[i], f_y[i], f_z[i]);
 
-                    float depth = f_depth[i];
+                    float depth = camera->GetLinearDepth(f_depth[i]);
 #else
             int i_w0[4], i_w1[4], i_w2[4];
             for (int i = 0; i < 4; ++i)
@@ -359,24 +355,25 @@ void Rasterizer::DrawTriangle(const Projection& p0, const Projection& p1, const 
                     float f_x = f_w1 * p0.invW;
                     float f_y = f_w2 * p1.invW;
                     float f_z = f_w0 * p2.invW;
-                    float f_invW = 1.f / (f_x + f_y + f_z);
-                    f_x *= f_invW;
-                    f_y *= f_invW;
-                    f_z *= f_invW;
+                    float f_invSum = 1.f / (f_x + f_y + f_z);
+					f_x *= f_invSum;
+					f_y *= f_invSum;
+					f_z *= f_invSum;
                     
-                    float depth = (f_w0 + f_w1 + f_w2) / (f_w1 * p0.invZ + f_w2 * p1.invZ + f_w0 * p2.invZ);
+					float depth = (f_w0 + f_w1 + f_w2) * f_invSum;
+					depth = camera->GetLinearDepth(depth);
                     
                     shader.quad[i] = PSInput(triangle.v0, triangle.v1, triangle.v2, f_x, f_y, f_z);
 #endif
-
                     i_x[i] = x + quadX[i];
                     i_y[i] = y + quadY[i];
                     
 					if (maskCode & (1 << i))
 					{
-						if (depth > 0.f && depth < 1.f && depth < canvas->GetDepth(i_x[i], i_y[i]))
+						if (depth >= 0.f && depth <= 1.f && depth < canvas->GetDepth(i_x[i], i_y[i]))
 						{
 							canvas->SetDepth(i_x[i], i_y[i], depth);
+							//canvas->SetPixel(i_x[i], i_y[i], Color(1.f, 1.f - depth, 1.f - depth, 1.f - depth));
 						}
 						else maskCode &= ~(1 << i);
 					}
@@ -434,6 +431,7 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform)
 		shader.position = &mesh.vertices[i];
 		shader.normal = &mesh.normals[i];
 		shader.tangent = &mesh.tangents[i];
+		shader.bitangent = &mesh.bitangents[i];
 		shader.texcoord = &mesh.texcoords[i];
 		shader.VertexShader(vertices[i]);
 	}
@@ -445,10 +443,7 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform)
 		int i0 = mesh.indices[i * 3];
 		int i1 = mesh.indices[i * 3 + 1];
 		int i2 = mesh.indices[i * 3 + 2];
-        
-        //TODO pre backface cull
-        //if (IsBackFace(vertices[i0].position, vertices[i1].position, vertices[i2].position)) continue;
-        
+  
         //TODO Guard-band clipping
         auto triangles = Clipper::ClipTriangle(vertices[i0], vertices[i1], vertices[i2]);
         for (auto& triangle : triangles)
@@ -460,7 +455,11 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform)
             if (Orient2D(p0.x, p0.y, p1.x, p1.y, p2.x, p2.y) < 0.f) continue;
             
             DrawTriangle(p0, p1, p2, triangle);
-        }
+
+			//DrawLine(p0.x, p1.x, p0.y, p1.y, Color::green);
+			//DrawLine(p1.x, p2.x, p1.y, p2.y, Color::green);
+			//DrawLine(p2.x, p0.x, p2.y, p0.y, Color::green);
+		}
 	}
 }
 

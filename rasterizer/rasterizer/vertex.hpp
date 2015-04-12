@@ -29,6 +29,7 @@ struct Projection
 		point.y = Mathf::RoundToInt(((hc.y * invW) + 1.f) / 2.f * height);
 		point.invZ = 1.f / (hc.z * invW);
 		point.invW = invW;
+		//printf("%f %f %f %f\n", hc.z, hc.z * invW, invW, w);
 		return point;
 	}
 };
@@ -55,10 +56,12 @@ struct VertexBase
 
 struct VertexStd : VertexBase
 {
-    Vector3 position = Vector3::zero;
-	Vector3 normal = Vector3::up;
-	Vector3 tangent = Vector3::right;
-	Vector2 texcoord = Vector2::zero;
+    Vector3 position;
+	Vector3 normal;
+	Vector3 tangent;
+	Vector3 bitangent;
+	Vector2 texcoord;
+	Matrix4x4 tbn;
 
 	static VertexStd Lerp(const VertexStd& a, const VertexStd& b, float t)
 	{
@@ -68,6 +71,7 @@ struct VertexStd : VertexBase
         out.position = Vector3::Lerp(a.position, b.position, t);
 		out.normal = Vector3::Lerp(a.normal, b.normal, t);
 		out.tangent = Vector3::Lerp(a.tangent, b.tangent, t);
+		out.bitangent = Vector3::Lerp(a.bitangent, b.bitangent, t);
 		out.texcoord = Vector2::Lerp(a.texcoord, b.texcoord, t);
 		return out;
 	}
@@ -79,7 +83,7 @@ struct Line
 	VertexType v0;
 	VertexType v1;
 
-	Line(VertexType _v0, VertexType _v1) : v0(_v0), v1(_v1) {}
+	Line(const VertexType& _v0, const VertexType& _v1) : v0(_v0), v1(_v1) {}
 };
 
 template <typename VertexType>
@@ -89,7 +93,7 @@ struct Triangle
 	VertexType v1;
 	VertexType v2;
 
-	Triangle(VertexType _v0, VertexType _v1, VertexType _v2) : v0(_v0), v1(_v1), v2(_v2) {}
+	Triangle(const VertexType& _v0, const VertexType& _v1, const VertexType& _v2) : v0(_v0), v1(_v1), v2(_v2) {}
 };
 
 }

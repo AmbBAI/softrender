@@ -18,7 +18,7 @@ void CameraController::InitCamera(CameraPtr camera)
 	CameraController::camera = camera;
 	if (camera != nullptr)
 	{
-		camera->SetPerspective(90.f, 1.f, 0.3f, 1000.f);
+		camera->SetPerspective(90.f, 1.f, 0.3f, 2000.f);
 		//camera->SetOrthographic(-100.f, 100.f, -100.f, 100.f, 0.3f, 1000.f);
 
 		_UpdateCamera(true);

@@ -70,6 +70,7 @@ TexturePtr Texture::CreateTexture(const char* file)
 	BYTE* bytes = FreeImage_GetBits(fiBitmap);
 
 	TexturePtr tex(new Texture());
+	tex->file = file;
 	tex->UnparkColor(bytes, width, height, pitch, bpp);
 
 	FreeImage_Unload(fiBitmap);
@@ -144,7 +145,7 @@ bool Texture::UnparkColor(u8* bytes, u32 width, u32 height, u32 pitch, u32 bpp)
 	return true;
 }
 
-void Texture::ConvertBumpToNormal(float strength/* = 0.01f*/)
+void Texture::ConvertBumpToNormal(float strength/* = 0.04f*/)
 {
 	std::vector<float> bump(width * height, 0.f);
 	for (int i = 0; i < (int)bitmap.size(); ++i)

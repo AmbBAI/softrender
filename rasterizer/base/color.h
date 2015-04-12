@@ -15,14 +15,11 @@ struct Color
 	{
 		struct
 		{
-            union
-            {
-                Vector3 rgb;
-                struct
-                {
-                    float r, g, b;
-                };
-            };
+			float r, g, b, a;
+		};
+		struct
+		{
+			Vector3 rgb;
 			float a;
 		};
 #if _MATH_SIMD_INTRINSIC_

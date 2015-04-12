@@ -9,19 +9,31 @@ namespace rasterizer
 
 struct Vector4
 {
-	float x = 0.f;
-	float y = 0.f;
-	float z = 0.f;
-	float w = 1.f;
+	union
+	{
+		float f[4];
+		struct  
+		{
+			float x;
+			float y;
+			float z;
+			float w;
+		};
+		struct
+		{
+			Vector3 xyz;
+			float w;
+		};
+#if _MATH_SIMD_INTRINSIC_
+		__m128 m;
+#endif
+	};
 
 	Vector4() = default;
     Vector4(float _x, float _y, float _z, float _w): x(_x), y(_y), z(_z), w(_w) {}
-    Vector4(const Vector4& v): Vector4(v.x, v.y, v.z, v.w) {}
-    Vector4(const Vector3& v): Vector4(v.x, v.y, v.z, 1.0f) {}
+	Vector4(const Vector3& _xyz, float _w) : xyz(_xyz), w(_w) {}
 
 	static inline const Vector4 Lerp(const Vector4& a, const Vector4& b, float t);
-
-	inline operator Vector3() const;
 };
 
 } // namespace rasterizer

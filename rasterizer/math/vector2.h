@@ -8,8 +8,15 @@ namespace rasterizer
 
 struct Vector2
 {
-	float x = 0.f;
-	float y = 0.f;
+	union
+	{
+		float f[2];
+		struct  
+		{
+			float x;
+			float y;
+		};
+	};
 
 	Vector2() = default;
     Vector2(float _x, float _y): x(_x), y(_y) {}

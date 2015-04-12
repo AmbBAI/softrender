@@ -35,10 +35,4 @@ bool Camera::SetOrthographic(float left, float right, float bottom, float top, f
 	return true;
 }
 
-float Camera::GetLinearDepth(float viewZ) const
-{
-	return (-viewZ - zNear) / (zFar - zNear);
-}
-
-
 }

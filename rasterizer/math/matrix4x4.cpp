@@ -392,20 +392,15 @@ const Vector3 Matrix4x4::MultiplyVector(const Vector3& p) const
 		m[2] * p.x + m[6] * p.y + m[10] * p.z);
 }
 
-const Matrix4x4 Matrix4x4::TBN(const Vector3& tangent, const Vector3& binormal, const Vector3& normal)
+const Matrix4x4 Matrix4x4::TBN(const Vector3& tangent, const Vector3& bitangent, const Vector3& normal)
 {
 	Matrix4x4 mat = Matrix4x4::identity;
-	mat.m[0] = tangent.x;
-	mat.m[1] = tangent.y;
-	mat.m[2] = tangent.z;
-
-	mat.m[4] = binormal.x;
-	mat.m[5] = binormal.y;
-	mat.m[6] = binormal.z;
-
-	mat.m[8] = normal.x;
-	mat.m[9] = normal.y;
-	mat.m[10] = normal.z;
+	mat.m[0] = tangent.x; mat.m[4] = tangent.y; mat.m[8] = tangent.z;
+	mat.m[1] = bitangent.x; mat.m[5] = bitangent.y; mat.m[9] = bitangent.z;
+	mat.m[2] = normal.x; mat.m[6] = normal.y; mat.m[10] = normal.z;
+	//mat.m[0] = tangent.x; mat.m[4] = bitangent.x; mat.m[8] = normal.x;
+	//mat.m[1] = tangent.y; mat.m[5] = bitangent.y; mat.m[9] = normal.y;
+	//mat.m[2] = tangent.z; mat.m[6] = bitangent.z; mat.m[10] = normal.z;
 	return mat;
 }
 
@@ -449,14 +444,14 @@ const Matrix4x4 Matrix4x4::PerspectiveFov(float fov, float aspect, float zNear, 
 	mat.m[5] = cotR;
 	mat.m[10] = -zFar / zDelta;
 	mat.m[11] = -1.0f;
-	mat.m[14] = -2.0f * zNear * zFar / zDelta;
+	mat.m[14] = -zNear * zFar / zDelta;
 	mat.m[15] = 0.f;
 	return mat;
 }
 
 const Matrix4x4 Matrix4x4::LookAt(const Vector3& eye, const Vector3& target, const Vector3& up)
 {
-	Vector3 zAxis = eye.Subtract(target).Normalize();
+	Vector3 zAxis = (eye - target).Normalize();
 	Vector3 xAxis = up.Cross(zAxis).Normalize();
 	Vector3 yAxis = zAxis.Cross(xAxis);
 

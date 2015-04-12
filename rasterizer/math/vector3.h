@@ -17,9 +17,6 @@ struct Vector3
 			float y;
 			float z;
 		};
-//#if _MATH_SIMD_INTRINSIC_
-//		__m128 m;
-//#endif
 	};
 
 	Vector3() = default;

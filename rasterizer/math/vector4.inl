@@ -6,11 +6,6 @@
 namespace rasterizer
 {
 
-Vector4::operator Vector3() const
-{
-	return Vector3(x, y, z);
-}
-
 const Vector4 Vector4::Lerp(const Vector4& a, const Vector4& b, float t)
 {
 	return Vector4(

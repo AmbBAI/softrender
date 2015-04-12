@@ -72,12 +72,12 @@ bool Mesh::LoadMesh(std::vector<MeshPtr>& meshes, const char* file)
                     newM->normalTexture = Texture::LoadTexture(bumpPath.c_str());
                     if (newM->normalTexture && newM->normalTexture->GetBPP() == 1)
                     {
-                        // TODO use Bump Multiply
-                        newM->normalTexture->ConvertBumpToNormal();
+						newM->normalTexture->ConvertBumpToNormal();
                     }
                 }
 			}
 		}
+		if (newM->normalTexture != nullptr) newM->normalTexture->GenerateMipmaps();
 
 		materials.push_back(newM);
 	}
@@ -153,10 +153,9 @@ void Mesh::RecalculateNormals()
 
 void Mesh::CalculateTangents()
 {
-	tangents.clear();
-
 	u32 vertexCount = normals.size();
-	tangents.assign(vertexCount, Vector3::zero);
+	tangents.resize(vertexCount);
+	bitangents.resize(vertexCount);
 	std::vector<Vector3> tan1(vertexCount, Vector3::zero);
 	std::vector<Vector3> tan2(vertexCount, Vector3::zero);
 	for (int i = 0; i + 2 < (int)indices.size(); i += 3)
@@ -172,31 +171,30 @@ void Mesh::CalculateTangents()
 		Vector2 st2 = texcoords[v2] - texcoords[v0];
 
 		float r = 1.f / (st1.x * st2.y - st2.x * st1.y);
-		Vector3 dir1 = Vector3(
+		Vector3 sdir = Vector3(
 			(st2.y * edge1.x - st1.y * edge2.x) * r,
 			(st2.y * edge1.y - st1.y * edge2.y) * r,
 			(st2.y * edge1.z - st1.y * edge2.z) * r);
 
-		Vector3 dir2 = Vector3(
+		Vector3 tdir = Vector3(
 			(st1.x * edge2.x - st2.x * edge1.x) * r,
 			(st1.x * edge2.y - st2.x * edge1.y) * r,
 			(st1.x * edge2.z - st2.x * edge1.z) * r);
 
-		tan1[v0] = tan1[v0] + dir1;
-		tan1[v1] = tan1[v1] + dir1;
-		tan1[v2] = tan1[v2] + dir1;
+		tan1[v0] += sdir;
+		tan1[v1] += sdir;
+		tan1[v2] += sdir;
 
-		tan2[v0] = tan2[v0] + dir2;
-		tan2[v1] = tan2[v1] + dir2;
-		tan2[v2] = tan2[v2] + dir2;
+		tan2[v0] += tdir;
+		tan2[v1] += tdir;
+		tan2[v2] += tdir;
 	}
 
 	for (int i = 0; i < (int)vertexCount; ++i)
 	{
-		tangents[i] = (tan1[i] - normals[i] * normals[i].Dot(tan1[i])).Normalize();
-		float w = normals[i].Cross(tan1[i]).Dot(tan2[i]) < 0.f ? -1.f : 1.f;
-		Vector3 binormal = normals[i].Cross(tangents[i]).Multiply(w);
-		tangents[i] = binormal.Cross(normals[i]);
+		tangents[i].xyz = (tan1[i] - normals[i] * (normals[i].Dot(tan1[i]))).Normalize();
+		tangents[i].w = normals[i].Cross(tan1[i]).Dot(tan2[i]) < 0.f ? -1.f : 1.f;
+		bitangents[i] = (normals[i].Cross(tangents[i].xyz) * tangents[i].w).Normalize();
 	}
 }
 
