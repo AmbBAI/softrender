@@ -13,7 +13,7 @@ solution "rasterizer"
 
   project "rasterizer"
     kind "ConsoleApp"
-    includedirs {"rasterizer/", "thirdpart/"}
+    includedirs { "rasterizer/", "thirdpart/"}
     targetdir ("bin/")
     libdirs {"lib/", "thirdpart/freeimage/"}
     files {
@@ -28,12 +28,12 @@ solution "rasterizer"
         defines { "DEBUG" }
         flags { "Symbols"}
         targetsuffix "_d"
-        links {"glfw_d", "tinyobjloader_d", "freeimage"}
+        links {"glfw_d", "tinyobjloader_d", "nanovg_d", "freeimage"}
 
     configuration "Release"
         defines { "NDEBUG"}
         flags { "Optimize"}
-        links {"glfw", "tinyobjloader", "freeimage"}
+        links {"glfw", "tinyobjloader", "nanovg", "freeimage"}
 
     configuration "windows"
         defines { "_CRT_SECURE_NO_WARNINGS" }
@@ -86,5 +86,20 @@ solution "rasterizer"
           "thirdpart/glfw/src/iokit_joystick.m",
       }
 
+  project "nanovg"
+    kind "StaticLib"
+    targetdir ("lib/")
+    includedirs { "thirdpart/nanovg/src/" }
+    files {
+        "thirdpart/nanovg/src/**.h",
+        "thirdpart/nanovg/src/**.c",
+    }
 
+    configuration "Debug"
+      defines { "DEBUG" }
+      flags { "Symbols", "ExtraWarnings"}
+
+    configuration "Release"
+      defines { "NDEBUG" }
+      flags { "Optimize", "ExtraWarnings"}
 
