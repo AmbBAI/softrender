@@ -339,12 +339,7 @@ const Matrix4x4 Matrix4x4::Inverse() const
 
 	det = m[0] * mat.m[0] + m[1] * mat.m[4] + m[2] * mat.m[8] + m[3] * mat.m[12];
 
-	if (det == 0.f) {
-		return mat;
-	}
-
 	det = 1.0f / det;
-
 	for (i = 0; i < 16; i++) {
 		mat.m[i] *= det;
 	}
@@ -395,12 +390,9 @@ const Vector3 Matrix4x4::MultiplyVector(const Vector3& p) const
 const Matrix4x4 Matrix4x4::TBN(const Vector3& tangent, const Vector3& bitangent, const Vector3& normal)
 {
 	Matrix4x4 mat = Matrix4x4::identity;
-	mat.m[0] = tangent.x; mat.m[4] = tangent.y; mat.m[8] = tangent.z;
-	mat.m[1] = bitangent.x; mat.m[5] = bitangent.y; mat.m[9] = bitangent.z;
-	mat.m[2] = normal.x; mat.m[6] = normal.y; mat.m[10] = normal.z;
-	//mat.m[0] = tangent.x; mat.m[4] = bitangent.x; mat.m[8] = normal.x;
-	//mat.m[1] = tangent.y; mat.m[5] = bitangent.y; mat.m[9] = normal.y;
-	//mat.m[2] = tangent.z; mat.m[6] = bitangent.z; mat.m[10] = normal.z;
+	mat.m[0] = tangent.x; mat.m[4] = bitangent.x; mat.m[8] = normal.x;
+	mat.m[1] = tangent.y; mat.m[5] = bitangent.y; mat.m[9] = normal.y;
+	mat.m[2] = tangent.z; mat.m[6] = bitangent.z; mat.m[10] = normal.z;
 	return mat;
 }
 

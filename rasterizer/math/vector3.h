@@ -11,12 +11,7 @@ struct Vector3
 	union
 	{
 		float f[3];
-		struct
-		{
-			float x;
-			float y;
-			float z;
-		};
+		struct { float x, y, z; };
 	};
 
 	Vector3() = default;

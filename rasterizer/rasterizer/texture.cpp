@@ -59,10 +59,13 @@ std::map<std::string, TexturePtr> Texture::texturePool;
 TexturePtr Texture::CreateTexture(const char* file)
 {
 	FREE_IMAGE_FORMAT imageFormat = FreeImage_GetFileType(file);
-	printf("%s %d\n", file, imageFormat);
 	FIBITMAP* fiBitmap = FreeImage_Load(imageFormat, file);
-	if (fiBitmap == nullptr) return nullptr;
-
+	if (fiBitmap == nullptr)
+    {
+        printf("%s FAILED!\n", file);
+        return nullptr;
+    }
+    
 	u32 width = FreeImage_GetWidth(fiBitmap);
 	u32 height = FreeImage_GetHeight(fiBitmap);
 	u32 pitch = FreeImage_GetPitch(fiBitmap);
@@ -74,6 +77,7 @@ TexturePtr Texture::CreateTexture(const char* file)
 	tex->UnparkColor(bytes, width, height, pitch, bpp);
 
 	FreeImage_Unload(fiBitmap);
+    printf("%s SUCCEED!\n", file);
 	return tex;
 }
 

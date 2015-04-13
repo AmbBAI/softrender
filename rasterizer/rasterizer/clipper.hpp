@@ -31,7 +31,6 @@ struct Clipper
 	static Plane viewFrustumPlanes[6];
 	static u32 CalculateClipCode(const Vector4& hc)
 	{
-		float w = hc.w;
 		u32 clipCode = 0x0;
 		for (auto& p : viewFrustumPlanes)
 		{
@@ -82,13 +81,8 @@ struct Clipper
 			clippedTriangles.clear();
 			for (auto& f : triangles)
 			{
-				//printf("%f, %f, %f, %f\n", f.v0.hc.x, f.v0.hc.y, f.v0.hc.z, f.v0.hc.w);
-				//printf("%f, %f, %f, %f\n", f.v1.hc.x, f.v1.hc.y, f.v1.hc.z, f.v1.hc.w);
-				//printf("%f, %f, %f, %f\n", f.v2.hc.x, f.v2.hc.y, f.v2.hc.z, f.v2.hc.w);
-				//printf("--------------\n");
 				Clipper::ClipTriangleFromPlane(clippedTriangles, f.v0, f.v1, f.v2, p);
 			}
-			//printf("==========\n");
 			std::swap(triangles, clippedTriangles);
 		}
 		return triangles;

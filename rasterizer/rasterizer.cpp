@@ -7,7 +7,6 @@ Canvas* Rasterizer::canvas = nullptr;
 CameraPtr Rasterizer::camera;
 rasterizer::MaterialPtr Rasterizer::material;
 rasterizer::LightPtr Rasterizer::light;
-//rasterizer::Vector3 Rasterizer::lightDir = Vector3(-1.f, -1.f, -1.f).Normalize();
 rasterizer::Shader0 Rasterizer::shader;
 
 void Rasterizer::Initialize()
@@ -277,10 +276,6 @@ void Rasterizer::DrawTriangle(const Projection& p0, const Projection& p1, const 
 	__m128 mf_p1_invW = _mm_load1_ps(&(p1.invW));
 	__m128 mf_p2_invW = _mm_load1_ps(&(p2.invW));
 
-	__m128 mf_p0_invZ = _mm_load1_ps(&(p0.invZ));
-	__m128 mf_p1_invZ = _mm_load1_ps(&(p1.invZ));
-	__m128 mf_p2_invZ = _mm_load1_ps(&(p2.invZ));
-
 	SIMD_ALIGN float f_x[4], f_y[4], f_z[4];
 	SIMD_ALIGN float f_depth[4];
 	SIMD_ALIGN int i_x[4], i_y[4];
@@ -431,7 +426,6 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform)
 		shader.position = &mesh.vertices[i];
 		shader.normal = &mesh.normals[i];
 		shader.tangent = &mesh.tangents[i];
-		shader.bitangent = &mesh.bitangents[i];
 		shader.texcoord = &mesh.texcoords[i];
 		shader.VertexShader(vertices[i]);
 	}

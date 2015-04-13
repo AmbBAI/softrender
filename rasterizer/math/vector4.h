@@ -14,14 +14,11 @@ struct Vector4
 		float f[4];
 		struct  
 		{
-			float x;
-			float y;
-			float z;
-			float w;
-		};
-		struct
-		{
-			Vector3 xyz;
+            union
+            {
+                struct { float x, y, z; };
+                Vector3 xyz;
+            };
 			float w;
 		};
 #if _MATH_SIMD_INTRINSIC_

@@ -155,7 +155,6 @@ void Mesh::CalculateTangents()
 {
 	u32 vertexCount = normals.size();
 	tangents.resize(vertexCount);
-	bitangents.resize(vertexCount);
 	std::vector<Vector3> tan1(vertexCount, Vector3::zero);
 	std::vector<Vector3> tan2(vertexCount, Vector3::zero);
 	for (int i = 0; i + 2 < (int)indices.size(); i += 3)
@@ -194,7 +193,6 @@ void Mesh::CalculateTangents()
 	{
 		tangents[i].xyz = (tan1[i] - normals[i] * (normals[i].Dot(tan1[i]))).Normalize();
 		tangents[i].w = normals[i].Cross(tan1[i]).Dot(tan2[i]) < 0.f ? -1.f : 1.f;
-		bitangents[i] = (normals[i].Cross(tangents[i].xyz) * tangents[i].w).Normalize();
 	}
 }
 

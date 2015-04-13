@@ -15,7 +15,6 @@ struct Projection
 {
 	int x = 0;
 	int y = 0;
-	float invZ = 1.0f;
 	float invW = 1.0f;
 
 	static Projection CalculateViewProjection(const Vector4& hc, u32 width, u32 height)
@@ -27,9 +26,7 @@ struct Projection
 		Projection point;
 		point.x = Mathf::RoundToInt(((hc.x * invW) + 1.f) / 2.f * width);
 		point.y = Mathf::RoundToInt(((hc.y * invW) + 1.f) / 2.f * height);
-		point.invZ = 1.f / (hc.z * invW);
 		point.invW = invW;
-		//printf("%f %f %f %f\n", hc.z, hc.z * invW, invW, w);
 		return point;
 	}
 };

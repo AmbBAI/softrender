@@ -59,7 +59,6 @@ struct Shader0 : Shader < VertexStd, PSInput >
 	const Vector3* position = nullptr;
 	const Vector3* normal = nullptr;
 	const Vector4* tangent = nullptr;
-	const Vector3* bitangent = nullptr;
 	const Vector2* texcoord = nullptr;
     
     PSInput quad[4];
@@ -68,14 +67,10 @@ struct Shader0 : Shader < VertexStd, PSInput >
 	{
 		out.hc = _MATRIX_MVP.MultiplyPoint(*position);
         out.position = _Object2World.MultiplyPoint3x4(*position);
-		//Vector3 cpos = _MATRIX_V.MultiplyPoint3x4(out.position);
-		//printf("%f, %f, %f => %f, %f, %f\n", out.position.x, out.position.y, out.position.z, cpos.x, cpos.y, cpos.z);
-		//printf("%f %f %f %f\n", out.hc.x, out.hc.y, out.hc.z, out.hc.w);
 		out.normal = _Object2World.MultiplyVector(*normal).Normalize();
 		out.tangent = _Object2World.MultiplyVector(tangent->xyz).Normalize();
-		out.bitangent = _Object2World.MultiplyVector(*bitangent).Normalize();
-		//Vector3 biNormal = out.normal.Cross(out.tangent);
-		//out.tbn = Matrix4x4::TBN(out.tangent, biNormal, out.normal);
+        out.bitangent = normal->Cross(tangent->xyz) * tangent->w;
+        out.bitangent = _Object2World.MultiplyVector(out.bitangent).Normalize();
 		out.texcoord = *texcoord;
 		out.clipCode = Clipper::CalculateClipCode(out.hc);
 	}
@@ -102,25 +97,27 @@ struct Shader0 : Shader < VertexStd, PSInput >
 	{
 		Color color = Color::white;
 
-		if (material && material->diffuseTexture)
-		{
-			u32 width = material->diffuseTexture->GetWidth();
-			u32 height = material->diffuseTexture->GetHeight();
-			float lod = calc_lod(width, height);
-
-			//float lodDepth = 1.f - lod / 10.f;
-			//Color texColor = Color(lodDepth, lodDepth, lodDepth, lodDepth);
-			Color texColor = material->diffuseTexture->Sample(input.uv.x, input.uv.y, lod);
-			color = color.Modulate(texColor);
-		}
+//		if (material && material->diffuseTexture)
+//		{
+//			u32 width = material->diffuseTexture->GetWidth();
+//			u32 height = material->diffuseTexture->GetHeight();
+//			float lod = calc_lod(width, height);
+//
+//			//float lodDepth = 1.f - lod / 10.f;
+//			//Color texColor = Color(lodDepth, lodDepth, lodDepth, lodDepth);
+//			Color texColor = material->diffuseTexture->Sample(input.uv.x, input.uv.y, lod);
+//			color = color.Modulate(texColor);
+//		}
 
 		Vector3 normal = input.normal;
 		if (material && material->normalTexture)
 		{
 			Vector3 tangent = input.tangent;
 			Vector3 bitangent = input.bitangent;
-			Matrix4x4 tbn = Matrix4x4::TBN(tangent, bitangent, normal).Inverse();
-
+			Matrix4x4 tbn = Matrix4x4::TBN(tangent, bitangent, normal);
+            
+            //Vector3 tangent = input.tangent - input.normal * (input.normal.Dot(input.normal));
+            
 			u32 width = material->normalTexture->GetWidth();
 			u32 height = material->normalTexture->GetHeight();
 			float lod = calc_lod(width, height);
@@ -128,19 +125,17 @@ struct Shader0 : Shader < VertexStd, PSInput >
 			Color normalColor = material->normalTexture->Sample(input.uv.x, input.uv.y, lod);
 			normal = Vector3(normalColor.r * 2 - 1, normalColor.g * 2 - 1, normalColor.b * 2 - 1);
 
-			//normal = Vector3(0, 0, 1);
-			//printf("%.2f %.2f %.2f => %.2f %.2f %.2f\n", normalColor.r, normalColor.g, normalColor.b, normal.x, normal.y, normal.z);
 			normal = tbn.MultiplyVector(normal).Normalize();
 		}
 
-		//color.r = (normal.x + 1.f) * 0.5f;
-		//color.g = (normal.y + 1.f) * 0.5f;
-		//color.b = (normal.z + 1.f) * 0.5f;
+		color.r = (normal.x + 1.f) * 0.5f;
+		color.g = (normal.y + 1.f) * 0.5f;
+		color.b = (normal.z + 1.f) * 0.5f;
 
-		if (light)
-		{
-			color = LightingHalfLambert(color, normal, light->direction, light->intensity);
-		}
+//		if (light)
+//		{
+//			color = LightingHalfLambert(color, normal, light->direction, light->intensity);
+//		}
 		return color;
 	}
 };

@@ -11,11 +11,7 @@ struct Vector2
 	union
 	{
 		float f[2];
-		struct  
-		{
-			float x;
-			float y;
-		};
+        struct { float x, y; };
 	};
 
 	Vector2() = default;
