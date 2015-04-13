@@ -11,7 +11,7 @@ void TestTextureLoop();
 int main(int argc, char *argv[])
 {
 	app = Application::GetInstance();
-	app->CreateApplication("rasterizer", 512, 512);
+	app->CreateApplication("rasterizer", 800, 600);
 	canvas = app->GetCanvas();
 	app->SetRunLoop(MainLoop);
 	app->RunLoop();

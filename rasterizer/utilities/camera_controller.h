@@ -22,8 +22,8 @@ private:
 	static CameraPtr camera;
 
 	static Vector3 position;
-	static Vector3 x, y, z;
 	static Quaternion rotation;
+	static Vector3 x, y, z;
 
 	static bool dirty;
 

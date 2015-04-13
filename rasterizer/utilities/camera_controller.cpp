@@ -12,13 +12,14 @@ Vector3 CameraController::z = Vector3(0.f, 0.f, -1.f);
 bool CameraController::dirty = false;
 bool CameraController::isMouseDown = false;
 rasterizer::Vector2 CameraController::lastMousePos = Vector2::zero;
+float CameraController::moveScale = 5.f;
 
 void CameraController::InitCamera(CameraPtr camera)
 {
 	CameraController::camera = camera;
 	if (camera != nullptr)
 	{
-		camera->SetPerspective(90.f, 1.f, 0.3f, 2000.f);
+		camera->SetPerspective(90.f, 1.33333f, 0.3f, 2000.f);
 		//camera->SetOrthographic(-100.f, 100.f, -100.f, 100.f, 0.3f, 1000.f);
 
 		_UpdateCamera(true);
@@ -43,12 +44,10 @@ void CameraController::UpdateCamera()
 		if (isMouseDown)
 		{
 			Vector2 moveDelta = nowMousePos - lastMousePos;
-			Matrix4x4 cameraMat = camera->GetViewMatrix()->Inverse();
-			Vector3 rotateVector = cameraMat.MultiplyVector(Vector3(moveDelta.y, moveDelta.x, 0.f));
-			rotation = Quaternion(rotateVector).Multiply(rotation);
-			x = rotation.Rotate(Vector3::right);
-			y = rotation.Rotate(Vector3::up);
-			z = rotation.Rotate(Vector3::front);
+			rotation = rotation.Multiply(Vector3(moveDelta.y, moveDelta.x, 0));
+			z = rotation.Rotate(Vector3::front).Normalize();
+			x = Vector3::down.Cross(z).Normalize();
+			y = x.Cross(z);
 			dirty = true;
 		}
 		lastMousePos = nowMousePos;
@@ -73,7 +72,5 @@ void CameraController::_UpdateCamera(bool force /*= false*/)
 		dirty = false;
 	}
 }
-
-float CameraController::moveScale = 5.f;
 
 }

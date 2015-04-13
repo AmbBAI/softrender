@@ -97,17 +97,17 @@ struct Shader0 : Shader < VertexStd, PSInput >
 	{
 		Color color = Color::white;
 
-//		if (material && material->diffuseTexture)
-//		{
-//			u32 width = material->diffuseTexture->GetWidth();
-//			u32 height = material->diffuseTexture->GetHeight();
-//			float lod = calc_lod(width, height);
-//
-//			//float lodDepth = 1.f - lod / 10.f;
-//			//Color texColor = Color(lodDepth, lodDepth, lodDepth, lodDepth);
-//			Color texColor = material->diffuseTexture->Sample(input.uv.x, input.uv.y, lod);
-//			color = color.Modulate(texColor);
-//		}
+		if (material && material->diffuseTexture)
+		{
+			u32 width = material->diffuseTexture->GetWidth();
+			u32 height = material->diffuseTexture->GetHeight();
+			float lod = calc_lod(width, height);
+
+			//float lodDepth = 1.f - lod / 10.f;
+			//Color texColor = Color(lodDepth, lodDepth, lodDepth, lodDepth);
+			Color texColor = material->diffuseTexture->Sample(input.uv.x, input.uv.y, lod);
+			color = color.Modulate(texColor);
+		}
 
 		Vector3 normal = input.normal;
 		if (material && material->normalTexture)
@@ -115,9 +115,7 @@ struct Shader0 : Shader < VertexStd, PSInput >
 			Vector3 tangent = input.tangent;
 			Vector3 bitangent = input.bitangent;
 			Matrix4x4 tbn = Matrix4x4::TBN(tangent, bitangent, normal);
-            
-            //Vector3 tangent = input.tangent - input.normal * (input.normal.Dot(input.normal));
-            
+
 			u32 width = material->normalTexture->GetWidth();
 			u32 height = material->normalTexture->GetHeight();
 			float lod = calc_lod(width, height);
@@ -128,14 +126,14 @@ struct Shader0 : Shader < VertexStd, PSInput >
 			normal = tbn.MultiplyVector(normal).Normalize();
 		}
 
-		color.r = (normal.x + 1.f) * 0.5f;
-		color.g = (normal.y + 1.f) * 0.5f;
-		color.b = (normal.z + 1.f) * 0.5f;
+		//color.r = (normal.x + 1.f) * 0.5f;
+		//color.g = (normal.y + 1.f) * 0.5f;
+		//color.b = (normal.z + 1.f) * 0.5f;
 
-//		if (light)
-//		{
-//			color = LightingHalfLambert(color, normal, light->direction, light->intensity);
-//		}
+		if (light)
+		{
+			color = LightingHalfLambert(color, normal, light->direction, light->intensity);
+		}
 		return color;
 	}
 };
