@@ -46,14 +46,7 @@ struct Shader
         return o;
     }
 
-	const Color ShowNormal(const Color& color, const Vector3& normal, const Vector3& lightDir, float attenuation)
-	{
-		Color o;
-		o.r = (normal.x + 1.f) * 0.5f;
-		o.g = (normal.y + 1.f) * 0.5f;
-		o.b = (normal.z + 1.f) * 0.5f;
-		return o;
-	}
+	//TODO Phong, Blinn-Phone, BRDF
 };
 
 }

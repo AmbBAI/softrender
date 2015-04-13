@@ -96,6 +96,7 @@ struct Shader0 : Shader < VertexStd, PSInput >
 	const Color PixelShader(const PSInput& input) override
 	{
 		Color color = Color::white;
+		//TODO Alpha
 
 		if (material && material->diffuseTexture)
 		{

@@ -230,7 +230,6 @@ int Rasterizer::Orient2D(int x0, int y0, int x1, int y1, int x2, int y2)
 
 void Rasterizer::DrawTriangle(const Projection& p0, const Projection& p1, const Projection& p2, const Triangle<VertexStd>& triangle)
 {
-	//TODO 2x2 for mipmap level
 	int minX = Mathf::Min(p0.x, p1.x, p2.x);
 	int minY = Mathf::Min(p0.y, p1.y, p2.y);
 	int maxX = Mathf::Max(p0.x, p1.x, p2.x);
@@ -295,7 +294,7 @@ void Rasterizer::DrawTriangle(const Projection& p0, const Projection& p1, const 
 
 		for (int x = minX; x <= maxX; x+=2)
 		{
-            u32 maskCode = 0x00;
+            u8 maskCode = 0x00;
 #if _MATH_SIMD_INTRINSIC_
 			__m128i mi_w0 = _mm_add_epi32(_mm_set1_epi32(w0), mi_w0_delta);
 			__m128i mi_w1 = _mm_add_epi32(_mm_set1_epi32(w1), mi_w1_delta);
@@ -419,6 +418,7 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform)
 	std::vector<VertexStd> vertices;
 	vertices.resize(vertexN);
 
+	//TODO vertex buff
 	int i = 0;
 //#pragma omp parallel for private(i)
 	for (i = 0; i < vertexN; ++i)
@@ -430,6 +430,7 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform)
 		shader.VertexShader(vertices[i]);
 	}
 
+	//TODO Z pre-pass
 	int faceN = (int)mesh.indices.size() / 3;
 //#pragma omp parallel for private(i)
 	for (i = 0; i < faceN; ++i)
