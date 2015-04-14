@@ -15,7 +15,7 @@ solution "rasterizer"
     kind "ConsoleApp"
     includedirs { "rasterizer/", "thirdpart/"}
     targetdir ("bin/")
-    libdirs {"lib/", "thirdpart/freeimage/"}
+    libdirs {"lib/"}
     files {
       "rasterizer/**.h",
       "rasterizer/**.cpp",
@@ -28,16 +28,16 @@ solution "rasterizer"
         defines { "DEBUG" }
         flags { "Symbols"}
         targetsuffix "_d"
-        links {"glfw_d", "tinyobjloader_d", "nanovg_d", "freeimage"}
+        links {"glfw_d", "tinyobjloader_d", "nanovg_d", "thirdpart/freeimage/freeimage"}
 
     configuration "Release"
         defines { "NDEBUG"}
         flags { "Optimize"}
-        links {"glfw", "tinyobjloader", "nanovg", "freeimage"}
+        links {"glfw", "tinyobjloader", "nanovg", "thirdpart/freeimage/freeimage"}
 
     configuration "windows"
-        defines { "_CRT_SECURE_NO_WARNINGS" }
-        links {"opengl32.lib"}
+        defines { "_CRT_SECURE_NO_WARNINGS", "_USE_GLEW_" }
+        links {"opengl32.lib", "glu32.lib", "thirdpart/glew/lib/Release/Win32/glew32.lib"}
 
     configuration "macosx"
       buildoptions {"-std=c++11", "-msse4.1", "-Wno-deprecated-declarations"}

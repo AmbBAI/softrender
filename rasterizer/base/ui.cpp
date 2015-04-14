@@ -1,5 +1,15 @@
 #include "ui.h"
 
+#define NANOVG_GL2_IMPLEMENTATION
+#include "nanovg/src/nanovg_gl.h"
+#include "nanovg/src/nanovg_gl_utils.h"
+
+#define BLENDISH_IMPLEMENTATION
+#include "blendish/blendish.h"
+
+#define OUI_IMPLEMENTATION
+#include "blendish/oui.h"
+
 namespace rasterizer {
 
 int UI::width = 0;
@@ -10,7 +20,13 @@ GLFWwindow* UI::window = nullptr;
 UIcontext* UI::uictx = nullptr;
 NVGcontext* UI::vg = nullptr;
     
-void UI::UIHandle(int item, UIevent event)
+
+typedef struct {
+	int subtype;
+	UIhandler handler;
+} UIData;
+
+void UIHandle(int item, UIevent event)
 {
     UIData *data = (UIData *)uiGetHandle(item);
     if (data && data->handler) {
@@ -68,7 +84,7 @@ bool UI::Initialize(GLFWwindow* window, int width, int height, float radio/* = 1
     if (uictx == nullptr) goto init_fail;
     uiMakeCurrent(uictx);
     
-    uiSetHandler(UI::UIHandle);
+    uiSetHandler(UIHandle);
     
     UI::width = width;
     UI::height = height;

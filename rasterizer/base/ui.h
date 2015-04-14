@@ -3,14 +3,8 @@
 
 #include "base/header.h"
 
-#define NANOVG_GL2_IMPLEMENTATION
 #include "nanovg/src/nanovg.h"
-#include "nanovg/src/nanovg_gl.h"
-
-#define BLENDISH_IMPLEMENTATION
 #include "blendish/blendish.h"
-
-#define OUI_IMPLEMENTATION
 #include "blendish/oui.h"
 
 namespace rasterizer {
@@ -28,13 +22,6 @@ public:
     static void End();
 
 private:
-    typedef struct {
-        int subtype;
-        UIhandler handler;
-    } UIData;
-    
-    static void UIHandle(int item, UIevent event);
-    
     static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
     static void CharCallback(GLFWwindow* window, unsigned int value);
     static void MousePositionCallback(GLFWwindow* window, double x, double y);
