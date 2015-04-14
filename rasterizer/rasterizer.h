@@ -95,7 +95,10 @@ struct Shader0 : Shader < VertexStd, PSInput >
     
 	const Color PixelShader(const PSInput& input) override
 	{
-		Color color = Color::white;
+        LightInput lightInput;
+        lightInput.ambient = material->ambient;
+		lightInput.diffuse = material->diffuse;
+        lightInput.specular = material->specular;
 		//TODO Alpha
 
 		if (material && material->diffuseTexture)
@@ -107,7 +110,8 @@ struct Shader0 : Shader < VertexStd, PSInput >
 			//float lodDepth = 1.f - lod / 10.f;
 			//Color texColor = Color(lodDepth, lodDepth, lodDepth, lodDepth);
 			Color texColor = material->diffuseTexture->Sample(input.uv.x, input.uv.y, lod);
-			color = color.Modulate(texColor);
+			lightInput.ambient = lightInput.ambient.Modulate(texColor);
+            lightInput.diffuse = lightInput.diffuse.Modulate(texColor);
 		}
 
 		Vector3 normal = input.normal;
@@ -126,16 +130,26 @@ struct Shader0 : Shader < VertexStd, PSInput >
 
 			normal = tbn.MultiplyVector(normal).Normalize();
 		}
+        
+        if (material && material->specularTexture)
+        {
+            lightInput.specular = material->specularTexture->Sample(input.uv.x, input.uv.y);
+        }
 
-		//color.r = (normal.x + 1.f) * 0.5f;
-		//color.g = (normal.y + 1.f) * 0.5f;
-		//color.b = (normal.z + 1.f) * 0.5f;
+        Color output;
+		//output.r = (normal.x + 1.f) * 0.5f;
+		//output.g = (normal.y + 1.f) * 0.5f;
+		//output.b = (normal.z + 1.f) * 0.5f;
 
 		if (light)
 		{
-			color = LightingHalfLambert(color, normal, light->direction, light->intensity);
-		}
-		return color;
+			//output = LightingLambert(lightInput, normal, light->direction, light->intensity);
+            
+            Vector3 viewDir = (input.position - camera->GetPosition()).Normalize();
+            output = LightingBlinnPhong(lightInput, normal, light->direction, viewDir, light->intensity);
+        } else output = lightInput.ambient;
+
+        return output;
 	}
 };
 

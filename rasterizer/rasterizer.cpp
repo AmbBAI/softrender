@@ -410,6 +410,7 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform)
     shader._MATRIX_MVP = shader._MATRIX_VP.Multiply(transform);
     shader.material = material;
     shader.light = light;
+    shader.camera = camera;
 
 	u32 width = canvas->GetWidth();
 	u32 height = canvas->GetHeight();

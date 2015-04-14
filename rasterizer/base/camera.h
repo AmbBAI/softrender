@@ -20,10 +20,11 @@ public:
 	bool SetPerspective(float fov, float aspect, float zNear, float zFar);
 	bool SetOrthographic(float left, float right, float bottom, float top, float zNear, float zFar);
 	const Matrix4x4* GetProjectionMatrix() const;
-	float GetLinearDepth(float viewZ) const
-	{
-		return (viewZ - zNear) / (zFar - zNear);
-	}
+    
+    
+    const Vector3 GetPosition() const { return position; }
+    const Vector3 GetDirection() const { return direction; }
+	float GetLinearDepth(float viewZ) const { return (viewZ - zNear) / (zFar - zNear);}
 
 protected:
 	Matrix4x4 viewMatrix;
@@ -31,6 +32,9 @@ protected:
 
 	float zNear = 0;
 	float zFar = 0;
+    
+    Vector3 position;
+    Vector3 direction;
 };
 
 }

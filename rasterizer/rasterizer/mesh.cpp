@@ -28,7 +28,7 @@ bool Mesh::LoadMesh(std::vector<MeshPtr>& meshes, const char* file)
 		MaterialPtr newM(new Material());
 		newM->ambient = Color(1.f, m.ambient[0], m.ambient[1], m.ambient[2]);
 		newM->diffuse = Color(1.f, m.diffuse[0], m.diffuse[1], m.diffuse[2]);
-		newM->specular = Color(1.f, m.ambient[0], m.ambient[1], m.ambient[2]);
+		newM->specular = Color(1.f, m.specular[0], m.specular[1], m.specular[2]);
 		newM->shininess = m.shininess;
 		newM->emission = Color(1.f, m.emission[0], m.emission[1], m.emission[2]);
 		if (m.diffuse_texname.size() > 0)
@@ -77,6 +77,12 @@ bool Mesh::LoadMesh(std::vector<MeshPtr>& meshes, const char* file)
                 }
 			}
 		}
+        if (m.specular_texname.size() > 0)
+        {
+            std::string texPath = fileDir + m.specular_texname;
+            std::replace(texPath.begin(), texPath.end(), '\\', '/');
+            newM->specularTexture = Texture::LoadTexture(texPath.c_str());
+        }
 		if (newM->normalTexture != nullptr) newM->normalTexture->GenerateMipmaps();
 
 		materials.push_back(newM);
