@@ -14,6 +14,7 @@ struct LightInput
     Color ambient;
     Color diffuse;
     Color specular;
+	float shininess;
 };
 
     
@@ -64,7 +65,7 @@ struct Shader
         {
             Vector3 halfDir = (lightDir + viewDir).Normalize();
             float specAngle = Mathf::Max(halfDir.Dot(normal), 0.f);
-            specular = Mathf::Pow(specAngle, 10.f);
+            specular = Mathf::Pow(specAngle, input.shininess);
         }
         
         Color output;
@@ -83,7 +84,7 @@ struct Shader
         {
             Vector3 reflectDir = (normal * normal.Dot(lightDir) * 2.f - lightDir).Normalize();
             float specAngle = Mathf::Max(reflectDir.Dot(viewDir), 0.f);
-            specular = Mathf::Pow(specAngle, 10.f);
+			specular = Mathf::Pow(specAngle, input.shininess);
         }
         
         Color output;

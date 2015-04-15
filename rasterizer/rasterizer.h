@@ -105,6 +105,7 @@ struct Shader0 : Shader < VertexStd, PSInput >
         lightInput.ambient = material->ambient;
 		lightInput.diffuse = material->diffuse;
         lightInput.specular = material->specular;
+		lightInput.shininess = material->shininess;
 		//TODO Alpha
 
 		if (material && material->diffuseTexture)
