@@ -69,6 +69,7 @@ struct Shader
         
         Color output;
         output.rgb = input.ambient.rgb + input.diffuse.rgb * lambertian + input.specular.rgb * specular;
+        //output.rgb = input.specular.rgb * specular;
         output.a = input.diffuse.a;
         return output;
     }
