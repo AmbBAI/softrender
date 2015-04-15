@@ -64,7 +64,7 @@ struct Shader
         {
             Vector3 halfDir = (lightDir + viewDir).Normalize();
             float specAngle = Mathf::Max(halfDir.Dot(normal), 0.f);
-            specular = Mathf::Pow(specAngle, 16.f);
+            specular = Mathf::Pow(specAngle, 10.f);
         }
         
         Color output;
@@ -74,7 +74,26 @@ struct Shader
         return output;
     }
     
-	//TODO Phong, Blinn-Phone, BRDF
+    const Color LightingPhong(const LightInput& input, const Vector3& normal, const Vector3& lightDir, const Vector3& viewDir, float attenuation)
+    {
+        float lambertian = Mathf::Max(normal.Dot(lightDir), 0.f);
+        float specular = 0.f;
+        
+        if (lambertian > 0.f)
+        {
+            Vector3 reflectDir = (normal * normal.Dot(lightDir) * 2.f - lightDir).Normalize();
+            float specAngle = Mathf::Max(reflectDir.Dot(viewDir), 0.f);
+            specular = Mathf::Pow(specAngle, 10.f);
+        }
+        
+        Color output;
+        output.rgb = input.ambient.rgb + input.diffuse.rgb * lambertian + input.specular.rgb * specular;
+        //output.rgb = input.specular.rgb * specular;
+        output.a = input.diffuse.a;
+        return output;
+    }
+    
+	//TODO Phong, BRDF
 };
 
 }
