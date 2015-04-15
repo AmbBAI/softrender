@@ -44,9 +44,6 @@
 #ifdef _USE_GLEW_
 #include "glew/include/GL/glew.h"
 #endif
-#ifdef __APPLE__
-#	define GLFW_INCLUDE_GLCOREARB
-#endif
 #include "glfw/include/GLFW/glfw3.h"
 
 typedef unsigned char u8;
