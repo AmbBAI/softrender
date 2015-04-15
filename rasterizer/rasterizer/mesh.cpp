@@ -154,7 +154,7 @@ void Mesh::RecalculateNormals()
 		normals[i] = normals[i].Normalize();
 	}
 
-	CalculateTangents();
+    if (texcoords.size() == vertexCount) CalculateTangents();
 }
 
 void Mesh::CalculateTangents()

@@ -57,12 +57,12 @@ struct Shader
     
     const Color LightingBlinnPhong(const LightInput& input, const Vector3& normal, const Vector3& lightDir, const Vector3& viewDir, float attenuation)
     {
-        float lambertian = Mathf::Max(normal.Dot(lightDir.Negate()), 0.f);
+        float lambertian = Mathf::Max(normal.Dot(lightDir), 0.f);
         float specular = 0.f;
         
         if (lambertian > 0.f)
         {
-            Vector3 halfDir = (lightDir.Negate() + viewDir).Normalize();
+            Vector3 halfDir = (lightDir + viewDir).Normalize();
             float specAngle = Mathf::Max(halfDir.Dot(normal), 0.f);
             specular = Mathf::Pow(specAngle, 16.f);
         }

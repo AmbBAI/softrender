@@ -426,8 +426,8 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform)
 	{
 		shader.position = &mesh.vertices[i];
 		shader.normal = &mesh.normals[i];
-		shader.tangent = &mesh.tangents[i];
-		shader.texcoord = &mesh.texcoords[i];
+		if (mesh.tangents.size() != 0) shader.tangent = &mesh.tangents[i];
+		if (mesh.texcoords.size() != 0) shader.texcoord = &mesh.texcoords[i];
 		shader.VertexShader(vertices[i]);
 	}
 

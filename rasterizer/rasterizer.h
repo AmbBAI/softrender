@@ -68,10 +68,16 @@ struct Shader0 : Shader < VertexStd, PSInput >
 		out.hc = _MATRIX_MVP.MultiplyPoint(*position);
         out.position = _Object2World.MultiplyPoint3x4(*position);
 		out.normal = _Object2World.MultiplyVector(*normal).Normalize();
-		out.tangent = _Object2World.MultiplyVector(tangent->xyz).Normalize();
-        out.bitangent = normal->Cross(tangent->xyz) * tangent->w;
-        out.bitangent = _Object2World.MultiplyVector(out.bitangent).Normalize();
-		out.texcoord = *texcoord;
+        if (tangent != nullptr)
+        {
+            out.tangent = _Object2World.MultiplyVector(tangent->xyz).Normalize();
+            out.bitangent = normal->Cross(tangent->xyz) * tangent->w;
+            out.bitangent = _Object2World.MultiplyVector(out.bitangent).Normalize();
+        }
+        if (texcoord != nullptr)
+        {
+            out.texcoord = *texcoord;
+        }
 		out.clipCode = Clipper::CalculateClipCode(out.hc);
 	}
 
@@ -145,8 +151,9 @@ struct Shader0 : Shader < VertexStd, PSInput >
 		{
 			//output = LightingLambert(lightInput, normal, light->direction, light->intensity);
             
-            Vector3 viewDir = (input.position - camera->GetPosition()).Normalize();
-            output = LightingBlinnPhong(lightInput, normal, light->direction, viewDir, light->intensity);
+            Vector3 lightDir = light->direction.Negate();
+            Vector3 viewDir = (camera->GetPosition() - input.position).Normalize();
+            output = LightingBlinnPhong(lightInput, normal, lightDir, viewDir, light->intensity);
         } else output = lightInput.ambient;
 
         return output;
