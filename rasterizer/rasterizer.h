@@ -9,10 +9,10 @@
 #include "math/mathf.h"
 
 #include "rasterizer/mesh.h"
+#include "rasterizer/material.h"
 #include "rasterizer/texture.h"
 #include "rasterizer/clipper.hpp"
 #include "rasterizer/vertex.hpp"
-#include "rasterizer/material.hpp"
 #include "rasterizer/light.hpp"
 #include "rasterizer/shader.hpp"
 
@@ -153,8 +153,39 @@ struct Shader0 : Shader < VertexStd, PSInput >
 			//output = LightingLambert(lightInput, normal, light->direction, light->intensity);
             
             Vector3 lightDir = light->direction.Negate();
+            float intensity = light->intensity;
+            switch (light->type) {
+                case Light::LightType_Directional:
+                    break;
+                case Light::LightType_Point:
+                    {
+                        lightDir = light->position - input.position;
+                        float distance = lightDir.Length();
+                        lightDir /= distance;
+                        if (distance >= light->range) intensity = 0;
+                        else intensity = light->intensity * (1.f - distance / light->range);
+                    }
+                    break;
+                case Light::LightType_Spot:
+                    {
+                        lightDir = light->position - input.position;
+                        float distance = lightDir.Length();
+                        lightDir /= distance;
+                        
+                        if (distance >= light->range) intensity = 0;
+                        else
+                        {
+                            intensity = light->intensity * (1.f - distance / light->range);
+                            
+                            float scale = (light->direction.Dot(lightDir) - light->cosHalfPhi) / (light->cosHalfTheta - light->cosHalfPhi);
+                            scale = Mathf::Clamp01(Mathf::Pow(scale, light->falloff));
+                            intensity = intensity * scale;
+                        }
+                    }
+                    break;
+            }
             Vector3 viewDir = (camera->GetPosition() - input.position).Normalize();
-            output = LightingBlinnPhong(lightInput, normal, lightDir, viewDir, light->intensity);
+            output = LightingBlinnPhong(lightInput, normal, lightDir, viewDir, intensity);
         } else output = lightInput.ambient;
 
         return output;

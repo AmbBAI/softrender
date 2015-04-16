@@ -44,7 +44,11 @@ void MainLoop()
 		//mesh[0]->materials.push_back(material);
 
         Rasterizer::light = LightPtr(new Light());
+        Rasterizer::light->type = Light::LightType_Directional;
+        Rasterizer::light->position = Vector3(0, 300, 0);
         Rasterizer::light->direction = Vector3(-1.f, -1.f, -1.f).Normalize();
+        Rasterizer::light->range = 1000.f;
+        Rasterizer::light->Initilize();
 		Mesh::LoadMesh(mesh, "resources/crytek-sponza/sponza.obj");
 		position = Vector3(0, 0, 0);
 		rotation = Vector3(0, 0, 0);

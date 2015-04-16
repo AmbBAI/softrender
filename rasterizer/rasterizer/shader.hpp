@@ -69,7 +69,7 @@ struct Shader
         }
         
         Color output;
-        output.rgb = input.ambient.rgb + input.diffuse.rgb * lambertian + input.specular.rgb * specular;
+        output.rgb = input.ambient.rgb + input.diffuse.rgb * (lambertian * attenuation) + input.specular.rgb * (specular * attenuation);
         //output.rgb = input.specular.rgb * specular;
         output.a = input.diffuse.a;
         return output;
@@ -99,4 +99,4 @@ struct Shader
 
 }
 
-#endif //! _RASTERIZER_SHADER_H_
+#endif //! _RASTERIZER_SHADER_Hv_

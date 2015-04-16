@@ -26,7 +26,7 @@ const Vector3 Vector3::operator /(float f) const { return Divide(f); }
 const Vector3 Vector3::operator += (const Vector3& v) { x += v.x; y += v.y, z += v.z; return *this; }
 const Vector3 Vector3::operator -= (const Vector3& v) { x -= v.x; y -= v.y, z -= v.z; return *this; }
 const Vector3 Vector3::operator *= (float f) { x *= f; y *= f, z *= f; return *this; }
-const Vector3 Vector3::operator /= (float f) { return (*this) * (1.f / f); }
+const Vector3 Vector3::operator /= (float f) { return (*this) *= (1.f / f); }
     
 float Vector3::Dot(const Vector3& v) const
 {
