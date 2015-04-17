@@ -65,7 +65,7 @@ struct Shader
         {
             Vector3 halfDir = (lightDir + viewDir).Normalize();
             float specAngle = Mathf::Max(halfDir.Dot(normal), 0.f);
-            specular = Mathf::Pow(specAngle, input.shininess);
+            specular = Mathf::Pow(specAngle, input.shininess * 4.f);
         }
         
         Color output;
