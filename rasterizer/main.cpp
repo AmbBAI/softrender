@@ -43,16 +43,16 @@ void MainLoop()
 		//material->normalTexture = Texture::LoadTexture("resources/sponza/textures/lion_ddn.tga");
 		//mesh[0]->materials.push_back(material);
 
-        Rasterizer::light = LightPtr(new Light());
-        Rasterizer::light->type = Light::LightType_Directional;
-        Rasterizer::light->position = Vector3(0, 300, 0);
-        Rasterizer::light->direction = Vector3(-1.f, -1.f, -1.f).Normalize();
-        Rasterizer::light->range = 1000.f;
-        Rasterizer::light->Initilize();
-		Mesh::LoadMesh(mesh, "resources/crytek-sponza/sponza.obj");
-		position = Vector3(0, 0, 0);
-		rotation = Vector3(0, 0, 0);
-		scale = Vector3(1, 1, 1);
+//        Rasterizer::light = LightPtr(new Light());
+//        Rasterizer::light->type = Light::LightType_Directional;
+//        Rasterizer::light->position = Vector3(0, 300, 0);
+//        Rasterizer::light->direction = Vector3(-1.f, -1.f, -1.f).Normalize();
+//        Rasterizer::light->range = 1000.f;
+//        Rasterizer::light->Initilize();
+//		Mesh::LoadMesh(mesh, "resources/crytek-sponza/sponza.obj");
+//		position = Vector3(0, 0, 0);
+//		rotation = Vector3(0, 0, 0);
+//		scale = Vector3(1, 1, 1);
 
 		//Mesh::LoadMesh(mesh, "resources/head/head.OBJ");
 		//position = Vector3(0, 10, -50);
@@ -60,12 +60,12 @@ void MainLoop()
 		//scale = Vector3(250, 250, 250);
         
         
-//        Mesh::LoadMesh(mesh, "resources/cornell-box/CornellBox-Sphere.obj");
-//        position = Vector3(0, -1, -2);
-//        rotation = Vector3(0, 0, 0);
-//        scale = Vector3(1, 1, 1);
-//        Rasterizer::light = LightPtr(new Light());
-//        Rasterizer::light->direction = Vector3(0.f, -1.f, 0.f);
+        Mesh::LoadMesh(mesh, "resources/cornell-box/CornellBox-Sphere.obj");
+        position = Vector3(0, -1, -2);
+        rotation = Vector3(0, 0, 0);
+        scale = Vector3(1, 1, 1);
+        Rasterizer::light = LightPtr(new Light());
+        Rasterizer::light->direction = Vector3(0.f, -1.f, 0.f);
         
 
 		for (auto& m : mesh)

@@ -153,6 +153,7 @@ struct Shader0 : Shader < VertexStd, PSInput >
 			//output = LightingLambert(lightInput, normal, light->direction, light->intensity);
             
             Vector3 lightDir = light->direction.Negate();
+            float attenuation = 1.f;
             float intensity = light->intensity;
             switch (light->type) {
                 case Light::LightType_Directional:
@@ -162,8 +163,7 @@ struct Shader0 : Shader < VertexStd, PSInput >
                         lightDir = light->position - input.position;
                         float distance = lightDir.Length();
                         lightDir /= distance;
-                        if (distance >= light->range) intensity = 0;
-                        else intensity = light->intensity * (1.f - distance / light->range);
+                        attenuation = 1 / (light->atten0 + light->atten1 * distance + light-> atten2 * distance * distance);
                     }
                     break;
                 case Light::LightType_Spot:
@@ -171,21 +171,16 @@ struct Shader0 : Shader < VertexStd, PSInput >
                         lightDir = light->position - input.position;
                         float distance = lightDir.Length();
                         lightDir /= distance;
+                        attenuation = 1 / (light->atten0 + light->atten1 * distance + light-> atten2 * distance * distance);
                         
-                        if (distance >= light->range) intensity = 0;
-                        else
-                        {
-                            intensity = light->intensity * (1.f - distance / light->range);
-                            
-                            float scale = (light->direction.Dot(lightDir) - light->cosHalfPhi) / (light->cosHalfTheta - light->cosHalfPhi);
-                            scale = Mathf::Clamp01(Mathf::Pow(scale, light->falloff));
-                            intensity = intensity * scale;
-                        }
+                        float scale = (light->direction.Dot(lightDir) - light->cosHalfPhi) / (light->cosHalfTheta - light->cosHalfPhi);
+                        scale = Mathf::Clamp01(Mathf::Pow(scale, light->falloff));
+                        intensity = intensity * scale;
                     }
                     break;
             }
             Vector3 viewDir = (camera->GetPosition() - input.position).Normalize();
-            output = LightingBlinnPhong(lightInput, normal, lightDir, viewDir, intensity);
+            output = LightingBlinnPhong(lightInput, normal, lightDir, viewDir, attenuation);
         } else output = lightInput.ambient;
 
         return output;

@@ -26,6 +26,9 @@ struct Light
     Vector3 position = Vector3(0.f, 0.f, 0.f);
     Vector3 direction = Vector3(0.f, -1.f, 0.f);
     float range = 10.f;
+    float atten0 = 0.f;
+    float atten1 = 0.f;
+    float atten2 = 1.f;
     float falloff = 1.f;
     float theta = 60.f;
     float phi = 30.f;
