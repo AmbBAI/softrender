@@ -1,5 +1,5 @@
 solution "rasterizer"
-  configurations {"Debug", "Release"}
+  configurations {"Debug", "Debug_SIMD", "Release", "Release_SIMD"}
   language "C++"
 
   configuration "Debug"
@@ -22,18 +22,20 @@ solution "rasterizer"
       "rasterizer/**.hpp",
       "rasterizer/**.inl",
     }
-    defines { "_MATH_SIMD_INTRINSIC_" }
 
-    configuration "Debug"
+    configuration "Debug or Debug_SIMD"
         defines { "DEBUG" }
         flags { "Symbols"}
         targetsuffix "_d"
         links {"glfw_d", "tinyobjloader_d", "freeimage"}
 
-    configuration "Release"
+    configuration "Release or Release_SIMD"
         defines { "NDEBUG"}
         flags { "Optimize"}
         links {"glfw", "tinyobjloader", "freeimage"}
+
+    configuration "Debug_SIMD or Release_SIMD"
+        defines { "_MATH_SIMD_INTRINSIC_" }
 
     configuration "windows"
         defines { "_CRT_SECURE_NO_WARNINGS" }
@@ -51,6 +53,9 @@ solution "rasterizer"
       "thirdpart/tinyobjloader/tiny_obj_loader.h",
       "thirdpart/tinyobjloader/tiny_obj_loader.cc",
     }
+
+    configuration "windows"
+        defines { "_CRT_SECURE_NO_WARNINGS" }
     
   project "glfw"
     kind "StaticLib"
@@ -69,7 +74,7 @@ solution "rasterizer"
     defines {"_GLFW_USE_OPENGL"}
 
     configuration "windows"
-      defines { "_GLFW_WIN32", "_GLFW_WGL" }
+      defines { "_GLFW_WIN32", "_GLFW_WGL", "_CRT_SECURE_NO_WARNINGS" }
       files {
           "thirdpart/glfw/src/win32*.c",
           "thirdpart/glfw/src/wgl_context.c",
