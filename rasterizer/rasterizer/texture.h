@@ -52,9 +52,9 @@ public:
 	virtual ~Texture() = default;
 
 public:
-	u32 GetWidth();
-	u32 GetHeight();
-	u32 GetBPP();
+    u32 GetWidth() { return width; }
+    u32 GetHeight() { return height; }
+    u32 GetBPP() { return bpp; }
 
 	void ConvertBumpToNormal(float strength = 0.04f);
 	bool GenerateMipmaps();

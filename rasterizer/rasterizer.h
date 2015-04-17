@@ -9,10 +9,10 @@
 #include "math/mathf.h"
 
 #include "rasterizer/mesh.h"
+#include "rasterizer/material.h"
 #include "rasterizer/texture.h"
 #include "rasterizer/clipper.hpp"
 #include "rasterizer/vertex.hpp"
-#include "rasterizer/material.hpp"
 #include "rasterizer/light.hpp"
 #include "rasterizer/shader.hpp"
 
@@ -68,10 +68,16 @@ struct Shader0 : Shader < VertexStd, PSInput >
 		out.hc = _MATRIX_MVP.MultiplyPoint(*position);
         out.position = _Object2World.MultiplyPoint3x4(*position);
 		out.normal = _Object2World.MultiplyVector(*normal).Normalize();
-		out.tangent = _Object2World.MultiplyVector(tangent->xyz).Normalize();
-        out.bitangent = normal->Cross(tangent->xyz) * tangent->w;
-        out.bitangent = _Object2World.MultiplyVector(out.bitangent).Normalize();
-		out.texcoord = *texcoord;
+        if (tangent != nullptr)
+        {
+            out.tangent = _Object2World.MultiplyVector(tangent->xyz).Normalize();
+            out.bitangent = normal->Cross(tangent->xyz) * tangent->w;
+            out.bitangent = _Object2World.MultiplyVector(out.bitangent).Normalize();
+        }
+        if (texcoord != nullptr)
+        {
+            out.texcoord = *texcoord;
+        }
 		out.clipCode = Clipper::CalculateClipCode(out.hc);
 	}
 
@@ -95,7 +101,12 @@ struct Shader0 : Shader < VertexStd, PSInput >
     
 	const Color PixelShader(const PSInput& input) override
 	{
-		Color color = Color::white;
+        LightInput lightInput;
+        lightInput.ambient = material->ambient;
+		lightInput.diffuse = material->diffuse;
+        lightInput.specular = material->specular;
+		lightInput.shininess = material->shininess;
+		//TODO Alpha
 
 		if (material && material->diffuseTexture)
 		{
@@ -106,7 +117,8 @@ struct Shader0 : Shader < VertexStd, PSInput >
 			//float lodDepth = 1.f - lod / 10.f;
 			//Color texColor = Color(lodDepth, lodDepth, lodDepth, lodDepth);
 			Color texColor = material->diffuseTexture->Sample(input.uv.x, input.uv.y, lod);
-			color = color.Modulate(texColor);
+			lightInput.ambient = lightInput.ambient.Modulate(texColor);
+            lightInput.diffuse = lightInput.diffuse.Modulate(texColor);
 		}
 
 		Vector3 normal = input.normal;
@@ -125,16 +137,58 @@ struct Shader0 : Shader < VertexStd, PSInput >
 
 			normal = tbn.MultiplyVector(normal).Normalize();
 		}
+        
+        if (material && material->specularTexture)
+        {
+            lightInput.specular = material->specularTexture->Sample(input.uv.x, input.uv.y);
+        }
 
-		//color.r = (normal.x + 1.f) * 0.5f;
-		//color.g = (normal.y + 1.f) * 0.5f;
-		//color.b = (normal.z + 1.f) * 0.5f;
+        Color output;
+		//output.r = (normal.x + 1.f) * 0.5f;
+		//output.g = (normal.y + 1.f) * 0.5f;
+		//output.b = (normal.z + 1.f) * 0.5f;
 
 		if (light)
 		{
-			color = LightingHalfLambert(color, normal, light->direction, light->intensity);
-		}
-		return color;
+			//output = LightingLambert(lightInput, normal, light->direction, light->intensity);
+            
+            Vector3 lightDir = light->direction.Negate();
+            float intensity = light->intensity;
+            switch (light->type) {
+                case Light::LightType_Directional:
+                    break;
+                case Light::LightType_Point:
+                    {
+                        lightDir = light->position - input.position;
+                        float distance = lightDir.Length();
+                        lightDir /= distance;
+                        if (distance >= light->range) intensity = 0;
+                        else intensity = light->intensity * (1.f - distance / light->range);
+                    }
+                    break;
+                case Light::LightType_Spot:
+                    {
+                        lightDir = light->position - input.position;
+                        float distance = lightDir.Length();
+                        lightDir /= distance;
+                        
+                        if (distance >= light->range) intensity = 0;
+                        else
+                        {
+                            intensity = light->intensity * (1.f - distance / light->range);
+                            
+                            float scale = (light->direction.Dot(lightDir) - light->cosHalfPhi) / (light->cosHalfTheta - light->cosHalfPhi);
+                            scale = Mathf::Clamp01(Mathf::Pow(scale, light->falloff));
+                            intensity = intensity * scale;
+                        }
+                    }
+                    break;
+            }
+            Vector3 viewDir = (camera->GetPosition() - input.position).Normalize();
+            output = LightingBlinnPhong(lightInput, normal, lightDir, viewDir, intensity);
+        } else output = lightInput.ambient;
+
+        return output;
 	}
 };
 

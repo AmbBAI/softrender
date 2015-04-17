@@ -97,21 +97,6 @@ TexturePtr Texture::LoadTexture(const char* file)
 	}
 }
 
-u32 Texture::GetWidth()
-{
-	return width;
-}
-
-u32 Texture::GetHeight()
-{
-	return height;
-}
-
-u32 Texture::GetBPP()
-{
-	return bpp;
-}
-
 bool Texture::UnparkColor(u8* bytes, u32 width, u32 height, u32 pitch, u32 bpp)
 {
 	if (bytes == nullptr) return false;

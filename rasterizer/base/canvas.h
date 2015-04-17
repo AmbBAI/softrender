@@ -15,14 +15,40 @@ class Canvas
 	~Canvas() = default;
 
 public:
-	bool SetPixel(int x, int y, const Color& color);
-	bool SetPixel(int x, int y, float depth, const Color& color);
-	bool SetPixel(int x, int y, const Color32& color);
-	float GetDepth(int x, int y);
-	void SetDepth(int x, int y, float depth);
+	bool SetPixel(int x, int y, const Color& color)
+    {
+        return SetPixel(x, y, Color32(color));
+    }
+    
+    bool SetPixel(int x, int y, const Color32& color)
+    {
+        if (x < 0 || x >= width) return false;
+        if (y < 0 || y >= height) return false;
+        
+        int offset = y * width + x;
+        pixels[offset] = color.rgba;
+        return true;
+    }
+    
+	float GetDepth(int x, int y)
+    {
+        if (x < 0 || x >= width) return 1.f;
+        if (y < 0 || y >= height) return 1.f;
+            
+        int offset = y * width + x;
+        return depths[offset];
+    }
+	void SetDepth(int x, int y, float depth)
+    {
+        if (x < 0 || x >= width) return;
+        if (y < 0 || y >= height) return;
+        
+        int offset = y * width + x;
+        depths[offset] = depth;
+    }
 	
-	int GetWidth();
-	int GetHeight();
+    int GetWidth() { return width; }
+    int GetHeight() { return height; }
 
 	void Clear();
 	void Present();

@@ -1,20 +1,19 @@
 #include "mesh.h"
 
-#include "tinyobjloader/tiny_obj_loader.h"
 
 namespace rasterizer
 {
 
 bool Mesh::LoadMesh(std::vector<MeshPtr>& meshes, const char* file)
 {
-	std::vector<tinyobj::shape_t> shape;
-	std::vector<tinyobj::material_t> material;
+	std::vector<tinyobj::shape_t> osjShapes;
+	std::vector<tinyobj::material_t> objMaterials;
 	std::string filePath(file);
 	std::replace(filePath.begin(), filePath.end(), '\\', '/');
     std::string::size_type pos = filePath.rfind('/');
 	std::string fileDir = "";
 	if (pos != filePath.npos) fileDir = filePath.substr(0, pos + 1);
-	std::string ret = tinyobj::LoadObj(shape, material, filePath.c_str(), fileDir.c_str());
+	std::string ret = tinyobj::LoadObj(osjShapes, objMaterials, filePath.c_str(), fileDir.c_str());
 
 	if (ret.length() != 0)
 	{
@@ -23,105 +22,52 @@ bool Mesh::LoadMesh(std::vector<MeshPtr>& meshes, const char* file)
 	}
 
 	std::vector<MaterialPtr> materials;
-    for (auto& m : material)
-	{
-		MaterialPtr newM(new Material());
-		newM->ambient = Color(1.f, m.ambient[0], m.ambient[1], m.ambient[2]);
-		newM->diffuse = Color(1.f, m.diffuse[0], m.diffuse[1], m.diffuse[2]);
-		newM->specular = Color(1.f, m.ambient[0], m.ambient[1], m.ambient[2]);
-		newM->shininess = m.shininess;
-		newM->emission = Color(1.f, m.emission[0], m.emission[1], m.emission[2]);
-		if (m.diffuse_texname.size() > 0)
-		{
-			std::string texPath = fileDir + m.diffuse_texname;
-            std::replace(texPath.begin(), texPath.end(), '\\', '/');
-			newM->diffuseTexture = Texture::LoadTexture(texPath.c_str());
-            newM->diffuseTexture->GenerateMipmaps();
-            //newM->diffuseTexture->filterMode = Texture::FilterMode_Trilinear;
-		}
-		if (m.normal_texname.size() > 0)
-		{
-			std::string texPath = fileDir + m.normal_texname;
-			std::replace(texPath.begin(), texPath.end(), '\\', '/');
-			newM->normalTexture = Texture::LoadTexture(texPath.c_str());
-		}
-		else
-		{ // check bump
-			auto paramItor = m.unknown_parameter.find("map_bump");
-            if (paramItor == m.unknown_parameter.end()) paramItor = m.unknown_parameter.find("bump");
-			if (paramItor != m.unknown_parameter.end())
-			{
-                float bumpMultiply = 1.f;
-                std::string bumpPath;
-                
-                std::string param = paramItor->second;
-                if (param.find("-bm") == 0)
-                {
-                    std::stringstream ss(param.substr(4));
-                    ss >> bumpMultiply >> bumpPath;
-                }
-                else
-                {
-                    bumpPath = param;
-                }
-                
-                if (bumpPath.length() > 0)
-                {
-                    bumpPath = fileDir + bumpPath;
-                    std::replace(bumpPath.begin(), bumpPath.end(), '\\', '/');
-                    newM->normalTexture = Texture::LoadTexture(bumpPath.c_str());
-                    if (newM->normalTexture && newM->normalTexture->GetBPP() == 1)
-                    {
-						newM->normalTexture->ConvertBumpToNormal();
-                    }
-                }
-			}
-		}
-		if (newM->normalTexture != nullptr) newM->normalTexture->GenerateMipmaps();
-
-		materials.push_back(newM);
-	}
-
-	meshes.clear();
-    for (auto& s : shape)
-	{
-		std::vector<float>& positions = s.mesh.positions;
-		std::vector<float>& normals = s.mesh.normals;
-		std::vector<u32>& indices = s.mesh.indices;
-		std::vector<float>& texcoords = s.mesh.texcoords;
-
-		MeshPtr mesh(new Mesh());
-		for (int i = 0; i + 2 < (int)positions.size(); i += 3)
-		{
-			mesh->vertices.push_back(Vector3(positions[i], positions[i + 1], positions[i + 2]));
-		}
-		mesh->indices.assign(indices.begin(), indices.end());
-		for (int i = 0; i + 2 < (int)normals.size(); i += 3)
-		{
-			mesh->normals.push_back(Vector3(normals[i], normals[i + 1], normals[i + 2]));
-		}
-		for (int i = 0; i + 1 < (int)texcoords.size(); i += 2)
-		{
-			mesh->texcoords.push_back(Vector2(texcoords[i], texcoords[i + 1]));
-		}
-
-		if (mesh->normals.size() == mesh->vertices.size()
-			&& mesh->texcoords.size() == mesh->vertices.size())
-		{
-			mesh->CalculateTangents();
-		}
-
-        for (auto id : s.mesh.material_ids)
-		{
-			if (id < 0 || id >= (int) materials.size()) continue;
-			mesh->materials.push_back(materials[id]);
-		}
-
-		meshes.push_back(mesh);
-	}
-	return true;
+    Material::LoadMaterial(materials, objMaterials, fileDir.c_str());
+    Mesh::LoadMesh(meshes, osjShapes, materials);
+    return true;
 }
 
+void Mesh::LoadMesh(std::vector<MeshPtr>& meshes, const std::vector<tinyobj::shape_t>& objMeshes, const std::vector<MaterialPtr>& materials)
+{
+    meshes.clear();
+    for (auto& s : objMeshes)
+    {
+        auto& _p = s.mesh.positions;
+        auto& _n = s.mesh.normals;
+        auto& _i = s.mesh.indices;
+        auto& _tc = s.mesh.texcoords;
+        
+        MeshPtr mesh(new Mesh());
+        for (int i = 0; i + 2 < (int)_p.size(); i += 3)
+        {
+            mesh->vertices.push_back(Vector3(_p[i], _p[i + 1], _p[i + 2]));
+        }
+        mesh->indices.assign(_i.begin(), _i.end());
+        for (int i = 0; i + 2 < (int)_n.size(); i += 3)
+        {
+            mesh->normals.push_back(Vector3(_n[i], _n[i + 1], _n[i + 2]));
+        }
+        for (int i = 0; i + 1 < (int)_tc.size(); i += 2)
+        {
+            mesh->texcoords.push_back(Vector2(_tc[i], _tc[i + 1]));
+        }
+            
+        if (mesh->normals.size() == mesh->vertices.size()
+            && mesh->texcoords.size() == mesh->vertices.size())
+        {
+            mesh->CalculateTangents();
+        }
+            
+        for (auto id : s.mesh.material_ids)
+        {
+            if (id < 0 || id >= (int) materials.size()) continue;
+            mesh->materials.push_back(materials[id]);
+        }
+            
+        meshes.push_back(mesh);
+    }
+}
+    
 void Mesh::RecalculateNormals()
 {
     normals.clear();
@@ -148,7 +94,7 @@ void Mesh::RecalculateNormals()
 		normals[i] = normals[i].Normalize();
 	}
 
-	CalculateTangents();
+    if (texcoords.size() == vertexCount) CalculateTangents();
 }
 
 void Mesh::CalculateTangents()

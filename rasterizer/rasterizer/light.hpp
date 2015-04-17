@@ -26,6 +26,21 @@ struct Light
     Vector3 position = Vector3(0.f, 0.f, 0.f);
     Vector3 direction = Vector3(0.f, -1.f, 0.f);
     float range = 10.f;
+    float falloff = 1.f;
+    float theta = 60.f;
+    float phi = 30.f;
+    
+    float cosHalfTheta;
+    float cosHalfPhi;
+    
+    void Initilize()
+    {
+        if (type == LightType_Spot)
+        {
+            cosHalfPhi = Mathf::Cos(phi * Mathf::deg2rad / 2.f);
+            cosHalfTheta = Mathf::Cos(theta * Mathf::deg2rad / 2.f);
+        }
+    }
 	
 #if _MATH_SIMD_INTRINSIC_ && defined(_MSC_VER)
 	MEMALIGN_NEW_OPERATOR_OVERRIDE(16)

@@ -6,6 +6,9 @@ namespace rasterizer
 
 void Camera::SetLookAt(const Vector3& eye, const Vector3& target, const Vector3& up)
 {
+    position = eye;
+    direction = (target - eye).Normalize();
+    
 	viewMatrix = Matrix4x4::LookAt(eye, target, up);
 }
 

@@ -5,7 +5,9 @@
 #include "math/vector2.h"
 #include "math/vector3.h"
 #include "math/vector4.h"
-#include "rasterizer/material.hpp"
+#include "rasterizer/material.h"
+
+#include "tinyobjloader/tiny_obj_loader.h"
 
 namespace rasterizer
 {
@@ -18,6 +20,7 @@ struct Mesh
 	Mesh() = default;
 	
 	static bool LoadMesh(std::vector<MeshPtr>& meshes, const char* file);
+    static void LoadMesh(std::vector<MeshPtr>& meshes, const std::vector<tinyobj::shape_t>& shapes, const std::vector<MaterialPtr>& materials);
 
 	void RecalculateNormals();
 	void CalculateTangents();

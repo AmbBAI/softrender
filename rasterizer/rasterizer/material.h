@@ -4,6 +4,8 @@
 #include "base/header.h"
 #include "base/color.h"
 #include "rasterizer/texture.h"
+#include "tinyobjloader/tiny_obj_loader.h"
+
 
 namespace rasterizer
 {
@@ -24,6 +26,8 @@ struct Material
 	TexturePtr normalTexture;
 	TexturePtr specularTexture;
 
+    static void LoadMaterial(std::vector<MaterialPtr>& materials, const std::vector<tinyobj::material_t>& objMaterials, const char* fileDir);
+    
 #if _MATH_SIMD_INTRINSIC_ && defined(_MSC_VER)
 	MEMALIGN_NEW_OPERATOR_OVERRIDE(16)
 	MEMALIGN_DELETE_OPERATOR_OVERRIDE
