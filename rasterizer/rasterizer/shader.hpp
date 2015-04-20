@@ -38,7 +38,7 @@ struct Shader
     const Color LightingLambert(const LightInput& input, const Vector3& normal, const Vector3& lightDir, const Color& lightColor, float attenuation)
     {
         assert(light != nullptr);
-        float nDotL = Mathf::Max(normal.Dot(lightDir.Negate()), 0.f);
+        float nDotL = Mathf::Clamp01(normal.Dot(lightDir));
         Color output;
         output.rgb = input.ambient.rgb + input.diffuse.rgb * lightColor.rgb * (nDotL * attenuation * 2.f);
         output.a = input.diffuse.a;
@@ -48,7 +48,7 @@ struct Shader
     const Color LightingHalfLambert(const LightInput& input, const Vector3& normal, const Vector3& lightDir, const Color& lightColor, float attenuation)
     {
         assert(light != nullptr);
-        float nDotL = Mathf::Max(normal.Dot(lightDir.Negate()), 0.f);
+		float nDotL = Mathf::Clamp01(normal.Dot(lightDir));
         nDotL = nDotL * 0.8f + 0.2f;
         Color output;
         output.rgb = input.ambient.rgb + input.diffuse.rgb * lightColor.rgb * (nDotL * attenuation * 2.f);
@@ -58,7 +58,7 @@ struct Shader
     
     const Color LightingBlinnPhong(const LightInput& input, const Vector3& normal, const Vector3& lightDir, const Color& lightColor, const Vector3& viewDir, float attenuation)
     {
-        float lambertian = Mathf::Max(normal.Dot(lightDir), 0.f);
+		float lambertian = Mathf::Clamp01(normal.Dot(lightDir));
         float specular = 0.f;
         
         if (lambertian > 0.f)
@@ -69,16 +69,16 @@ struct Shader
         }
         
         Color output;
-        output.rgb = input.ambient.rgb
-            + input.diffuse.rgb * lightColor.rgb * (lambertian * attenuation);
-            + input.specular.rgb * lightColor.rgb * (specular * attenuation);
+		output.rgb = input.ambient.rgb
+			+ (input.diffuse.rgb * lightColor.rgb * lambertian
+			+ input.specular.rgb * lightColor.rgb * specular) * attenuation;
         output.a = input.diffuse.a;
         return output;
     }
     
     const Color LightingPhong(const LightInput& input, const Vector3& normal, const Vector3& lightDir, const Color& lightColor, const Vector3& viewDir, float attenuation)
     {
-        float lambertian = Mathf::Max(normal.Dot(lightDir), 0.f);
+		float lambertian = Mathf::Clamp01(normal.Dot(lightDir));
         float specular = 0.f;
         
         if (lambertian > 0.f)
@@ -89,7 +89,7 @@ struct Shader
         }
         
         Color output;
-        output.rgb = input.ambient.rgb
+        output.rgb = input.ambient.rgb * lightColor.rgb * attenuation
             + input.diffuse.rgb * lightColor.rgb * (lambertian * attenuation)
             + input.specular.rgb * lightColor.rgb * (specular * attenuation);
         //output.rgb = input.specular.rgb * specular;

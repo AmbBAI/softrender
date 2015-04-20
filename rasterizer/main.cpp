@@ -71,12 +71,14 @@ void MainLoop()
         scale = Vector3(1, 1, 1);
         Rasterizer::light = LightPtr(new Light());
         Rasterizer::light->type = Light::LightType_Point;
-        Rasterizer::light->position = Vector3(0.f, 0.57f, -2.f);
+		Rasterizer::light->color = Color::green;
+        //Rasterizer::light->position = Vector3(5.f, 0.f, -2.f);
+		Rasterizer::light->position = Vector3(0.f, 5.f, -2.f);
         Rasterizer::light->direction = Vector3(0.f, -1.f, 0.f);
-        Rasterizer::light->range = 10.f;
+        Rasterizer::light->range = 5.f;
         Rasterizer::light->atten0 = 0.f;
-        Rasterizer::light->atten1 = 1.f;
-        Rasterizer::light->atten2 = 0.f;
+        Rasterizer::light->atten1 = 0.f;
+        Rasterizer::light->atten2 = 1.f;
         Rasterizer::light->Initilize();
         
 
@@ -87,6 +89,8 @@ void MainLoop()
 		}
     }
 
+	//Rasterizer::light->position -= Vector3(0.01f, 0, 0);
+	Rasterizer::light->position -= Vector3(0, 0.01f, 0);
 	CameraController::UpdateCamera();
 
 	canvas->Clear();

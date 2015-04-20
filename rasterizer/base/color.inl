@@ -6,6 +6,14 @@
 namespace rasterizer
 {
     
+const ColorRGB ColorRGB::operator +(const ColorRGB& v) const { return ColorRGB(r + v.r, g + v.g, b + v.b); }
+const ColorRGB ColorRGB::operator += (const ColorRGB& v) { return (*this) = (*this) + v; }
+const ColorRGB ColorRGB::operator *(float f) const { return ColorRGB(r * f, g * f, b * f); }
+const ColorRGB ColorRGB::operator *(const ColorRGB& v) const { return ColorRGB(r * v.r, g * v.g, b * v.b); }
+const ColorRGB ColorRGB::operator *= (float f) { return (*this) = (*this) * f; }
+const ColorRGB ColorRGB::operator *= (const ColorRGB& v) { return (*this) = (*this) * v; }
+
+
 const Color Color::Add(const Color& c) const
 {
 	return Color(a + c.a, r + c.r, g + c.g, b + c.b);
