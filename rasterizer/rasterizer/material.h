@@ -15,11 +15,11 @@ typedef std::shared_ptr<Material> MaterialPtr;
 
 struct Material
 {
-	Color ambient;
-	Color diffuse;
-	Color specular;
-	float shininess;
-	Color emission;
+    Color ambient = Color::white;
+	Color diffuse = Color::white;
+	Color specular = Color::white;
+	float shininess = 10.f;
+	Color emission = Color::white;
 	
 	TexturePtr ambientTexture;
 	TexturePtr diffuseTexture;

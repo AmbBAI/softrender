@@ -35,28 +35,28 @@ struct Shader
 	virtual void VertexShader(VSOutputType& out) = 0;
 	virtual const Color PixelShader(const PSInputType& input) = 0;
     
-    const Color LightingLambert(const LightInput& input, const Vector3& normal, const Vector3& lightDir, float attenuation)
+    const Color LightingLambert(const LightInput& input, const Vector3& normal, const Vector3& lightDir, const Color& lightColor, float attenuation)
     {
         assert(light != nullptr);
         float nDotL = Mathf::Max(normal.Dot(lightDir.Negate()), 0.f);
         Color output;
-        output.rgb = input.ambient.rgb + input.diffuse.rgb * light->color.rgb * (nDotL * attenuation * 2.f);
+        output.rgb = input.ambient.rgb + input.diffuse.rgb * lightColor.rgb * (nDotL * attenuation * 2.f);
         output.a = input.diffuse.a;
         return output;
     }
     
-    const Color LightingHalfLambert(const LightInput& input, const Vector3& normal, const Vector3& lightDir, float attenuation)
+    const Color LightingHalfLambert(const LightInput& input, const Vector3& normal, const Vector3& lightDir, const Color& lightColor, float attenuation)
     {
         assert(light != nullptr);
         float nDotL = Mathf::Max(normal.Dot(lightDir.Negate()), 0.f);
         nDotL = nDotL * 0.8f + 0.2f;
         Color output;
-        output.rgb = input.ambient.rgb + input.diffuse.rgb * light->color.rgb * (nDotL * attenuation * 2.f);
+        output.rgb = input.ambient.rgb + input.diffuse.rgb * lightColor.rgb * (nDotL * attenuation * 2.f);
         output.a = input.diffuse.a;
         return output;
     }
     
-    const Color LightingBlinnPhong(const LightInput& input, const Vector3& normal, const Vector3& lightDir, const Vector3& viewDir, float attenuation)
+    const Color LightingBlinnPhong(const LightInput& input, const Vector3& normal, const Vector3& lightDir, const Color& lightColor, const Vector3& viewDir, float attenuation)
     {
         float lambertian = Mathf::Max(normal.Dot(lightDir), 0.f);
         float specular = 0.f;
@@ -69,13 +69,14 @@ struct Shader
         }
         
         Color output;
-        output.rgb = input.ambient.rgb + input.diffuse.rgb * (lambertian * attenuation) + input.specular.rgb * (specular * attenuation);
-        //output.rgb = input.specular.rgb * specular;
+        output.rgb = input.ambient.rgb
+            + input.diffuse.rgb * lightColor.rgb * (lambertian * attenuation);
+            + input.specular.rgb * lightColor.rgb * (specular * attenuation);
         output.a = input.diffuse.a;
         return output;
     }
     
-    const Color LightingPhong(const LightInput& input, const Vector3& normal, const Vector3& lightDir, const Vector3& viewDir, float attenuation)
+    const Color LightingPhong(const LightInput& input, const Vector3& normal, const Vector3& lightDir, const Color& lightColor, const Vector3& viewDir, float attenuation)
     {
         float lambertian = Mathf::Max(normal.Dot(lightDir), 0.f);
         float specular = 0.f;
@@ -88,7 +89,9 @@ struct Shader
         }
         
         Color output;
-        output.rgb = input.ambient.rgb + input.diffuse.rgb * lambertian + input.specular.rgb * specular;
+        output.rgb = input.ambient.rgb
+            + input.diffuse.rgb * lightColor.rgb * (lambertian * attenuation)
+            + input.specular.rgb * lightColor.rgb * (specular * attenuation);
         //output.rgb = input.specular.rgb * specular;
         output.a = input.diffuse.a;
         return output;

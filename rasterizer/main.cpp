@@ -34,14 +34,19 @@ void MainLoop()
 		Rasterizer::camera = CameraPtr(new Camera());
 		CameraController::InitCamera(Rasterizer::camera);
 
-		//mesh.push_back(CreatePlane());
-		//position = Vector3(0, -20.f, -20.f);
-		//rotation = Vector3(0, 0, 0);
-		//scale = Vector3(50, 50, 50);
-		//MaterialPtr material(new Material());
-		//material->diffuseTexture = Texture::LoadTexture("resources/cube/default.png");
-		//material->normalTexture = Texture::LoadTexture("resources/sponza/textures/lion_ddn.tga");
-		//mesh[0]->materials.push_back(material);
+//		mesh.push_back(CreatePlane());
+//		position = Vector3(0, 0, -20);
+//		rotation = Vector3(0, 0, 0);
+//		scale = Vector3(10, 10, 10);
+//		MaterialPtr material(new Material());
+//		//material->diffuseTexture = Texture::LoadTexture("resources/cube/default.png");
+//		//material->normalTexture = Texture::LoadTexture("resources/sponza/textures/lion_ddn.tga");
+//		mesh[0]->materials.push_back(material);
+//        Rasterizer::light = LightPtr(new Light());
+//        Rasterizer::light->type = Light::LightType_Point;
+//        Rasterizer::light->position = Vector3(0.f, 0.f, -15.f);
+//        Rasterizer::light->direction = Vector3(0.f, -1.f, 0.f);
+//        Rasterizer::light->Initilize();
 
 //        Rasterizer::light = LightPtr(new Light());
 //        Rasterizer::light->type = Light::LightType_Directional;
@@ -59,13 +64,20 @@ void MainLoop()
 		//rotation = Vector3(10, 10, 0);
 		//scale = Vector3(250, 250, 250);
         
-        
+        CameraController::moveScale = 0.5f;
         Mesh::LoadMesh(mesh, "resources/cornell-box/CornellBox-Sphere.obj");
         position = Vector3(0, -1, -2);
         rotation = Vector3(0, 0, 0);
         scale = Vector3(1, 1, 1);
         Rasterizer::light = LightPtr(new Light());
+        Rasterizer::light->type = Light::LightType_Point;
+        Rasterizer::light->position = Vector3(0.f, 0.57f, -2.f);
         Rasterizer::light->direction = Vector3(0.f, -1.f, 0.f);
+        Rasterizer::light->range = 10.f;
+        Rasterizer::light->atten0 = 0.f;
+        Rasterizer::light->atten1 = 1.f;
+        Rasterizer::light->atten2 = 0.f;
+        Rasterizer::light->Initilize();
         
 
 		for (auto& m : mesh)
