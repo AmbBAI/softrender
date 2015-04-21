@@ -93,7 +93,7 @@ void MainLoop()
     }
 
 	//Rasterizer::light->position -= Vector3(0.01f, 0, 0);
-	Rasterizer::light->position -= Vector3(0, 0.01f, 0);
+	//Rasterizer::light->position -= Vector3(0, 0.01f, 0);
 	CameraController::UpdateCamera();
 
 	canvas->Clear();
