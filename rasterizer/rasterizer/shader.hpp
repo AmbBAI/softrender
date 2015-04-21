@@ -68,7 +68,7 @@ struct Shader
             specular = Mathf::Pow(specAngle, input.shininess * 4.f);
         }
         
-        Color output;
+        Color output = Color::white;
 		output.rgb = input.ambient.rgb
 			+ (input.diffuse.rgb * lightColor.rgb * lambertian
 			+ input.specular.rgb * lightColor.rgb * specular) * attenuation;
@@ -89,10 +89,9 @@ struct Shader
         }
         
         Color output;
-        output.rgb = input.ambient.rgb * lightColor.rgb * attenuation
-            + input.diffuse.rgb * lightColor.rgb * (lambertian * attenuation)
-            + input.specular.rgb * lightColor.rgb * (specular * attenuation);
-        //output.rgb = input.specular.rgb * specular;
+        output.rgb = input.ambient.rgb
+            + (input.diffuse.rgb * lightColor.rgb * lambertian
+            + input.specular.rgb * lightColor.rgb * specular) * attenuation;
         output.a = input.diffuse.a;
         return output;
     }

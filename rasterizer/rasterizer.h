@@ -164,7 +164,6 @@ struct Shader0 : Shader < VertexStd, PSInput >
                         float distance = lightDir.Length();
                         lightDir /= distance;
                         attenuation = light->range / (light->atten0 + light->atten1 * distance + light-> atten2 * distance * distance);
-						if (light->range < distance) attenuation = 0.f;
                     }
                     break;
                 case Light::LightType_Spot:
@@ -173,7 +172,6 @@ struct Shader0 : Shader < VertexStd, PSInput >
                         float distance = lightDir.Length();
                         lightDir /= distance;
                         attenuation = light->range / (light->atten0 + light->atten1 * distance + light-> atten2 * distance * distance);
-						if (light->range > distance * 2) attenuation = 0.f;
 
                         float scale = (light->direction.Dot(lightDir) - light->cosHalfPhi) / (light->cosHalfTheta - light->cosHalfPhi);
                         scale = Mathf::Clamp01(Mathf::Pow(scale, light->falloff));
@@ -185,7 +183,7 @@ struct Shader0 : Shader < VertexStd, PSInput >
             Color lightColor = light->color;
             lightColor.rgb = lightColor.rgb * intensity;
             Vector3 viewDir = (camera->GetPosition() - input.position).Normalize();
-			output = LightingBlinnPhong(lightInput, normal, lightDir, lightColor, viewDir, attenuation);
+			output = LightingPhong(lightInput, normal, lightDir, lightColor, viewDir, attenuation);
         } else output = lightInput.ambient;
 
         return output;
