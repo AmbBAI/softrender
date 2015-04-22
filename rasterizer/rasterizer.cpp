@@ -457,6 +457,14 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform)
 			//DrawLine(p2.x, p0.x, p2.y, p0.y, Color::green);
 		}
 	}
+
+	Vector4 hc = shader._MATRIX_VP.MultiplyPoint(light->position);
+	u32 clipCode = Clipper::CalculateClipCode(hc);
+	if (0 == clipCode)
+	{
+		Projection point = Projection::CalculateViewProjection(hc, width, height);
+		canvas->SetPixel(point.x, point.y, Color::green);
+	}
 }
 
 }
