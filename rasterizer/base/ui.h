@@ -21,6 +21,8 @@ public:
     static void Begin();
     static void End();
 
+    static void test();
+    
 private:
     static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
     static void CharCallback(GLFWwindow* window, unsigned int value);

@@ -43,7 +43,7 @@ bool Application::CreateApplication(const char* title, int width, int height)
         return false;
     }
 
-	glfwWindowHint(GLFW_DOUBLEBUFFER, 0);
+	//glfwWindowHint(GLFW_DOUBLEBUFFER, 0);
 	glfwWindowHint(GLFW_RESIZABLE, 0);
     window = glfwCreateWindow(width, height, title, nullptr, nullptr);
     if (!window)
@@ -52,13 +52,16 @@ bool Application::CreateApplication(const char* title, int width, int height)
         return false;
     }
     
+    glfwSwapInterval(0);    
+    glfwSetTime(0);
+    
     glfwMakeContextCurrent(window);
 	
     this->width = width;
 	this->height = height;
     
-    //bool ret = UI::Initialize(window, width, height);
-    //assert(ret);
+    bool ret = UI::Initialize(window, width, height);
+    assert(ret);
     
 	return true;
 }
@@ -94,6 +97,7 @@ void Application::RunLoop()
 		thisFrameTime = GetTime();
 		deltaTime = thisFrameTime - lastFrameTime;
         if (loopFunc != nullptr) loopFunc();
+        glfwSwapBuffers(window);
 		glfwPollEvents();
     }
     glfwTerminate();
