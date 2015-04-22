@@ -43,6 +43,7 @@
 
 #ifdef _USE_GLEW_
 #include "glew/include/GL/glew.h"
+#define NANOVG_GLEW
 #endif
 #include "glfw/include/GLFW/glfw3.h"
 

@@ -126,6 +126,16 @@ void UI::ScrollCallback(GLFWwindow *window, double x, double y) {
     
 bool UI::Initialize(GLFWwindow* window, int width, int height, float radio/* = 1.f*/)
 {
+
+#ifdef NANOVG_GLEW
+	glewExperimental = GL_TRUE;
+	if(glewInit() != GLEW_OK) {
+		printf("Could not init glew.\n");
+		return -1;
+	}
+	// GLEW generates GL error because it calls glGetString(GL_EXTENSIONS), we'll consume it here.
+	glGetError();
+#endif
     
 #ifdef NANOVG_GL2_IMPLEMENTATION
     vg = nvgCreateGL2(NVG_ANTIALIAS);

@@ -2,7 +2,7 @@ solution "rasterizer"
   configurations {"Debug", "Debug_SIMD", "Release", "Release_SIMD"}
   language "C++"
 
-  configuration "Debug"
+  configuration "Debug or Debug_SIMD"
       defines { "DEBUG" }
       flags { "Symbols"}
       targetsuffix "_d"
