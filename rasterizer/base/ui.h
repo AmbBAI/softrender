@@ -23,6 +23,26 @@ public:
 
     static void test();
     
+public:
+	static int Panel();
+	static int HBox();
+	static int VBox();
+	static int Rect(const char* label, NVGcolor color);
+	static int Label(int icon, const char *label);
+	static int Button(int icon, const char *label, int *value);
+	static int CheckBox(const char *label, int *option);
+	static int RadioBox(int icon, const char *label, int *value);
+	static int TextBox(char *text, int maxsize);
+	static int Slider(const char *label, float *progress);
+
+private:
+	static void UIHandler(int item, UIevent event);
+	static void ButtonHandler(int item, UIevent event);
+	static void CheckHandler(int item, UIevent event);
+	static void RadioBoxHandler(int item, UIevent event);
+	static void SliderHandler(int item, UIevent event);
+	static void TextBoxHandler(int item, UIevent event);
+
 private:
     static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
     static void CharCallback(GLFWwindow* window, unsigned int value);

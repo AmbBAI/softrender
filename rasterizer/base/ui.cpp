@@ -21,12 +21,69 @@ UIcontext* UI::uictx = nullptr;
 NVGcontext* UI::vg = nullptr;
     
 
+typedef enum {
+	ST_LABEL = 0,
+	ST_BUTTON = 1,
+	ST_RADIO = 2,
+	ST_SLIDER = 3,
+	ST_COLUMN = 4,
+	ST_ROW = 5,
+	ST_CHECK = 6,
+	ST_PANEL = 7,
+	ST_TEXT = 8,
+	ST_IGNORE = 9,
+
+	ST_DEMOSTUFF = 10,
+	ST_RECT = 11,
+
+	ST_HBOX = 12,
+	ST_VBOX = 13,
+} SubType;
+
 typedef struct {
 	int subtype;
 	UIhandler handler;
 } UIData;
 
-void UIHandle(int item, UIevent event)
+typedef struct {
+	UIData head;
+	const char *label;
+	NVGcolor color;
+} UIRectData;
+
+typedef struct {
+	UIData head;
+	int icon;
+	const char *label;
+	int *value;
+} UIButtonData;
+
+typedef struct {
+	UIData head;
+	const char *label;
+	int *option;
+} UICheckData;
+
+typedef struct {
+	UIData head;
+	int icon;
+	const char *label;
+	int *value;
+} UIRadioData;
+
+typedef struct {
+	UIData head;
+	const char *label;
+	float *progress;
+} UISliderData;
+
+typedef struct {
+	UIData head;
+	char *text;
+	int maxsize;
+} UITextData;
+
+void UI::UIHandler(int item, UIevent event)
 {
     UIData *data = (UIData *)uiGetHandle(item);
     if (data && data->handler) {
@@ -84,7 +141,7 @@ bool UI::Initialize(GLFWwindow* window, int width, int height, float radio/* = 1
     if (uictx == nullptr) goto init_fail;
     uiMakeCurrent(uictx);
     
-    uiSetHandler(UIHandle);
+    uiSetHandler(UI::UIHandler);
     
     UI::width = width;
     UI::height = height;
@@ -128,6 +185,7 @@ void UI::SetFont(const char* file)
     assert(vg != nullptr);
     bndSetFont(nvgCreateFont(vg, "system", file));
 }
+
 void UI::SetIconImage(const char* file)
 {
     assert(vg != nullptr);
@@ -145,103 +203,10 @@ void UI::End()
     assert(vg != nullptr);
     nvgEndFrame(vg);
 }
- 
-    
-    typedef enum {
-        // label
-        ST_LABEL = 0,
-        // button
-        ST_BUTTON = 1,
-        // radio button
-        ST_RADIO = 2,
-        // progress slider
-        ST_SLIDER = 3,
-        // column
-        ST_COLUMN = 4,
-        // row
-        ST_ROW = 5,
-        // check button
-        ST_CHECK = 6,
-        // panel
-        ST_PANEL = 7,
-        // text
-        ST_TEXT = 8,
-        //
-        ST_IGNORE = 9,
-        
-        ST_DEMOSTUFF = 10,
-        // colored rectangle
-        ST_RECT = 11,
-        
-        ST_HBOX = 12,
-        ST_VBOX = 13,
-    } SubType;
-    
-    typedef struct {
-        UIData head;
-        const char *label;
-        NVGcolor color;
-    } UIRectData;
-    
-    typedef struct {
-        UIData head;
-        int iconid;
-        const char *label;
-    } UIButtonData;
-    
-    typedef struct {
-        UIData head;
-        const char *label;
-        int *option;
-    } UICheckData;
-    
-    typedef struct {
-        UIData head;
-        int iconid;
-        const char *label;
-        int *value;
-    } UIRadioData;
-    
-    typedef struct {
-        UIData head;
-        const char *label;
-        float *progress;
-    } UISliderData;
-    
-    typedef struct {
-        UIData head;
-        char *text;
-        int maxsize;
-    } UITextData;
     
     ////////////////////////////////////////////////////////////////////////////////
     
     void draw_demostuff(NVGcontext *vg, int x, int y, float w, float h);
-    
-    static struct NVGcontext* _vg = NULL;
-    
-    void ui_handler(int item, UIevent event) {
-        UIData *data = (UIData *)uiGetHandle(item);
-        if (data && data->handler) {
-            data->handler(item, event);
-        }
-    }
-    
-    void init(NVGcontext *vg) {
-        bndSetFont(nvgCreateFont(vg, "system", "../DejaVuSans.ttf"));
-        bndSetIconImage(nvgCreateImage(vg, "../blender_icons16.png", 0));
-    }
-    
-    void testrect(NVGcontext *vg, UIrect rect) {
-#if 0
-        nvgBeginPath(vg);
-        nvgRect(vg,rect.x+0.5,rect.y+0.5,rect.w-1,rect.h-1);
-        nvgStrokeColor(vg,nvgRGBf(1,0,0));
-        nvgStrokeWidth(vg,1);
-        nvgStroke(vg);
-#endif
-    }
-    
     
     void drawUI(NVGcontext *vg, int item, int corners);
     
@@ -296,7 +261,6 @@ void UI::End()
         if (head) {
             switch(head->subtype) {
                 default: {
-                    testrect(vg,rect);
                     drawUIItems(vg,item,corners);
                 } break;
                 case ST_HBOX: {
@@ -313,13 +277,13 @@ void UI::End()
                     assert(head);
                     const UIButtonData *data = (UIButtonData*)head;
                     bndLabel(vg,rect.x,rect.y,rect.w,rect.h,
-                             data->iconid,data->label);
+                             data->icon,data->label);
                 } break;
                 case ST_BUTTON: {
                     const UIButtonData *data = (UIButtonData*)head;
                     bndToolButton(vg,rect.x,rect.y,rect.w,rect.h,
                                   corners,(BNDwidgetState)uiGetState(item),
-                                  data->iconid,data->label);
+                                  data->icon,data->label);
                 } break;
                 case ST_CHECK: {
                     const UICheckData *data = (UICheckData*)head;
@@ -336,7 +300,7 @@ void UI::End()
                         state = BND_ACTIVE;
                     bndRadioButton(vg,rect.x,rect.y,rect.w,rect.h,
                                    corners,state,
-                                   data->iconid,data->label);
+                                   data->icon,data->label);
                 } break;
                 case ST_SLIDER:{
                     const UISliderData *data = (UISliderData*)head;
@@ -397,7 +361,6 @@ void UI::End()
                 } break;
             }
         } else {
-            testrect(vg,rect);
             drawUIItems(vg,item,corners);
         }
         
@@ -407,208 +370,212 @@ void UI::End()
     }
     
     
-    int colorrect(const char *label, NVGcolor color) {
-        int item = uiItem();
-        UIRectData *data = (UIRectData *)uiAllocHandle(item, sizeof(UIRectData));
-        data->head.subtype = ST_RECT;
-        data->head.handler = NULL;
-        data->label = label;
-        data->color = color;
-        uiSetEvents(item, UI_BUTTON0_DOWN);
-        return item;
+int UI::Rect(const char *label, NVGcolor color) {
+    int item = uiItem();
+    UIRectData *data = (UIRectData *)uiAllocHandle(item, sizeof(UIRectData));
+    data->head.subtype = ST_RECT;
+    data->head.handler = NULL;
+    data->label = label;
+    data->color = color;
+    uiSetEvents(item, UI_BUTTON0_DOWN);
+    return item;
+}
+    
+int UI::Label(int icon, const char *label) {
+	int item = uiItem();
+	uiSetSize(item, 0, BND_WIDGET_HEIGHT);
+	UIButtonData *data = (UIButtonData *)uiAllocHandle(item, sizeof(UIButtonData));
+	data->head.subtype = ST_LABEL;
+	data->head.handler = NULL;
+	data->icon = icon;
+	data->label = label;
+	return item;
+}
+    
+int UI::Button(int icon, const char *label, int *value) {
+	// create new ui item
+	int item = uiItem();
+	// set size of wiget; horizontal size is dynamic, vertical is fixed
+	uiSetSize(item, 0, BND_WIDGET_HEIGHT);
+	uiSetEvents(item, UI_BUTTON0_HOT_UP);
+	// store some custom data with the button that we use for styling
+	UIButtonData *data = (UIButtonData *)uiAllocHandle(item, sizeof(UIButtonData));
+	data->head.subtype = ST_BUTTON;
+	data->head.handler = UI::ButtonHandler;
+	data->icon = icon;
+	data->label = label;
+	return item;
+}
+
+void UI::ButtonHandler(int item, UIevent event) {
+	const UIButtonData *data = (const UIButtonData *)uiGetHandle(item);
+	UIitemState state = uiGetState(item);
+	switch (state)
+	{
+	case UI_ACTIVE:
+		*(data->value) = 1;
+		break;
+	default:
+		*(data->value) = 0;
+		break;
+	}
+}
+    
+void UI::CheckHandler(int item, UIevent event) {
+    const UICheckData *data = (const UICheckData *)uiGetHandle(item);
+    *data->option = !(*data->option);
+}
+    
+int UI::CheckBox(const char *label, int *option) {
+    // create new ui item
+    int item = uiItem();
+    // set size of wiget; horizontal size is dynamic, vertical is fixed
+    uiSetSize(item, 0, BND_WIDGET_HEIGHT);
+    // attach event handler e.g. demohandler above
+    uiSetEvents(item, UI_BUTTON0_DOWN);
+    // store some custom data with the button that we use for styling
+    UICheckData *data = (UICheckData *)uiAllocHandle(item, sizeof(UICheckData));
+    data->head.subtype = ST_CHECK;
+	data->head.handler = UI::CheckHandler;
+    data->label = label;
+    data->option = option;
+    return item;
+}
+    
+// event handler for slider (same handler for all sliders)
+void UI::SliderHandler(int item, UIevent event) {
+    // retrieve the custom data we saved with the slider
+    UISliderData *data = (UISliderData *)uiGetHandle(item);
+	static float sliderstart = 0.0f;
+    switch(event) {
+        default: break;
+        case UI_BUTTON0_DOWN: {
+            // button was pressed for the first time; capture initial
+            // slider value.
+			sliderstart = *data->progress;
+        } break;
+        case UI_BUTTON0_CAPTURE: {
+            // called for every frame that the button is pressed.
+            // get the delta between the click point and the current
+            // mouse position
+            UIvec2 pos = uiGetCursorStartDelta();
+            // get the items layouted rectangle
+            UIrect rc = uiGetRect(item);
+            // calculate our new offset and clamp
+            float value = sliderstart + ((float)pos.x / (float)rc.w);
+            value = (value<0)?0:(value>1)?1:value;
+            // assign the new value
+            *data->progress = value;
+        } break;
     }
+}
     
-    int label(int iconid, const char *label) {
-        int item = uiItem();
-        uiSetSize(item, 0, BND_WIDGET_HEIGHT);
-        UIButtonData *data = (UIButtonData *)uiAllocHandle(item, sizeof(UIButtonData));
-        data->head.subtype = ST_LABEL;
-        data->head.handler = NULL;
-        data->iconid = iconid;
-        data->label = label;
-        return item;
+int UI::Slider(const char *label, float *progress) {
+    // create new ui item
+    int item = uiItem();
+    // set size of wiget; horizontal size is dynamic, vertical is fixed
+    uiSetSize(item, 0, BND_WIDGET_HEIGHT);
+    // attach our slider event handler and capture two classes of events
+    uiSetEvents(item, UI_BUTTON0_DOWN | UI_BUTTON0_CAPTURE);
+    // store some custom data with the button that we use for styling
+    // and logic, e.g. the pointer to the data we want to alter.
+    UISliderData *data = (UISliderData *)uiAllocHandle(item, sizeof(UISliderData));
+    data->head.subtype = ST_SLIDER;
+    data->head.handler = UI::SliderHandler;
+    data->label = label;
+    data->progress = progress;
+    return item;
+}
+    
+void UI::TextBoxHandler(int item, UIevent event) {
+    UITextData *data = (UITextData *)uiGetHandle(item);
+    switch(event) {
+        default: break;
+        case UI_BUTTON0_DOWN: {
+            uiFocus(item);
+        } break;
+        case UI_KEY_DOWN: {
+            unsigned int key = uiGetKey();
+            switch(key) {
+                default: break;
+                case GLFW_KEY_BACKSPACE: {
+                    int size = strlen(data->text);
+                    if (!size) return;
+                    data->text[size-1] = 0;
+                } break;
+                case GLFW_KEY_ENTER: {
+                    uiFocus(-1);
+                } break;
+            }
+        } break;
+        case UI_CHAR: {
+            unsigned int key = uiGetKey();
+            if ((key > 255)||(key < 32)) return;
+            int size = strlen(data->text);
+            if (size >= (data->maxsize-1)) return;
+            data->text[size] = (char)key;
+        } break;
     }
+}
     
-    void demohandler(int item, UIevent event) {
-        const UIButtonData *data = (const UIButtonData *)uiGetHandle(item);
-        printf("clicked: %p %s\n", uiGetHandle(item), data->label);
-    }
+int UI::TextBox(char *text, int maxsize) {
+    int item = uiItem();
+    uiSetSize(item, 0, BND_WIDGET_HEIGHT);
+    uiSetEvents(item, UI_BUTTON0_DOWN | UI_KEY_DOWN | UI_CHAR);
+    // store some custom data with the button that we use for styling
+    // and logic, e.g. the pointer to the data we want to alter.
+    UITextData *data = (UITextData *)uiAllocHandle(item, sizeof(UITextData));
+    data->head.subtype = ST_TEXT;
+    data->head.handler = UI::TextBoxHandler;
+    data->text = text;
+    data->maxsize = maxsize;
+    return item;
+}
     
-    int button(int iconid, const char *label, UIhandler handler) {
-        // create new ui item
-        int item = uiItem();
-        // set size of wiget; horizontal size is dynamic, vertical is fixed
-        uiSetSize(item, 0, BND_WIDGET_HEIGHT);
-        uiSetEvents(item, UI_BUTTON0_HOT_UP);
-        // store some custom data with the button that we use for styling
-        UIButtonData *data = (UIButtonData *)uiAllocHandle(item, sizeof(UIButtonData));
-        data->head.subtype = ST_BUTTON;
-        data->head.handler = handler;
-        data->iconid = iconid;
-        data->label = label;
-        return item;
-    }
+void UI::RadioBoxHandler(int item, UIevent event)
+{
+	UIRadioData *data = (UIRadioData *)uiGetHandle(item);
+	*(data->value) = item;
+}
+
+int UI::RadioBox(int icon, const char *label, int *value) {
+    int item = uiItem();
+    uiSetSize(item, label?0:BND_TOOL_WIDTH, BND_WIDGET_HEIGHT);
+    UIRadioData *data = (UIRadioData *)uiAllocHandle(item, sizeof(UIRadioData));
+    data->head.subtype = ST_RADIO;
+	data->head.handler = UI::RadioBoxHandler;
+    data->icon = icon;
+    data->label = label;
+    data->value = value;
+    uiSetEvents(item, UI_BUTTON0_DOWN);
+    return item;
+}
     
-    void checkhandler(int item, UIevent event) {
-        const UICheckData *data = (const UICheckData *)uiGetHandle(item);
-        *data->option = !(*data->option);
-    }
+int UI::Panel() {
+	int item = uiItem();
+	UIData *data = (UIData *)uiAllocHandle(item, sizeof(UIData));
+	data->subtype = ST_PANEL;
+	data->handler = NULL;
+	return item;
+}
     
-    int check(const char *label, int *option) {
-        // create new ui item
-        int item = uiItem();
-        // set size of wiget; horizontal size is dynamic, vertical is fixed
-        uiSetSize(item, 0, BND_WIDGET_HEIGHT);
-        // attach event handler e.g. demohandler above
-        uiSetEvents(item, UI_BUTTON0_DOWN);
-        // store some custom data with the button that we use for styling
-        UICheckData *data = (UICheckData *)uiAllocHandle(item, sizeof(UICheckData));
-        data->head.subtype = ST_CHECK;
-        data->head.handler = checkhandler;
-        data->label = label;
-        data->option = option;
-        return item;
-    }
+int UI::HBox() {
+	int item = uiItem();
+	UIData *data = (UIData *)uiAllocHandle(item, sizeof(UIData));
+	data->subtype = ST_HBOX;
+	data->handler = NULL;
+	uiSetBox(item, UI_ROW);
+	return item;
+}
     
-    // simple logic for a slider
-    
-    // starting offset of the currently active slider
-    static float sliderstart = 0.0;
-    
-    // event handler for slider (same handler for all sliders)
-    void sliderhandler(int item, UIevent event) {
-        // retrieve the custom data we saved with the slider
-        UISliderData *data = (UISliderData *)uiGetHandle(item);
-        switch(event) {
-            default: break;
-            case UI_BUTTON0_DOWN: {
-                // button was pressed for the first time; capture initial
-                // slider value.
-                sliderstart = *data->progress;
-            } break;
-            case UI_BUTTON0_CAPTURE: {
-                // called for every frame that the button is pressed.
-                // get the delta between the click point and the current
-                // mouse position
-                UIvec2 pos = uiGetCursorStartDelta();
-                // get the items layouted rectangle
-                UIrect rc = uiGetRect(item);
-                // calculate our new offset and clamp
-                float value = sliderstart + ((float)pos.x / (float)rc.w);
-                value = (value<0)?0:(value>1)?1:value;
-                // assign the new value
-                *data->progress = value;
-            } break;
-        }
-    }
-    
-    int slider(const char *label, float *progress) {
-        // create new ui item
-        int item = uiItem();
-        // set size of wiget; horizontal size is dynamic, vertical is fixed
-        uiSetSize(item, 0, BND_WIDGET_HEIGHT);
-        // attach our slider event handler and capture two classes of events
-        uiSetEvents(item, UI_BUTTON0_DOWN | UI_BUTTON0_CAPTURE);
-        // store some custom data with the button that we use for styling
-        // and logic, e.g. the pointer to the data we want to alter.
-        UISliderData *data = (UISliderData *)uiAllocHandle(item, sizeof(UISliderData));
-        data->head.subtype = ST_SLIDER;
-        data->head.handler = sliderhandler;
-        data->label = label;
-        data->progress = progress;
-        return item;
-    }
-    
-    void textboxhandler(int item, UIevent event) {
-        UITextData *data = (UITextData *)uiGetHandle(item);
-        switch(event) {
-            default: break;
-            case UI_BUTTON0_DOWN: {
-                uiFocus(item);
-            } break;
-            case UI_KEY_DOWN: {
-                unsigned int key = uiGetKey();
-                switch(key) {
-                    default: break;
-                    case GLFW_KEY_BACKSPACE: {
-                        int size = strlen(data->text);
-                        if (!size) return;
-                        data->text[size-1] = 0;
-                    } break;
-                    case GLFW_KEY_ENTER: {
-                        uiFocus(-1);
-                    } break;
-                }
-            } break;
-            case UI_CHAR: {
-                unsigned int key = uiGetKey();
-                if ((key > 255)||(key < 32)) return;
-                int size = strlen(data->text);
-                if (size >= (data->maxsize-1)) return;
-                data->text[size] = (char)key;
-            } break;
-        }
-    }
-    
-    int textbox(char *text, int maxsize) {
-        int item = uiItem();
-        uiSetSize(item, 0, BND_WIDGET_HEIGHT);
-        uiSetEvents(item, UI_BUTTON0_DOWN | UI_KEY_DOWN | UI_CHAR);
-        // store some custom data with the button that we use for styling
-        // and logic, e.g. the pointer to the data we want to alter.
-        UITextData *data = (UITextData *)uiAllocHandle(item, sizeof(UITextData));
-        data->head.subtype = ST_TEXT;
-        data->head.handler = textboxhandler;
-        data->text = text;
-        data->maxsize = maxsize;
-        return item;
-    }
-    
-    // simple logic for a radio button
-    void radiohandler(int item, UIevent event) {
-        UIRadioData *data = (UIRadioData *)uiGetHandle(item);
-        *data->value = item;
-    }
-    
-    int radio(int iconid, const char *label, int *value) {
-        int item = uiItem();
-        uiSetSize(item, label?0:BND_TOOL_WIDTH, BND_WIDGET_HEIGHT);
-        UIRadioData *data = (UIRadioData *)uiAllocHandle(item, sizeof(UIRadioData));
-        data->head.subtype = ST_RADIO;
-        data->head.handler = radiohandler;
-        data->iconid = iconid;
-        data->label = label;
-        data->value = value;
-        uiSetEvents(item, UI_BUTTON0_DOWN);
-        return item;
-    }
-    
-    int panel() {
-        int item = uiItem();
-        UIData *data = (UIData *)uiAllocHandle(item, sizeof(UIData));
-        data->subtype = ST_PANEL;
-        data->handler = NULL;
-        return item;
-    }
-    
-    int hbox() {
-        int item = uiItem();
-        UIData *data = (UIData *)uiAllocHandle(item, sizeof(UIData));
-        data->subtype = ST_HBOX;
-        data->handler = NULL;
-        uiSetBox(item, UI_ROW);
-        return item;
-    }
-    
-    
-    int vbox() {
-        int item = uiItem();
-        UIData *data = (UIData *)uiAllocHandle(item, sizeof(UIData));
-        data->subtype = ST_VBOX;
-        data->handler = NULL;
-        uiSetBox(item, UI_COLUMN);
-        return item;
-    }
+int UI::VBox() {
+	int item = uiItem();
+	UIData *data = (UIData *)uiAllocHandle(item, sizeof(UIData));
+	data->subtype = ST_VBOX;
+	data->handler = NULL;
+	uiSetBox(item, UI_COLUMN);
+	return item;
+}
     
     
     int column_append(int parent, int item) {
@@ -908,53 +875,57 @@ void UI::End()
         static int option1 = 1;
         static int option2 = 0;
         static int option3 = 0;
-        
+		static int btn1 = 0;
+		static int btn2 = 0;
+		static int btn3 = 0;
+		static int btn4 = 0;
+
         int col = column();
         uiInsert(parent, col);
         uiSetMargins(col, 10, 10, 10, 10);
         uiSetLayout(col, UI_TOP|UI_HFILL);
         
-        column_append(col, button(BND_ICON_GHOST, "Item 1", demohandler));
+        column_append(col, UI::Button(BND_ICON_GHOST, "Item 1", &btn1));
         if (option3)
-            column_append(col, button(BND_ICON_GHOST, "Item 2", demohandler));
+			column_append(col, UI::Button(BND_ICON_GHOST, "Item 2", &btn2));
         
         {
-            int h = column_append(col, hbox());
-            hgroup_append(h, radio(BND_ICON_GHOST, "Item 3.0", &enum1));
+            int h = column_append(col, UI::HBox());
+            hgroup_append(h, UI::RadioBox(BND_ICON_GHOST, "Item 3.0", &enum1));
             if (option2)
-                uiSetMargins(hgroup_append_fixed(h, radio(BND_ICON_REC, NULL, &enum1)), -1,0,0,0);
-            uiSetMargins(hgroup_append_fixed(h, radio(BND_ICON_PLAY, NULL, &enum1)), -1,0,0,0);
-            uiSetMargins(hgroup_append(h, radio(BND_ICON_GHOST, "Item 3.3", &enum1)), -1,0,0,0);
+				uiSetMargins(hgroup_append_fixed(h, UI::RadioBox(BND_ICON_REC, NULL, &enum1)), -1, 0, 0, 0);
+			uiSetMargins(hgroup_append_fixed(h, UI::RadioBox(BND_ICON_PLAY, NULL, &enum1)), -1, 0, 0, 0);
+			uiSetMargins(hgroup_append(h, UI::RadioBox(BND_ICON_GHOST, "Item 3.3", &enum1)), -1, 0, 0, 0);
         }
         
         {
             int rows = column_append(col, row());
             int coll = row_append(rows, vgroup());
-            vgroup_append(coll, label(-1, "Items 4.0:"));
-            coll = vgroup_append(coll, vbox());
-            vgroup_append(coll, button(BND_ICON_GHOST, "Item 4.0.0", demohandler));
-            uiSetMargins(vgroup_append(coll, button(BND_ICON_GHOST, "Item 4.0.1", demohandler)),0,-2,0,0);
+            vgroup_append(coll, UI::Label(-1, "Items 4.0:"));
+            coll = vgroup_append(coll, UI::VBox());
+            vgroup_append(coll, UI::Button(BND_ICON_GHOST, "Item 4.0.0", &btn3));
+			uiSetMargins(vgroup_append(coll, UI::Button(BND_ICON_GHOST, "Item 4.0.1", &btn4)), 0, -2, 0, 0);
             int colr = row_append(rows, vgroup());
             uiSetMargins(colr, 8, 0, 0, 0);
             uiSetFrozen(colr, option1);
-            vgroup_append(colr, label(-1, "Items 4.1:"));
-            colr = vgroup_append(colr, vbox());
-            vgroup_append(colr, slider("Item 4.1.0", &progress1));
-            uiSetMargins(vgroup_append(colr, slider("Item 4.1.1", &progress2)),0,-2,0,0);
+			vgroup_append(colr, UI::Label(-1, "Items 4.1:"));
+            colr = vgroup_append(colr, UI::VBox());
+            vgroup_append(colr, UI::Slider("Item 4.1.0", &progress1));
+            uiSetMargins(vgroup_append(colr, UI::Slider("Item 4.1.1", &progress2)),0,-2,0,0);
         }
         
-        column_append(col, button(BND_ICON_GHOST, "Item 5", NULL));
+        column_append(col, UI::Button(BND_ICON_GHOST, "Item 5", NULL));
         
         static char textbuffer[1024] = "The quick brown fox.";
-        column_append(col, textbox(textbuffer, 1024));
+        column_append(col, UI::TextBox(textbuffer, 1024));
         
-        column_append(col, check("Frozen", &option1));
-        column_append(col, check("Item 7", &option2));
-        column_append(col, check("Item 8", &option3));
+        column_append(col, UI::CheckBox("Frozen", &option1));
+		column_append(col, UI::CheckBox("Item 7", &option2));
+		column_append(col, UI::CheckBox("Item 8", &option3));
     }
     
     int demorect(int parent, const char *label, float hue, int box, int layout, int w, int h, int m1, int m2, int m3, int m4) {
-        int item = colorrect(label, nvgHSL(hue, 1.0f, 0.8f));
+        int item = UI::Rect(label, nvgHSL(hue, 1.0f, 0.8f));
         uiSetLayout(item, layout);
         uiSetBox(item, box);
         uiSetMargins(item, m1, m2, m3, m4);
@@ -1168,7 +1139,7 @@ void UI::End()
     
     
     int add_menu_option(int parent, const char *name, int *choice) {
-        int opt = radio(-1, name, choice);
+		int opt = UI::RadioBox(-1, name, choice);
         uiInsert(parent, opt);
         uiSetLayout(opt, UI_HFILL|UI_TOP);
         uiSetMargins(opt, 1, 1, 1, 1);
@@ -1178,12 +1149,10 @@ void UI::End()
     void draw(NVGcontext *vg, float w, float h) {
         bnd_theme.backgroundColor.a = 0.3f;
         bndBackground(vg, 0, 0, w, h);
-        
-        // some OUI stuff
-        
+
         uiBeginLayout();
         
-        int root = panel();
+        int root = UI::Panel();
         // position root element
         uiSetSize(0,w,h);
         ((UIData*)uiGetHandle(root))->handler = roothandler;
