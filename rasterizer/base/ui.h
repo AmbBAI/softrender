@@ -21,18 +21,15 @@ public:
 
     static void Begin();
     static void End();
-
-    static void test();
     
 public:
 	static int Panel(int parent, unsigned layout, int width, int height);
-	static int Label(int parent, int icon, const char *label, Color color, unsigned layout = 0, int width = 0, int height = BND_WIDGET_HEIGHT);
+	static int Label(int parent, int icon, const char *label, const Color& color, unsigned layout = 0);
 
-	static int Box(unsigned layout, unsigned flags);
-	static int Rect(const char* label, NVGcolor color);
-	static int Button(int icon, const char *label, int *value);
-	static int CheckBox(const char *label, int *option);
-	static int RadioBox(int icon, const char *label, int *value);
+	static int Box(int parent, unsigned flags, unsigned layout = 0);
+	static int Button(int parent, int icon, const char *label, unsigned layout = 0);
+	static int Check(int parent, const char *label, int *option, unsigned layout = 0);
+	static int Radio(int parent, int icon, const char *label, int *value, unsigned layout = 0);
 	static int TextBox(char *text, int maxsize);
 	static int Slider(const char *label, float *progress);
 
@@ -44,9 +41,13 @@ private:
 	static void UIHandler(int item, UIevent event);
 	static void ButtonHandler(int item, UIevent event);
 	static void CheckHandler(int item, UIevent event);
-	static void RadioBoxHandler(int item, UIevent event);
+	static void RadioHandler(int item, UIevent event);
 	static void SliderHandler(int item, UIevent event);
 	static void TextBoxHandler(int item, UIevent event);
+
+private:
+	static void DrawUIItems(int item, int corners);
+	static void DrawUIItemsBox(int item);
 
 private:
     static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);

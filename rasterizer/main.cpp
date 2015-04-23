@@ -54,16 +54,16 @@ void MainLoop()
 //        Rasterizer::light->atten2 = 1.f;
 //        Rasterizer::light->Initilize();
 
-//		Mesh::LoadMesh(mesh, "resources/crytek-sponza/sponza.obj");
-//		position = Vector3(0, 0, 0);
-//		rotation = Vector3(0, 0, 0);
-//		scale = Vector3(1, 1, 1);
-//        Rasterizer::light = LightPtr(new Light());
-//        Rasterizer::light->type = Light::LightType_Directional;
-//        Rasterizer::light->position = Vector3(0, 300, 0);
-//        Rasterizer::light->direction = Vector3(-1.f, -1.f, -1.f).Normalize();
-//        Rasterizer::light->range = 1000.f;
-//        Rasterizer::light->Initilize();
+		Mesh::LoadMesh(mesh, "resources/crytek-sponza/sponza.obj");
+		position = Vector3(0, 0, 0);
+		rotation = Vector3(0, 0, 0);
+		scale = Vector3(1, 1, 1);
+        Rasterizer::light = LightPtr(new Light());
+        Rasterizer::light->type = Light::LightType_Directional;
+        Rasterizer::light->position = Vector3(0, 300, 0);
+        Rasterizer::light->direction = Vector3(-1.f, -1.f, -1.f).Normalize();
+        Rasterizer::light->range = 1000.f;
+        Rasterizer::light->Initilize();
         
 		//Mesh::LoadMesh(mesh, "resources/head/head.OBJ");
 		//position = Vector3(0, 10, -50);
@@ -88,11 +88,11 @@ void MainLoop()
   //      Rasterizer::light->Initilize();
         
 
-		//for (auto& m : mesh)
-		//{
-		//	if (m->normals.size() <= 0)
-		//		m->RecalculateNormals();
-		//}
+		for (auto& m : mesh)
+		{
+			if (m->normals.size() <= 0)
+				m->RecalculateNormals();
+		}
     }
 
 	//Rasterizer::light->position -= Vector3(0.01f, 0, 0);
@@ -101,21 +101,19 @@ void MainLoop()
 
 	canvas->Clear();
 
-	//Matrix4x4 trans(position, Quaternion(rotation), scale);
+	Matrix4x4 trans(position, Quaternion(rotation), scale);
 
-	//for (auto& m : mesh)
-	//{
-	//	if (m->materials.size() > 0) Rasterizer::material = m->materials[0];
-	//	Rasterizer::DrawMesh(*m, trans);
- //       //Rasterizer::DrawMeshWireFrame(*m, trans, Color::red);
- //       //Rasterizer::DrawMeshPoint(*m, trans, Color::red);
-	//}
+	for (auto& m : mesh)
+	{
+		if (m->materials.size() > 0) Rasterizer::material = m->materials[0];
+		Rasterizer::DrawMesh(*m, trans);
+        //Rasterizer::DrawMeshWireFrame(*m, trans, Color::red);
+        //Rasterizer::DrawMeshPoint(*m, trans, Color::red);
+	}
 
     canvas->Present();
 
     UI::Begin();
-
-    //UI::test();
 
 	char fs[512];
 	sprintf(fs, "%.3f", app->GetDeltaTime());
@@ -124,20 +122,19 @@ void MainLoop()
 
 	int root = UI::Panel(-1, UI_FILL, 800, 600);
 	int info = UI::Panel(root, UI_TOP | UI_LEFT, 200, 0);
-	int label = UI::Label(info, -1, fs, Color::red, UI_HFILL | UI_TOP);
+	int label = UI::Label(info, -1, fs, Color::red, UI_HFILL);
 
 	int panel = UI::Panel(root, UI_TOP | UI_RIGHT, 200, 0);
 	uiSetBox(panel, UI_COLUMN);
 
-	int box = UI::Box(UI_ROW, UI_HFILL | UI_TOP);
-	uiInsert(panel, box);
+	int box = UI::Box(panel, UI_ROW, UI_HFILL | UI_TOP);
 	static int menu_status = -1;
-	int menu1 = UI::RadioBox(BND_ICON_MESH_DATA, NULL, &menu_status);
-	uiInsert(box, menu1);
-	int box2 = UI::Box(UI_ROW, UI_HFILL | UI_TOP);
-	uiInsert(panel, box2);
-	int menu2 = UI::RadioBox(BND_ICON_LIGHTPAINT, NULL, &menu_status);
-	uiInsert(box, menu2);
+	int menu1 = UI::Radio(box, BND_ICON_MESH_DATA, NULL, &menu_status);
+	int menu2 = UI::Radio(box, BND_ICON_LIGHTPAINT, NULL, &menu_status);
+	int menu3 = UI::Radio(box, BND_ICON_FILTER, NULL, &menu_status);
+	int menu4 = UI::Radio(box, BND_ICON_CAMERA_DATA, NULL, &menu_status);
+
+	//int box2 = UI::Box(panel, UI_ROW, UI_HFILL | UI_TOP);
 
 	UI::EndLayout();
 
