@@ -2,6 +2,7 @@
 #define _BASE_UI_H_
 
 #include "base/header.h"
+#include "base/color.h"
 
 #include "nanovg/src/nanovg.h"
 #include "blendish/blendish.h"
@@ -24,16 +25,20 @@ public:
     static void test();
     
 public:
-	static int Panel();
-	static int HBox();
-	static int VBox();
+	static int Panel(int parent, unsigned layout, int width, int height);
+	static int Label(int parent, int icon, const char *label, Color color, unsigned layout = 0, int width = 0, int height = BND_WIDGET_HEIGHT);
+
+	static int Box(UIboxFlags flags);
 	static int Rect(const char* label, NVGcolor color);
-	static int Label(int icon, const char *label);
 	static int Button(int icon, const char *label, int *value);
 	static int CheckBox(const char *label, int *option);
 	static int RadioBox(int icon, const char *label, int *value);
 	static int TextBox(char *text, int maxsize);
 	static int Slider(const char *label, float *progress);
+
+	static void BeginLayout();
+	static void EndLayout();
+	static void DrawUI(int item, int corners);
 
 private:
 	static void UIHandler(int item, UIevent event);

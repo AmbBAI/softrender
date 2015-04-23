@@ -30,8 +30,6 @@ Vector3 rotation = Vector3::zero;
 Vector3 scale = Vector3::one;
 void MainLoop()
 {
-	printf("%.3f\n", app->GetDeltaTime());
-
     if (mesh.size() == 0)
     {
 		Rasterizer::Initialize();
@@ -72,29 +70,29 @@ void MainLoop()
 		//rotation = Vector3(10, 10, 0);
 		//scale = Vector3(250, 250, 250);
         
-        CameraController::moveScale = 0.5f;
-        Mesh::LoadMesh(mesh, "resources/cornell-box/CornellBox-Sphere.obj");
-        position = Vector3(0, -1, -2);
-        rotation = Vector3(0, 0, 0);
-        scale = Vector3(1, 1, 1);
-        Rasterizer::light = LightPtr(new Light());
-        Rasterizer::light->type = Light::LightType_Point;
-		Rasterizer::light->color = Color::white;
-        //Rasterizer::light->position = Vector3(5.f, 0.f, -2.f);
-		Rasterizer::light->position = Vector3(0.f, 5.f, -2.f);
-        Rasterizer::light->direction = Vector3(0.f, -1.f, 0.f);
-        Rasterizer::light->range = 10.f;
-        Rasterizer::light->atten0 = 2.f;
-        Rasterizer::light->atten1 = 2.f;
-        Rasterizer::light->atten2 = 1.f;
-        Rasterizer::light->Initilize();
+  //      CameraController::moveScale = 0.5f;
+  //      Mesh::LoadMesh(mesh, "resources/cornell-box/CornellBox-Sphere.obj");
+  //      position = Vector3(0, -1, -2);
+  //      rotation = Vector3(0, 0, 0);
+  //      scale = Vector3(1, 1, 1);
+  //      Rasterizer::light = LightPtr(new Light());
+  //      Rasterizer::light->type = Light::LightType_Point;
+		//Rasterizer::light->color = Color::white;
+  //      //Rasterizer::light->position = Vector3(5.f, 0.f, -2.f);
+		//Rasterizer::light->position = Vector3(0.f, 5.f, -2.f);
+  //      Rasterizer::light->direction = Vector3(0.f, -1.f, 0.f);
+  //      Rasterizer::light->range = 10.f;
+  //      Rasterizer::light->atten0 = 2.f;
+  //      Rasterizer::light->atten1 = 2.f;
+  //      Rasterizer::light->atten2 = 1.f;
+  //      Rasterizer::light->Initilize();
         
 
-		for (auto& m : mesh)
-		{
-			if (m->normals.size() <= 0)
-				m->RecalculateNormals();
-		}
+		//for (auto& m : mesh)
+		//{
+		//	if (m->normals.size() <= 0)
+		//		m->RecalculateNormals();
+		//}
     }
 
 	//Rasterizer::light->position -= Vector3(0.01f, 0, 0);
@@ -103,21 +101,36 @@ void MainLoop()
 
 	canvas->Clear();
 
-	Matrix4x4 trans(position, Quaternion(rotation), scale);
+	//Matrix4x4 trans(position, Quaternion(rotation), scale);
 
-	for (auto& m : mesh)
-	{
-		if (m->materials.size() > 0) Rasterizer::material = m->materials[0];
-		Rasterizer::DrawMesh(*m, trans);
-        //Rasterizer::DrawMeshWireFrame(*m, trans, Color::red);
-        //Rasterizer::DrawMeshPoint(*m, trans, Color::red);
-	}
+	//for (auto& m : mesh)
+	//{
+	//	if (m->materials.size() > 0) Rasterizer::material = m->materials[0];
+	//	Rasterizer::DrawMesh(*m, trans);
+ //       //Rasterizer::DrawMeshWireFrame(*m, trans, Color::red);
+ //       //Rasterizer::DrawMeshPoint(*m, trans, Color::red);
+	//}
 
     canvas->Present();
 
     UI::Begin();
-    
-    UI::test();
+
+    //UI::test();
+
+	char fs[512];
+	sprintf(fs, "%.3f", app->GetDeltaTime());
+
+	UI::BeginLayout();
+
+	int root = UI::Panel(-1, UI_FILL, 800, 600);
+	int info = UI::Panel(root, UI_VFILL | UI_LEFT, 200, 0);
+	int label = UI::Label(info, -1, fs, Color::red, UI_TOP | UI_HFILL);
+	//int panel = UI::Panel(root, UI_VFILL | UI_RIGHT, 200, 0);
+
+	UI::EndLayout();
+
+	UI::DrawUI(root, BND_CORNER_TOP);
+	uiProcess((int)(glfwGetTime()*1000.0));
     
     UI::End();
 }

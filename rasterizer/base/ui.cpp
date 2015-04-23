@@ -36,8 +36,7 @@ typedef enum {
 	ST_DEMOSTUFF = 10,
 	ST_RECT = 11,
 
-	ST_HBOX = 12,
-	ST_VBOX = 13,
+	ST_BOX = 12,
 } SubType;
 
 typedef struct {
@@ -57,6 +56,14 @@ typedef struct {
 	const char *label;
 	int *value;
 } UIButtonData;
+
+typedef struct  
+{
+	UIData head;
+	int icon;
+	const char *label;
+	NVGcolor color;
+} UILabelData;
 
 typedef struct {
 	UIData head;
@@ -218,51 +225,36 @@ void UI::End()
     
     void draw_demostuff(NVGcontext *vg, int x, int y, float w, float h);
     
-    void drawUI(NVGcontext *vg, int item, int corners);
-    
     void drawUIItems(NVGcontext *vg, int item, int corners) {
         int kid = uiFirstChild(item);
         while (kid > 0) {
-            drawUI(vg, kid, corners);
+            UI::DrawUI(kid, corners);
             kid = uiNextSibling(kid);
         }
     }
     
-    void drawUIItemsHbox(NVGcontext *vg, int item) {
+    void drawUIItemsBox(NVGcontext *vg, int item) {
         int kid = uiFirstChild(item);
         if (kid < 0) return;
         int nextkid = uiNextSibling(kid);
         if (nextkid < 0) {
-            drawUI(vg, kid, BND_CORNER_NONE);
+            UI::DrawUI(kid, BND_CORNER_NONE);
         } else {
-            drawUI(vg, kid, BND_CORNER_RIGHT);
+			unsigned flags = uiGetBox(item);
+			unsigned corners = (flags & UI_ROW) ? BND_CORNER_LEFT : BND_CORNER_TOP;
+			unsigned cornere = (flags & UI_ROW) ? BND_CORNER_RIGHT : BND_CORNER_DOWN;
+
+			UI::DrawUI(kid, cornere);
             kid = nextkid;
             while (uiNextSibling(kid) > 0) {
-                drawUI(vg, kid, BND_CORNER_ALL);
+                UI::DrawUI(kid, BND_CORNER_ALL);
                 kid = uiNextSibling(kid);
             }
-            drawUI(vg, kid, BND_CORNER_LEFT);
+			UI::DrawUI(kid, corners);
         }
     }
     
-    void drawUIItemsVbox(NVGcontext *vg, int item) {
-        int kid = uiFirstChild(item);
-        if (kid < 0) return;
-        int nextkid = uiNextSibling(kid);
-        if (nextkid < 0) {
-            drawUI(vg, kid, BND_CORNER_NONE);
-        } else {
-            drawUI(vg, kid, BND_CORNER_DOWN);
-            kid = nextkid;
-            while (uiNextSibling(kid) > 0) {
-                drawUI(vg, kid, BND_CORNER_ALL);
-                kid = uiNextSibling(kid);
-            }
-            drawUI(vg, kid, BND_CORNER_TOP);
-        }
-    }
-    
-    void drawUI(NVGcontext *vg, int item, int corners) {
+    void UI::DrawUI(int item, int corners) {
         const UIData *head = (const UIData *)uiGetHandle(item);
         UIrect rect = uiGetRect(item);
         if (uiGetState(item) == UI_FROZEN) {
@@ -273,21 +265,18 @@ void UI::End()
                 default: {
                     drawUIItems(vg,item,corners);
                 } break;
-                case ST_HBOX: {
-                    drawUIItemsHbox(vg, item);
-                } break;
-                case ST_VBOX: {
-                    drawUIItemsVbox(vg, item);
+                case ST_BOX: {
+                    drawUIItemsBox(vg, item);
                 } break;
                 case ST_PANEL: {
-                    bndBevel(vg,rect.x,rect.y,rect.w,rect.h);
+                    //bndBevel(vg,rect.x,rect.y,rect.w,rect.h);
                     drawUIItems(vg,item,corners);
                 } break;
                 case ST_LABEL: {
                     assert(head);
-                    const UIButtonData *data = (UIButtonData*)head;
-                    bndLabel(vg,rect.x,rect.y,rect.w,rect.h,
-                             data->icon,data->label);
+					const UILabelData *data = (UILabelData*)head;
+					bndIconLabelValue(vg, rect.x, rect.y, rect.w, rect.h,
+						data->icon, data->color, BND_LEFT, BND_LABEL_FONT_SIZE, data->label, nullptr);
                 } break;
                 case ST_BUTTON: {
                     const UIButtonData *data = (UIButtonData*)head;
@@ -391,14 +380,20 @@ int UI::Rect(const char *label, NVGcolor color) {
     return item;
 }
     
-int UI::Label(int icon, const char *label) {
+int UI::Label(int parent, int icon, const char *label, Color color,
+	unsigned layout/* = 0*/, int width/* = 0*/, int height/* = BND_WIDGET_HEIGHT*/) {
 	int item = uiItem();
-	uiSetSize(item, 0, BND_WIDGET_HEIGHT);
-	UIButtonData *data = (UIButtonData *)uiAllocHandle(item, sizeof(UIButtonData));
+	UILabelData *data = (UILabelData *)uiAllocHandle(item, sizeof(UILabelData));
 	data->head.subtype = ST_LABEL;
 	data->head.handler = NULL;
 	data->icon = icon;
 	data->label = label;
+	data->color = nvgRGBAf(color.r, color.g, color.b, color.a);
+
+	if (parent >= 0) uiInsert(parent, item);
+	uiSetSize(item, width, height);
+	uiSetLayout(item, layout);
+
 	return item;
 }
     
@@ -419,6 +414,7 @@ int UI::Button(int icon, const char *label, int *value) {
 
 void UI::ButtonHandler(int item, UIevent event) {
 	const UIButtonData *data = (const UIButtonData *)uiGetHandle(item);
+	if (data->value == nullptr) return;
 	UIitemState state = uiGetState(item);
 	switch (state)
 	{
@@ -561,32 +557,26 @@ int UI::RadioBox(int icon, const char *label, int *value) {
     return item;
 }
     
-int UI::Panel() {
+int UI::Panel(int parent, unsigned layout, int width, int height) {
 	int item = uiItem();
 	UIData *data = (UIData *)uiAllocHandle(item, sizeof(UIData));
 	data->subtype = ST_PANEL;
 	data->handler = NULL;
+
+	if (parent >= 0) uiInsert(parent, item);
+	uiSetSize(item, width, height);
+	uiSetLayout(item, layout);
 	return item;
 }
     
-int UI::HBox() {
+int UI::Box(UIboxFlags flags) {
 	int item = uiItem();
 	UIData *data = (UIData *)uiAllocHandle(item, sizeof(UIData));
-	data->subtype = ST_HBOX;
+	data->subtype = ST_BOX;
 	data->handler = NULL;
-	uiSetBox(item, UI_ROW);
+	uiSetBox(item, flags);
 	return item;
 }
-    
-int UI::VBox() {
-	int item = uiItem();
-	UIData *data = (UIData *)uiAllocHandle(item, sizeof(UIData));
-	data->subtype = ST_VBOX;
-	data->handler = NULL;
-	uiSetBox(item, UI_COLUMN);
-	return item;
-}
-    
     
     int column_append(int parent, int item) {
         uiInsert(parent, item);
@@ -900,7 +890,7 @@ int UI::VBox() {
 			column_append(col, UI::Button(BND_ICON_GHOST, "Item 2", &btn2));
         
         {
-            int h = column_append(col, UI::HBox());
+            int h = column_append(col, UI::Box(UI_ROW));
             hgroup_append(h, UI::RadioBox(BND_ICON_GHOST, "Item 3.0", &enum1));
             if (option2)
 				uiSetMargins(hgroup_append_fixed(h, UI::RadioBox(BND_ICON_REC, NULL, &enum1)), -1, 0, 0, 0);
@@ -911,15 +901,15 @@ int UI::VBox() {
         {
             int rows = column_append(col, row());
             int coll = row_append(rows, vgroup());
-            vgroup_append(coll, UI::Label(-1, "Items 4.0:"));
-            coll = vgroup_append(coll, UI::VBox());
+			vgroup_append(coll, UI::Label(coll, -1, "Items 4.0:", Color::black));
+            coll = vgroup_append(coll, UI::Box(UI_COLUMN));
             vgroup_append(coll, UI::Button(BND_ICON_GHOST, "Item 4.0.0", &btn3));
 			uiSetMargins(vgroup_append(coll, UI::Button(BND_ICON_GHOST, "Item 4.0.1", &btn4)), 0, -2, 0, 0);
             int colr = row_append(rows, vgroup());
             uiSetMargins(colr, 8, 0, 0, 0);
             uiSetFrozen(colr, option1);
-			vgroup_append(colr, UI::Label(-1, "Items 4.1:"));
-            colr = vgroup_append(colr, UI::VBox());
+			vgroup_append(colr, UI::Label(coll, -1, "Items 4.1:", Color::black));
+			colr = vgroup_append(colr, UI::Box(UI_COLUMN));
             vgroup_append(colr, UI::Slider("Item 4.1.0", &progress1));
             uiSetMargins(vgroup_append(colr, UI::Slider("Item 4.1.1", &progress2)),0,-2,0,0);
         }
@@ -1162,9 +1152,8 @@ int UI::VBox() {
 
         uiBeginLayout();
         
-        int root = UI::Panel();
+        int root = UI::Panel(-1, w, h, 0);
         // position root element
-        uiSetSize(0,w,h);
         ((UIData*)uiGetHandle(root))->handler = roothandler;
         uiSetEvents(root, UI_SCROLL|UI_BUTTON0_DOWN);
         uiSetBox(root, UI_COLUMN);
@@ -1216,7 +1205,7 @@ int UI::VBox() {
         
         uiEndLayout();
         
-        drawUI(vg, 0, BND_CORNER_NONE);
+        UI::DrawUI(0, BND_CORNER_NONE);
         
 #if 0
         for (int i = 0; i < uiGetLastItemCount(); ++i) {
@@ -1250,5 +1239,16 @@ void UI::test()
 {
     draw(vg, width, height);
 }
-    
+
+void UI::BeginLayout()
+{
+	uiBeginLayout();
+}
+
+void UI::EndLayout()
+{
+	uiEndLayout();
+}
+
+
 }
