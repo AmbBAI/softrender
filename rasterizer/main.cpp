@@ -123,9 +123,21 @@ void MainLoop()
 	UI::BeginLayout();
 
 	int root = UI::Panel(-1, UI_FILL, 800, 600);
-	int info = UI::Panel(root, UI_VFILL | UI_LEFT, 200, 0);
-	int label = UI::Label(info, -1, fs, Color::red, UI_TOP | UI_HFILL);
-	//int panel = UI::Panel(root, UI_VFILL | UI_RIGHT, 200, 0);
+	int info = UI::Panel(root, UI_TOP | UI_LEFT, 200, 0);
+	int label = UI::Label(info, -1, fs, Color::red, UI_HFILL | UI_TOP);
+
+	int panel = UI::Panel(root, UI_TOP | UI_RIGHT, 200, 0);
+	uiSetBox(panel, UI_COLUMN);
+
+	int box = UI::Box(UI_ROW, UI_HFILL | UI_TOP);
+	uiInsert(panel, box);
+	static int menu_status = -1;
+	int menu1 = UI::RadioBox(BND_ICON_MESH_DATA, NULL, &menu_status);
+	uiInsert(box, menu1);
+	int box2 = UI::Box(UI_ROW, UI_HFILL | UI_TOP);
+	uiInsert(panel, box2);
+	int menu2 = UI::RadioBox(BND_ICON_LIGHTPAINT, NULL, &menu_status);
+	uiInsert(box, menu2);
 
 	UI::EndLayout();
 

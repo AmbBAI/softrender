@@ -28,7 +28,7 @@ public:
 	static int Panel(int parent, unsigned layout, int width, int height);
 	static int Label(int parent, int icon, const char *label, Color color, unsigned layout = 0, int width = 0, int height = BND_WIDGET_HEIGHT);
 
-	static int Box(UIboxFlags flags);
+	static int Box(unsigned layout, unsigned flags);
 	static int Rect(const char* label, NVGcolor color);
 	static int Button(int icon, const char *label, int *value);
 	static int CheckBox(const char *label, int *option);

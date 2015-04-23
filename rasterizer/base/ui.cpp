@@ -266,10 +266,11 @@ void UI::End()
                     drawUIItems(vg,item,corners);
                 } break;
                 case ST_BOX: {
+					bndBevel(vg, rect.x, rect.y, rect.w, rect.h);
                     drawUIItemsBox(vg, item);
                 } break;
                 case ST_PANEL: {
-                    //bndBevel(vg,rect.x,rect.y,rect.w,rect.h);
+                    bndBevel(vg,rect.x,rect.y,rect.w,rect.h);
                     drawUIItems(vg,item,corners);
                 } break;
                 case ST_LABEL: {
@@ -569,12 +570,13 @@ int UI::Panel(int parent, unsigned layout, int width, int height) {
 	return item;
 }
     
-int UI::Box(UIboxFlags flags) {
+int UI::Box(unsigned flags, unsigned layout) {
 	int item = uiItem();
 	UIData *data = (UIData *)uiAllocHandle(item, sizeof(UIData));
 	data->subtype = ST_BOX;
 	data->handler = NULL;
 	uiSetBox(item, flags);
+	uiSetLayout(item, layout);
 	return item;
 }
     
@@ -890,7 +892,7 @@ int UI::Box(UIboxFlags flags) {
 			column_append(col, UI::Button(BND_ICON_GHOST, "Item 2", &btn2));
         
         {
-            int h = column_append(col, UI::Box(UI_ROW));
+            int h = column_append(col, UI::Box(UI_ROW, 0));
             hgroup_append(h, UI::RadioBox(BND_ICON_GHOST, "Item 3.0", &enum1));
             if (option2)
 				uiSetMargins(hgroup_append_fixed(h, UI::RadioBox(BND_ICON_REC, NULL, &enum1)), -1, 0, 0, 0);
@@ -901,15 +903,15 @@ int UI::Box(UIboxFlags flags) {
         {
             int rows = column_append(col, row());
             int coll = row_append(rows, vgroup());
-			vgroup_append(coll, UI::Label(coll, -1, "Items 4.0:", Color::black));
-            coll = vgroup_append(coll, UI::Box(UI_COLUMN));
+			vgroup_append(coll, UI::Label(-1, -1, "Items 4.0:", Color::black));
+            coll = vgroup_append(coll, UI::Box(UI_COLUMN, 0));
             vgroup_append(coll, UI::Button(BND_ICON_GHOST, "Item 4.0.0", &btn3));
 			uiSetMargins(vgroup_append(coll, UI::Button(BND_ICON_GHOST, "Item 4.0.1", &btn4)), 0, -2, 0, 0);
             int colr = row_append(rows, vgroup());
             uiSetMargins(colr, 8, 0, 0, 0);
             uiSetFrozen(colr, option1);
-			vgroup_append(colr, UI::Label(coll, -1, "Items 4.1:", Color::black));
-			colr = vgroup_append(colr, UI::Box(UI_COLUMN));
+			vgroup_append(colr, UI::Label(-1, -1, "Items 4.1:", Color::black));
+			colr = vgroup_append(colr, UI::Box(UI_COLUMN, 0));
             vgroup_append(colr, UI::Slider("Item 4.1.0", &progress1));
             uiSetMargins(vgroup_append(colr, UI::Slider("Item 4.1.1", &progress2)),0,-2,0,0);
         }
