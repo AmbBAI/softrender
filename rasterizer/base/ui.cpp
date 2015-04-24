@@ -262,11 +262,12 @@ void UI::DrawUI(int item, int corners) {
 			UI::DrawUIItems(item, corners);
 		} break;
 		case ST_BOX: {
-			//bndBevel(vg, rect.x, rect.y, rect.w, rect.h);
+			bndBackground(vg, rect.x, rect.y, rect.w, rect.h);
+			bndBevel(vg, rect.x, rect.y, rect.w, rect.h);
 			UI::DrawUIItemsBox(item);
 		} break;
 		case ST_PANEL: {
-			//bndBevel(vg, rect.x, rect.y, rect.w, rect.h);
+			bndBevel(vg, rect.x, rect.y, rect.w, rect.h);
 			UI::DrawUIItems(item, corners);
 		} break;
 		case ST_LABEL: {

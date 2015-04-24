@@ -58,12 +58,12 @@ void MainLoop()
 		position = Vector3(0, 0, 0);
 		rotation = Vector3(0, 0, 0);
 		scale = Vector3(1, 1, 1);
-        Rasterizer::light = LightPtr(new Light());
-        Rasterizer::light->type = Light::LightType_Directional;
-        Rasterizer::light->position = Vector3(0, 300, 0);
-        Rasterizer::light->direction = Vector3(-1.f, -1.f, -1.f).Normalize();
-        Rasterizer::light->range = 1000.f;
-        Rasterizer::light->Initilize();
+		Rasterizer::light = LightPtr(new Light());
+		Rasterizer::light->type = Light::LightType_Directional;
+		Rasterizer::light->position = Vector3(0, 300, 0);
+		Rasterizer::light->direction = Vector3(-1.f, -1.f, -1.f).Normalize();
+		Rasterizer::light->range = 1000.f;
+		Rasterizer::light->Initilize();
         
 		//Mesh::LoadMesh(mesh, "resources/head/head.OBJ");
 		//position = Vector3(0, 10, -50);
@@ -107,8 +107,6 @@ void MainLoop()
 	{
 		if (m->materials.size() > 0) Rasterizer::material = m->materials[0];
 		Rasterizer::DrawMesh(*m, trans);
-        //Rasterizer::DrawMeshWireFrame(*m, trans, Color::red);
-        //Rasterizer::DrawMeshPoint(*m, trans, Color::red);
 	}
 
     canvas->Present();
@@ -129,12 +127,29 @@ void MainLoop()
 
 	int box = UI::Box(panel, UI_ROW, UI_HFILL | UI_TOP);
 	static int menu_status = -1;
-	int menu1 = UI::Radio(box, BND_ICON_MESH_DATA, NULL, &menu_status);
-	int menu2 = UI::Radio(box, BND_ICON_LIGHTPAINT, NULL, &menu_status);
-	int menu3 = UI::Radio(box, BND_ICON_FILTER, NULL, &menu_status);
-	int menu4 = UI::Radio(box, BND_ICON_CAMERA_DATA, NULL, &menu_status);
+	int menu1 = UI::Radio(box, BND_ICON_MESH_MONKEY, NULL, &menu_status, UI_HFILL);
+	int menu2 = UI::Radio(box, BND_ICON_CAMERA_DATA, NULL, &menu_status, UI_HFILL);
+	int menu3 = UI::Radio(box, BND_ICON_TEXTURE, NULL, &menu_status, UI_HFILL);
+	int menu4 = UI::Radio(box, BND_ICON_MATERIAL, NULL, &menu_status, UI_HFILL);
+	int menu5 = UI::Radio(box, BND_ICON_LAMP, NULL, &menu_status, UI_HFILL);
+	int menu6 = UI::Radio(box, BND_ICON_TEXTURE_SHADED, NULL, &menu_status, UI_HFILL);
 
-	//int box2 = UI::Box(panel, UI_ROW, UI_HFILL | UI_TOP);
+	if (menu_status == menu1)
+	{
+		static int isMeshDrawPoint = Rasterizer::isDrawPoint;
+		static int isMeshDrawWireframe = Rasterizer::isDrawWireFrame;
+		static int isMeshDrawTextured = Rasterizer::isDrawTextured;
+
+		int box1 = UI::Box(panel, UI_COLUMN, UI_HFILL | UI_TOP);
+		uiSetMargins(box1, 10, 10, 10, 10);
+		UI::Check(box1, "Point", &isMeshDrawPoint, UI_HFILL);
+		UI::Check(box1, "WireFrame", &isMeshDrawWireframe, UI_HFILL);
+		UI::Check(box1, "Textured", &isMeshDrawTextured, UI_HFILL);
+
+		Rasterizer::isDrawPoint = isMeshDrawPoint;
+		Rasterizer::isDrawWireFrame = isMeshDrawWireframe;
+		Rasterizer::isDrawTextured = isMeshDrawTextured;
+	}
 
 	UI::EndLayout();
 

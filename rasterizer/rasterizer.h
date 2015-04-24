@@ -200,12 +200,14 @@ struct Rasterizer
 
 	static Shader0 shader;
 
+	static bool isDrawPoint;
+	static bool isDrawWireFrame;
+	static bool isDrawTextured;
+
     static void Initialize();
     
 	static void DrawLine(int x0, int x1, int y0, int y1, const Color32& color);
 	static void DrawSmoothLine(float x0, float x1, float y0, float y1, const Color32& color);
-	static void DrawMeshPoint(const Mesh& mesh, const Matrix4x4& transform, const Color32& color);
-	static void DrawMeshWireFrame(const Mesh& mesh, const Matrix4x4& transform, const Color32& color);
 
 	static void DrawTriangle(const Projection& p0, const Projection& p1, const Projection& p2, const Triangle<VertexStd>& triangle);
     static void DrawMesh(const Mesh& mesh, const Matrix4x4& transform);
