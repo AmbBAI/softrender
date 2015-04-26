@@ -13,6 +13,13 @@ namespace rasterizer {
 class UI
 {
 public:
+	typedef void(*UIButtonAction)();
+	struct UIData {
+		int type;
+		UIhandler handler;
+	};
+
+public:
     static bool Initialize(GLFWwindow* window, int width, int height, float radio = 1.f);
     static void Finalize();
     
@@ -23,27 +30,21 @@ public:
     static void End();
     
 public:
+	static int Root();
 	static int Panel(int parent, unsigned layout, int width, int height);
-	static int Label(int parent, int icon, const char *label, const Color& color, unsigned layout = 0);
-
 	static int Box(int parent, unsigned flags, unsigned layout = 0);
-	static int Button(int parent, int icon, const char *label, unsigned layout = 0);
-	static int Check(int parent, const char *label, int *option, unsigned layout = 0);
-	static int Radio(int parent, int icon, const char *label, int *value, unsigned layout = 0);
-	static int TextBox(char *text, int maxsize);
-	static int Slider(const char *label, float *progress);
 
-	static void BeginLayout();
-	static void EndLayout();
+	static int Label(int parent, int icon, const char *label, const Color& color, unsigned layout = UI_HFILL);
+	static int Button(int parent, int icon, const char *label, UIButtonAction action, unsigned layout = UI_HFILL);
+	static int Check(int parent, const char *label, int *option, unsigned layout = UI_HFILL);
+	static int Radio(int parent, int icon, const char *label, int *value, unsigned layout = UI_HFILL);
+	static int TextBox(int parent, char *text, int maxsize, unsigned layout = UI_HFILL);
+	static int Slider(int parent, const char *label, float *progress, unsigned layout = UI_HFILL);
+
 	static void DrawUI(int item, int corners);
 
 private:
 	static void UIHandler(int item, UIevent event);
-	static void ButtonHandler(int item, UIevent event);
-	static void CheckHandler(int item, UIevent event);
-	static void RadioHandler(int item, UIevent event);
-	static void SliderHandler(int item, UIevent event);
-	static void TextBoxHandler(int item, UIevent event);
 
 private:
 	static void DrawUIItems(int item, int corners);
@@ -63,7 +64,7 @@ private:
 
     static GLFWwindow* window;
     static UIcontext* uictx;
-    static NVGcontext* vg;
+    static NVGcontext* vgctx;
 };
     
 }

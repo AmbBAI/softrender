@@ -116,42 +116,41 @@ void MainLoop()
 	char fs[512];
 	sprintf(fs, "%.3f", app->GetDeltaTime());
 
-	UI::BeginLayout();
+	uiBeginLayout();
 
-	int root = UI::Panel(-1, UI_FILL, 800, 600);
-	int info = UI::Panel(root, UI_TOP | UI_LEFT, 200, 0);
-	int label = UI::Label(info, -1, fs, Color::red, UI_HFILL);
+	int root = UI::Root();
+	int label = UI::Label(root, -1, fs, Color::red, UI_HFILL | UI_TOP);
 
 	int panel = UI::Panel(root, UI_TOP | UI_RIGHT, 200, 0);
 	uiSetBox(panel, UI_COLUMN);
 
 	int box = UI::Box(panel, UI_ROW, UI_HFILL | UI_TOP);
 	static int menu_status = -1;
-	int menu1 = UI::Radio(box, BND_ICON_MESH_MONKEY, NULL, &menu_status, UI_HFILL);
-	int menu2 = UI::Radio(box, BND_ICON_CAMERA_DATA, NULL, &menu_status, UI_HFILL);
-	int menu3 = UI::Radio(box, BND_ICON_TEXTURE, NULL, &menu_status, UI_HFILL);
-	int menu4 = UI::Radio(box, BND_ICON_MATERIAL, NULL, &menu_status, UI_HFILL);
-	int menu5 = UI::Radio(box, BND_ICON_LAMP, NULL, &menu_status, UI_HFILL);
-	int menu6 = UI::Radio(box, BND_ICON_TEXTURE_SHADED, NULL, &menu_status, UI_HFILL);
+	int menu1 = UI::Radio(box, BND_ICON_MESH_MONKEY, NULL, &menu_status);
+	int menu2 = UI::Radio(box, BND_ICON_CAMERA_DATA, NULL, &menu_status);
+	int menu3 = UI::Radio(box, BND_ICON_TEXTURE, NULL, &menu_status);
+	int menu4 = UI::Radio(box, BND_ICON_MATERIAL, NULL, &menu_status);
+	int menu5 = UI::Radio(box, BND_ICON_LAMP, NULL, &menu_status);
+	int menu6 = UI::Radio(box, BND_ICON_TEXTURE_SHADED, NULL, &menu_status);
 
 	if (menu_status == menu1)
 	{
-		static int isMeshDrawPoint = Rasterizer::isDrawPoint;
-		static int isMeshDrawWireframe = Rasterizer::isDrawWireFrame;
-		static int isMeshDrawTextured = Rasterizer::isDrawTextured;
+		static int isMeshDrawPoint = (int)Rasterizer::isDrawPoint;
+		static int isMeshDrawWireframe = (int)Rasterizer::isDrawWireFrame;
+		static int isMeshDrawTextured = (int)Rasterizer::isDrawTextured;
 
 		int box1 = UI::Box(panel, UI_COLUMN, UI_HFILL | UI_TOP);
 		uiSetMargins(box1, 10, 10, 10, 10);
-		UI::Check(box1, "Point", &isMeshDrawPoint, UI_HFILL);
-		UI::Check(box1, "WireFrame", &isMeshDrawWireframe, UI_HFILL);
-		UI::Check(box1, "Textured", &isMeshDrawTextured, UI_HFILL);
+		UI::Check(box1, "Point", &isMeshDrawPoint);
+		UI::Check(box1, "WireFrame", &isMeshDrawWireframe);
+		UI::Check(box1, "Textured", &isMeshDrawTextured);
 
-		Rasterizer::isDrawPoint = isMeshDrawPoint;
-		Rasterizer::isDrawWireFrame = isMeshDrawWireframe;
-		Rasterizer::isDrawTextured = isMeshDrawTextured;
+		Rasterizer::isDrawPoint = (isMeshDrawPoint != 0);
+		Rasterizer::isDrawWireFrame = (isMeshDrawWireframe != 0);
+		Rasterizer::isDrawTextured = (isMeshDrawTextured != 0);
 	}
 
-	UI::EndLayout();
+	uiEndLayout();
 
 	UI::DrawUI(root, BND_CORNER_TOP);
 	uiProcess((int)(glfwGetTime()*1000.0));

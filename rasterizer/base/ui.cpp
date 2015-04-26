@@ -18,74 +18,63 @@ float UI::ratio = 1.f;
     
 GLFWwindow* UI::window = nullptr;
 UIcontext* UI::uictx = nullptr;
-NVGcontext* UI::vg = nullptr;
-    
+NVGcontext* UI::vgctx = nullptr;
 
-typedef enum {
-	ST_LABEL = 0,
-	ST_BUTTON = 1,
-	ST_RADIO = 2,
-	ST_SLIDER = 3,
-	ST_COLUMN = 4,
-	ST_ROW = 5,
-	ST_CHECK = 6,
-	ST_PANEL = 7,
-	ST_TEXT = 8,
-	ST_IGNORE = 9,
+typedef enum{
+	UIType_PANEL = 0,
+	UIType_BOX = 1,
 
-	ST_DEMOSTUFF = 10,
-	ST_RECT = 11,
-
-	ST_BOX = 12,
-} SubType;
+	UIType_LABEL = 10,
+	UIType_BUTTON = 11,
+	UIType_RADIO = 12,
+	UIType_CHECK = 13,
+	UIType_TEXTBOX = 14,
+	UIType_SLIDER = 15,
+} UIType;
 
 typedef struct {
-	int subtype;
-	UIhandler handler;
-} UIData;
-
-typedef struct {
-	UIData head;
+	UI::UIData head;
 	const char *label;
 	NVGcolor color;
 } UIRectData;
 
 typedef struct {
-	UIData head;
+	UI::UIData head;
 	int icon;
 	const char *label;
 	int *value;
+	UI::UIButtonAction action;
 } UIButtonData;
 
 typedef struct  
 {
-	UIData head;
+	UI::UIData head;
 	int icon;
 	const char *label;
 	NVGcolor color;
 } UILabelData;
 
 typedef struct {
-	UIData head;
+	UI::UIData head;
 	const char *label;
 	int *option;
 } UICheckData;
 
 typedef struct {
-	UIData head;
+	UI::UIData head;
 	int icon;
 	const char *label;
 	int *value;
 } UIRadioData;
 
 typedef struct {
-	UIData head;
+	UI::UIData head;
 	const char *label;
 	float *progress;
 } UISliderData;
 
 typedef struct {
-	UIData head;
+	UI::UIData head;
 	char *text;
 	int maxsize;
 } UITextData;
@@ -145,13 +134,13 @@ bool UI::Initialize(GLFWwindow* window, int width, int height, float radio/* = 1
 #endif
     
 #ifdef NANOVG_GL2_IMPLEMENTATION
-    vg = nvgCreateGL2(NVG_ANTIALIAS);
+    vgctx = nvgCreateGL2(NVG_ANTIALIAS);
 #elif NANOVG_GL3_IMPLEMENTATION
-    vg = nvgCreateGL3(NVG_ANTIALIAS);
+    vgctx = nvgCreateGL3(NVG_ANTIALIAS);
 #endif
     
-    assert(vg != nullptr);
-    if (vg == nullptr)  goto init_fail;
+    assert(vgctx != nullptr);
+    if (vgctx == nullptr)  goto init_fail;
             
     uictx = uiCreateContext(4096, 1<<20);
     assert(uictx != nullptr);
@@ -180,14 +169,14 @@ init_fail:
 
 void UI::Finalize()
 {
-    if (vg != nullptr)
+    if (vgctx != nullptr)
     {
 #ifdef NANOVG_GL2_IMPLEMENTATION
-        nvgDeleteGL2(vg);
+        nvgDeleteGL2(vgctx);
 #elif NANOVG_GL3_IMPLEMENTATION
-        nvgDeleteGL3(vg);
+        nvgDeleteGL3(vgctx);
 #endif
-        vg = nullptr;
+        vgctx = nullptr;
     }
         
     if (uictx != nullptr)
@@ -199,26 +188,26 @@ void UI::Finalize()
     
 void UI::SetFont(const char* file)
 {
-    assert(vg != nullptr);
-    bndSetFont(nvgCreateFont(vg, "system", file));
+    assert(vgctx != nullptr);
+    bndSetFont(nvgCreateFont(vgctx, "system", file));
 }
 
 void UI::SetIconImage(const char* file)
 {
-    assert(vg != nullptr);
-    bndSetIconImage(nvgCreateImage(vg, file, 0));
+    assert(vgctx != nullptr);
+    bndSetIconImage(nvgCreateImage(vgctx, file, 0));
 }
     
 void UI::Begin()
 {
-    assert(vg != nullptr);
-    nvgBeginFrame(vg, width, height, ratio);
+    assert(vgctx != nullptr);
+    nvgBeginFrame(vgctx, width, height, ratio);
 }
     
 void UI::End()
 {
-    assert(vg != nullptr);
-    nvgEndFrame(vg);
+    assert(vgctx != nullptr);
+    nvgEndFrame(vgctx);
 }
 
 void UI::DrawUIItems(int item, int corners) {
@@ -254,65 +243,66 @@ void UI::DrawUI(int item, int corners) {
 	const UIData *head = (const UIData *)uiGetHandle(item);
 	UIrect rect = uiGetRect(item);
 	if (uiGetState(item) == UI_FROZEN) {
-		nvgGlobalAlpha(vg, BND_DISABLED_ALPHA);
+		nvgGlobalAlpha(vgctx, BND_DISABLED_ALPHA);
 	}
 	if (head) {
-		switch (head->subtype) {
+		switch (head->type) {
 		default: {
 			UI::DrawUIItems(item, corners);
 		} break;
-		case ST_BOX: {
-			bndBackground(vg, rect.x, rect.y, rect.w, rect.h);
-			bndBevel(vg, rect.x, rect.y, rect.w, rect.h);
+		case UIType_BOX: {
+			//bndBevel(vgctx, rect.x, rect.y, rect.w, rect.h);
 			UI::DrawUIItemsBox(item);
 		} break;
-		case ST_PANEL: {
-			bndBevel(vg, rect.x, rect.y, rect.w, rect.h);
+		case UIType_PANEL: {
+			bnd_theme.backgroundColor.a = 0.5f;
+			bndBackground(vgctx, rect.x, rect.y, rect.w, rect.h);
+			bndBevel(vgctx, rect.x, rect.y, rect.w, rect.h);
 			UI::DrawUIItems(item, corners);
 		} break;
-		case ST_LABEL: {
+		case UIType_LABEL: {
 			assert(head);
 			const UILabelData *data = (UILabelData*)head;
-			bndIconLabelValue(vg, rect.x, rect.y, rect.w, rect.h,
+			bndIconLabelValue(vgctx, rect.x, rect.y, rect.w, rect.h,
 				data->icon, data->color, BND_LEFT, BND_LABEL_FONT_SIZE, data->label, nullptr);
 		} break;
-		case ST_BUTTON: {
+		case UIType_BUTTON: {
 			const UIButtonData *data = (UIButtonData*)head;
-			bndToolButton(vg, rect.x, rect.y, rect.w, rect.h,
+			bndToolButton(vgctx, rect.x, rect.y, rect.w, rect.h,
 				corners, (BNDwidgetState)uiGetState(item),
 				data->icon, data->label);
 		} break;
-		case ST_CHECK: {
+		case UIType_CHECK: {
 			const UICheckData *data = (UICheckData*)head;
 			BNDwidgetState state = (BNDwidgetState)uiGetState(item);
 			if (*data->option)
 				state = BND_ACTIVE;
-			bndOptionButton(vg, rect.x, rect.y, rect.w, rect.h, state,
+			bndOptionButton(vgctx, rect.x, rect.y, rect.w, rect.h, state,
 				data->label);
 		} break;
-		case ST_RADIO:{
+		case UIType_RADIO:{
 			const UIRadioData *data = (UIRadioData*)head;
 			BNDwidgetState state = (BNDwidgetState)uiGetState(item);
 			if (*data->value == item)
 				state = BND_ACTIVE;
-			bndRadioButton(vg, rect.x, rect.y, rect.w, rect.h,
+			bndRadioButton(vgctx, rect.x, rect.y, rect.w, rect.h,
 				corners, state,
 				data->icon, data->label);
 		} break;
-		case ST_SLIDER:{
+		case UIType_SLIDER:{
 			const UISliderData *data = (UISliderData*)head;
 			BNDwidgetState state = (BNDwidgetState)uiGetState(item);
 			static char value[32];
-			sprintf(value, "%.0f%%", (*data->progress)*100.0f);
-			bndSlider(vg, rect.x, rect.y, rect.w, rect.h,
+			//sprintf(value, "%.0f%%", (*data->progress)*100.0f);
+			bndSlider(vgctx, rect.x, rect.y, rect.w, rect.h,
 				corners, state,
 				*data->progress, data->label, value);
 		} break;
-		case ST_TEXT: {
+		case UIType_TEXTBOX: {
 			const UITextData *data = (UITextData*)head;
 			BNDwidgetState state = (BNDwidgetState)uiGetState(item);
 			int idx = strlen(data->text);
-			bndTextField(vg, rect.x, rect.y, rect.w, rect.h,
+			bndTextField(vgctx, rect.x, rect.y, rect.w, rect.h,
 				corners, state, -1, data->text, idx, idx);
 		} break;
 		}
@@ -322,14 +312,14 @@ void UI::DrawUI(int item, int corners) {
 	}
 
 	if (uiGetState(item) == UI_FROZEN) {
-		nvgGlobalAlpha(vg, 1.0);
+		nvgGlobalAlpha(vgctx, 1.0);
 	}
 }
 
-int UI::Label(int parent, int icon, const char *label, const Color& color, unsigned layout/* = 0*/) {
+int UI::Label(int parent, int icon, const char *label, const Color& color, unsigned layout/* = UI_HFILL*/) {
 	int item = uiItem();
 	UILabelData *data = (UILabelData *)uiAllocHandle(item, sizeof(UILabelData));
-	data->head.subtype = ST_LABEL;
+	data->head.type = UIType_LABEL;
 	data->head.handler = NULL;
 	data->icon = icon;
 	data->label = label;
@@ -342,13 +332,19 @@ int UI::Label(int parent, int icon, const char *label, const Color& color, unsig
 	return item;
 }
     
-int UI::Button(int parent, int icon, const char *label, unsigned layout/* = 0*/) {
+void UIButtonHandler(int item, UIevent event) {
+	const UIButtonData *data = (const UIButtonData *)uiGetHandle(item);
+	if (data && data->action) data->action();
+}
+
+int UI::Button(int parent, int icon, const char *label, UIButtonAction action, unsigned layout/* = UI_HFILL*/) {
 	int item = uiItem();
 	UIButtonData *data = (UIButtonData *)uiAllocHandle(item, sizeof(UIButtonData));
-	data->head.subtype = ST_BUTTON;
-	data->head.handler = UI::ButtonHandler;
+	data->head.type = UIType_BUTTON;
+	data->head.handler = UIButtonHandler;
 	data->icon = icon;
 	data->label = label;
+	data->action = action;
 
 	if (parent >= 0) uiInsert(parent, item);
 	uiSetSize(item, 0, BND_WIDGET_HEIGHT);
@@ -358,23 +354,18 @@ int UI::Button(int parent, int icon, const char *label, unsigned layout/* = 0*/)
 	return item;
 }
 
-void UI::ButtonHandler(int item, UIevent event) {
-	const UIButtonData *data = (const UIButtonData *)uiGetHandle(item);
-	printf("button %d clicked!\n", item);
-}
-    
-void UI::CheckHandler(int item, UIevent event)
+void UICheckHandler(int item, UIevent event)
 {
     const UICheckData *data = (const UICheckData *)uiGetHandle(item);
-    *data->option = !(*data->option);
+    if (data && data->option) *(data->option) = !(*(data->option));
 }
     
-int UI::Check(int parent, const char *label, int *option, unsigned layout/* = 0*/)
+int UI::Check(int parent, const char *label, int *option, unsigned layout/* = UI_HFILL*/)
 {
     int item = uiItem();
     UICheckData *data = (UICheckData *)uiAllocHandle(item, sizeof(UICheckData));
-    data->head.subtype = ST_CHECK;
-	data->head.handler = UI::CheckHandler;
+    data->head.type = UIType_CHECK;
+	data->head.handler = UICheckHandler;
     data->label = label;
     data->option = option;
 
@@ -385,9 +376,31 @@ int UI::Check(int parent, const char *label, int *option, unsigned layout/* = 0*
 
     return item;
 }
-    
-// event handler for slider (same handler for all sliders)
-void UI::SliderHandler(int item, UIevent event) {
+
+void UIRadioHandler(int item, UIevent event)
+{
+	UIRadioData *data = (UIRadioData *)uiGetHandle(item);
+	if (data && data->value) *(data->value) = item;
+}
+
+int UI::Radio(int parent, int icon, const char *label, int *value, unsigned layout/* = UI_HFILL*/) {
+	int item = uiItem();
+	UIRadioData *data = (UIRadioData *)uiAllocHandle(item, sizeof(UIRadioData));
+	data->head.type = UIType_RADIO;
+	data->head.handler = UIRadioHandler;
+	data->icon = icon;
+	data->label = label;
+	data->value = value;
+
+	if (parent >= 0) uiInsert(parent, item);
+	uiSetSize(item, label ? 0 : BND_TOOL_WIDTH, BND_WIDGET_HEIGHT);
+	uiSetLayout(item, layout);
+	uiSetEvents(item, UI_BUTTON0_DOWN);
+
+	return item;
+}
+
+void UISliderHandler(int item, UIevent event) {
     // retrieve the custom data we saved with the slider
     UISliderData *data = (UISliderData *)uiGetHandle(item);
 	static float sliderstart = 0.0f;
@@ -414,24 +427,23 @@ void UI::SliderHandler(int item, UIevent event) {
     }
 }
     
-int UI::Slider(const char *label, float *progress) {
-    // create new ui item
+int UI::Slider(int parent, const char *label, float *progress, unsigned layout/* = UI_HFILL*/) {
     int item = uiItem();
-    // set size of wiget; horizontal size is dynamic, vertical is fixed
-    uiSetSize(item, 0, BND_WIDGET_HEIGHT);
-    // attach our slider event handler and capture two classes of events
-    uiSetEvents(item, UI_BUTTON0_DOWN | UI_BUTTON0_CAPTURE);
-    // store some custom data with the button that we use for styling
-    // and logic, e.g. the pointer to the data we want to alter.
     UISliderData *data = (UISliderData *)uiAllocHandle(item, sizeof(UISliderData));
-    data->head.subtype = ST_SLIDER;
-    data->head.handler = UI::SliderHandler;
+    data->head.type = UIType_SLIDER;
+    data->head.handler = UISliderHandler;
     data->label = label;
     data->progress = progress;
+
+	if (parent < 0) uiInsert(parent, item);
+	uiSetSize(item, 0, BND_WIDGET_HEIGHT);
+	uiSetLayout(item, layout);
+	uiSetEvents(item, UI_BUTTON0_DOWN | UI_BUTTON0_CAPTURE);
+
     return item;
 }
     
-void UI::TextBoxHandler(int item, UIevent event) {
+void UITextBoxHandler(int item, UIevent event) {
     UITextData *data = (UITextData *)uiGetHandle(item);
     switch(event) {
         default: break;
@@ -462,39 +474,18 @@ void UI::TextBoxHandler(int item, UIevent event) {
     }
 }
     
-int UI::TextBox(char *text, int maxsize) {
+int UI::TextBox(int parent, char *text, int maxsize, unsigned layout/* = UI_HFILL*/) {
     int item = uiItem();
-    uiSetSize(item, 0, BND_WIDGET_HEIGHT);
-    uiSetEvents(item, UI_BUTTON0_DOWN | UI_KEY_DOWN | UI_CHAR);
-    // store some custom data with the button that we use for styling
-    // and logic, e.g. the pointer to the data we want to alter.
     UITextData *data = (UITextData *)uiAllocHandle(item, sizeof(UITextData));
-    data->head.subtype = ST_TEXT;
-    data->head.handler = UI::TextBoxHandler;
+    data->head.type = UIType_TEXTBOX;
+    data->head.handler = UITextBoxHandler;
     data->text = text;
     data->maxsize = maxsize;
-    return item;
-}
-    
-void UI::RadioHandler(int item, UIevent event)
-{
-	UIRadioData *data = (UIRadioData *)uiGetHandle(item);
-	*(data->value) = item;
-}
 
-int UI::Radio(int parent, int icon, const char *label, int *value, unsigned layout/* = 0*/) {
-    int item = uiItem();
-    UIRadioData *data = (UIRadioData *)uiAllocHandle(item, sizeof(UIRadioData));
-    data->head.subtype = ST_RADIO;
-	data->head.handler = UI::RadioHandler;
-    data->icon = icon;
-    data->label = label;
-    data->value = value;
-
-	if (parent >= 0) uiInsert(parent, item);
-	uiSetSize(item, label ? 0 : BND_TOOL_WIDTH, BND_WIDGET_HEIGHT);
+	if (parent < 0) uiInsert(parent, item);
+	uiSetSize(item, 0, BND_WIDGET_HEIGHT);
 	uiSetLayout(item, layout);
-    uiSetEvents(item, UI_BUTTON0_DOWN);
+	uiSetEvents(item, UI_BUTTON0_DOWN | UI_KEY_DOWN | UI_CHAR);
 
     return item;
 }
@@ -502,7 +493,7 @@ int UI::Radio(int parent, int icon, const char *label, int *value, unsigned layo
 int UI::Panel(int parent, unsigned layout, int width, int height) {
 	int item = uiItem();
 	UIData *data = (UIData *)uiAllocHandle(item, sizeof(UIData));
-	data->subtype = ST_PANEL;
+	data->type = UIType_PANEL;
 	data->handler = NULL;
 
 	if (parent >= 0) uiInsert(parent, item);
@@ -515,7 +506,7 @@ int UI::Panel(int parent, unsigned layout, int width, int height) {
 int UI::Box(int parent, unsigned flags, unsigned layout/* = 0*/) {
 	int item = uiItem();
 	UIData *data = (UIData *)uiAllocHandle(item, sizeof(UIData));
-	data->subtype = ST_BOX;
+	data->type = UIType_BOX;
 	data->handler = NULL;
 	
 	if (parent >= 0) uiInsert(parent, item);
@@ -524,15 +515,13 @@ int UI::Box(int parent, unsigned flags, unsigned layout/* = 0*/) {
 
 	return item;
 }
-    
-void UI::BeginLayout()
-{
-	uiBeginLayout();
-}
 
-void UI::EndLayout()
+int UI::Root()
 {
-	uiEndLayout();
+	int item = uiItem();
+	uiSetSize(item, width, height);
+	uiSetBox(item, UI_FILL);
+	return item;
 }
 
 
