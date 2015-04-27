@@ -7,6 +7,7 @@
 #include "base/input.h"
 #include "base/camera.h"
 #include "math/mathf.h"
+#include "math/transform.h"
 
 #include "rasterizer/mesh.h"
 #include "rasterizer/material.h"

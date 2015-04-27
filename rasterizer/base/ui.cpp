@@ -520,7 +520,7 @@ int UI::Root()
 {
 	int item = uiItem();
 	uiSetSize(item, width, height);
-	uiSetBox(item, UI_FILL);
+	uiSetLayout(item, UI_FILL);
 	return item;
 }
 

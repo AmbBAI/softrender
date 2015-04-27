@@ -1,5 +1,6 @@
 #include "rasterizer.h"
 #include "utilities/camera_controller.h"
+#include "utilities/object_utilities.h"
 #include "base/ui.h"
 using namespace rasterizer;
 
@@ -23,11 +24,8 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
-MeshPtr CreatePlane();
 std::vector<MeshPtr> mesh;
-Vector3 position = Vector3::zero;
-Vector3 rotation = Vector3::zero;
-Vector3 scale = Vector3::one;
+Transform trans;
 void MainLoop()
 {
     if (mesh.size() == 0)
@@ -54,10 +52,7 @@ void MainLoop()
 //        Rasterizer::light->atten2 = 1.f;
 //        Rasterizer::light->Initilize();
 
-		Mesh::LoadMesh(mesh, "resources/crytek-sponza/sponza.obj");
-		position = Vector3(0, 0, 0);
-		rotation = Vector3(0, 0, 0);
-		scale = Vector3(1, 1, 1);
+        LoadSponzaMesh(mesh, trans);
 		Rasterizer::light = LightPtr(new Light());
 		Rasterizer::light->type = Light::LightType_Directional;
 		Rasterizer::light->position = Vector3(0, 300, 0);
@@ -101,12 +96,12 @@ void MainLoop()
 
 	canvas->Clear();
 
-	Matrix4x4 trans(position, Quaternion(rotation), scale);
+	Matrix4x4 transM = trans.GetMatrix();
 
 	for (auto& m : mesh)
 	{
 		if (m->materials.size() > 0) Rasterizer::material = m->materials[0];
-		Rasterizer::DrawMesh(*m, trans);
+		Rasterizer::DrawMesh(*m, transM);
 	}
 
     canvas->Present();
@@ -156,36 +151,6 @@ void MainLoop()
 	uiProcess((int)(glfwGetTime()*1000.0));
     
     UI::End();
-}
-
-MeshPtr CreatePlane()
-{
-	MeshPtr mesh(new Mesh());
-	mesh->vertices.push_back(Vector3(-1, -1, 0));
-	mesh->vertices.push_back(Vector3(1, -1, 0));
-	mesh->vertices.push_back(Vector3(1, 1, 0));
-	mesh->vertices.push_back(Vector3(-1, 1, 0));
-
-	mesh->normals.push_back(Vector3(0, 0, 1));
-	mesh->normals.push_back(Vector3(0, 0, 1));
-	mesh->normals.push_back(Vector3(0, 0, 1));
-	mesh->normals.push_back(Vector3(0, 0, 1));
-
-	mesh->texcoords.push_back(Vector2(0, 0));
-	mesh->texcoords.push_back(Vector2(1, 0));
-	mesh->texcoords.push_back(Vector2(1, 1));
-	mesh->texcoords.push_back(Vector2(0, 1));
-
-	mesh->indices.push_back(0);
-	mesh->indices.push_back(1);
-	mesh->indices.push_back(2);
-	mesh->indices.push_back(2);
-	mesh->indices.push_back(3);
-	mesh->indices.push_back(0);
-
-	mesh->CalculateTangents();
-
-	return mesh;
 }
 
 void TestTextureLoop()
