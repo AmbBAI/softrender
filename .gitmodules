@@ -4,3 +4,6 @@
 [submodule "thirdpart/glfw"]
 	path = thirdpart/glfw
 	url = https://github.com/glfw/glfw.git
+[submodule "thirdpart/nanovg"]
+	path = thirdpart/nanovg
+	url = https://github.com/memononen/nanovg.git

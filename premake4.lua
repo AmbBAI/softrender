@@ -2,7 +2,7 @@ solution "rasterizer"
   configurations {"Debug", "Debug_SIMD", "Release", "Release_SIMD"}
   language "C++"
 
-  configuration "Debug"
+  configuration "Debug or Debug_SIMD"
       defines { "DEBUG" }
       flags { "Symbols"}
       targetsuffix "_d"
@@ -13,7 +13,7 @@ solution "rasterizer"
 
   project "rasterizer"
     kind "ConsoleApp"
-    includedirs {"rasterizer/", "thirdpart/"}
+    includedirs { "rasterizer/", "thirdpart/"}
     targetdir ("bin/")
     libdirs {"lib/", "thirdpart/freeimage/"}
     files {
@@ -27,19 +27,19 @@ solution "rasterizer"
         defines { "DEBUG" }
         flags { "Symbols"}
         targetsuffix "_d"
-        links {"glfw_d", "tinyobjloader_d", "freeimage"}
+        links {"glfw_d", "tinyobjloader_d", "nanovg_d", "freeimage"}
 
     configuration "Release or Release_SIMD"
         defines { "NDEBUG"}
         flags { "Optimize"}
-        links {"glfw", "tinyobjloader", "freeimage"}
+        links {"glfw", "tinyobjloader", "nanovg", "freeimage"}
 
     configuration "Debug_SIMD or Release_SIMD"
         defines { "_MATH_SIMD_INTRINSIC_" }
 
     configuration "windows"
-        defines { "_CRT_SECURE_NO_WARNINGS" }
-        links {"opengl32.lib"}
+        defines { "_CRT_SECURE_NO_WARNINGS", "_USE_GLEW_" }
+        links {"opengl32.lib", "glu32.lib", "thirdpart/glew/lib/Release/Win32/glew32.lib"}
 
     configuration "macosx"
       buildoptions {"-std=c++11", "-msse4.1", "-Wno-deprecated-declarations"}
@@ -91,5 +91,20 @@ solution "rasterizer"
           "thirdpart/glfw/src/iokit_joystick.m",
       }
 
+  project "nanovg"
+    kind "StaticLib"
+    targetdir ("lib/")
+    includedirs { "thirdpart/nanovg/src/" }
+    files {
+        "thirdpart/nanovg/src/**.h",
+        "thirdpart/nanovg/src/**.c",
+    }
 
+    configuration "Debug"
+      defines { "DEBUG" }
+      flags { "Symbols", "ExtraWarnings"}
+
+    configuration "Release"
+      defines { "NDEBUG" }
+      flags { "Optimize", "ExtraWarnings"}
 

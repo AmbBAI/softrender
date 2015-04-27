@@ -1,6 +1,7 @@
 #include "application.h"
 #include "canvas.h"
 #include "input.h"
+#include "ui.h"
 
 namespace rasterizer
 {
@@ -13,38 +14,55 @@ Application* Application::GetInstance()
 
 Application::~Application()
 {
-	if (window != nullptr)
-	{
-		glfwDestroyWindow(window);
-		window = nullptr;
-	}
-
 	if (canvas != nullptr)
 	{
 		delete canvas;
 		canvas = nullptr;
 	}
 
+    //UI::Finalize();
+    
 	if (input != nullptr)
 	{
 		delete input;
 		input = nullptr;
 	}
+    
+    if (window != nullptr)
+    {
+        glfwDestroyWindow(window);
+        window = nullptr;
+    }
 }
 
 bool Application::CreateApplication(const char* title, int width, int height)
 {
-    if (!glfwInit()) return false;
+    if (!glfwInit())
+    {
+        assert(false);
+        return false;
+    }
 
-	glfwWindowHint(GLFW_DOUBLEBUFFER, 0);
+	//glfwWindowHint(GLFW_DOUBLEBUFFER, 0);
 	glfwWindowHint(GLFW_RESIZABLE, 0);
     window = glfwCreateWindow(width, height, title, nullptr, nullptr);
-    if (!window) return false;
+    if (!window)
+    {
+        assert(false);
+        return false;
+    }
+    
+    glfwSwapInterval(0);    
+    glfwSetTime(0);
     
     glfwMakeContextCurrent(window);
 	
     this->width = width;
 	this->height = height;
+    
+    bool ret = UI::Initialize(window, width, height);
+    assert(ret);
+    
 	return true;
 }
 
@@ -79,6 +97,7 @@ void Application::RunLoop()
 		thisFrameTime = GetTime();
 		deltaTime = thisFrameTime - lastFrameTime;
         if (loopFunc != nullptr) loopFunc();
+        glfwSwapBuffers(window);
 		glfwPollEvents();
     }
     glfwTerminate();

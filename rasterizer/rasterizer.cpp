@@ -9,6 +9,11 @@ rasterizer::MaterialPtr Rasterizer::material;
 rasterizer::LightPtr Rasterizer::light;
 rasterizer::Shader0 Rasterizer::shader;
 
+bool Rasterizer::isDrawTextured = false;
+bool Rasterizer::isDrawWireFrame = false;
+bool Rasterizer::isDrawPoint = false;
+
+
 void Rasterizer::Initialize()
 {
     Texture::Initialize();
@@ -79,147 +84,6 @@ void Rasterizer::DrawLine(int x0, int x1, int y0, int y1, const Color32& color)
 			y = y + yStep;
 			error = error + deltaX;
 		}
-	}
-}
-
-void Rasterizer::DrawSmoothLine(float x0, float x1, float y0, float y1, const Color32& color)
-{
-	float deltaX = x1 - x0;
-	float deltaY = y1 - y0;
-
-	bool steep = Mathf::Abs(deltaX) < Mathf::Abs(deltaY);
-	if (steep)
-	{
-		std::swap(x0, y0);
-		std::swap(x1, y1);
-		std::swap(deltaX, deltaY);
-	}
-	if (x1 < x0)
-	{
-		std::swap(x0, x1);
-		std::swap(y0, y1);
-	}
-
-	float gradient = (float)deltaY / deltaX;
-
-	float xend, yend, xgap, intery;
-	int xpxl1, xpxl2, ypxl1, ypxl2;
-
-	float yfpart;
-
-	xend = Mathf::Round(x0);
-	yend = y0 + gradient * (xend - x0);
-	xgap = 1.f - Mathf::Fractional(x0 + 0.5f);
-	xpxl1 = Mathf::RoundToInt(xend);
-	ypxl1 = Mathf::TruncToInt(yend);
-	yfpart = Mathf::Fractional(yend);
-	Plot(xpxl1, ypxl1, color, xgap * (1 - yfpart), steep);
-	Plot(xpxl1, ypxl1 + 1, color, xgap * yfpart, steep);
-	intery = yend + gradient;
-
-	xend = Mathf::Round(x1);
-	yend = y1 + gradient * (xend - x1);
-	xgap = 1.f - Mathf::Fractional(x1 + 0.5f);
-	xpxl2 = Mathf::RoundToInt(xend);
-	ypxl2 = Mathf::TruncToInt(yend);
-	yfpart = Mathf::Fractional(yend);
-	Plot(xpxl2, ypxl2, color, xgap * (1 - yfpart), steep);
-	Plot(xpxl2, ypxl2 + 1, color, xgap * yfpart, steep);
-
-	for (int x = xpxl1 + 1; x <= xpxl2 - 1; ++x)
-	{
-		int ipartIntery = Mathf::TruncToInt(intery);
-		float fpartIntery = Mathf::Fractional(intery);
-		Plot(x, ipartIntery, color, 1.0f - fpartIntery, steep);
-		Plot(x, ipartIntery + 1, color, fpartIntery, steep);
-
-		intery += gradient;
-	}
-
-}
-
-void Rasterizer::Plot(int x, int y, const Color32& color, float alpha, bool swapXY /*= false*/)
-{
-	assert(canvas != nullptr);
-
-	Color32 drawColor = color;
-	drawColor.a = (u8)(drawColor.a * Mathf::Clamp01(alpha));
-	swapXY ? canvas->SetPixel(y, x, color) : canvas->SetPixel(x, y, color);
-}
-
-void Rasterizer::DrawMeshPoint(const Mesh& mesh, const Matrix4x4& transform, const Color32& color)
-{
-    assert(canvas != nullptr);
-    assert(camera != nullptr);
-    
-	u32 width = canvas->GetWidth();
-	u32 height = canvas->GetHeight();
-
-    const Matrix4x4* view = camera->GetViewMatrix();
-    const Matrix4x4* projection = camera->GetProjectionMatrix();
-    Matrix4x4 mvp = (*projection).Multiply((*view).Multiply(transform));
-    
-    int vertexN = (int)mesh.vertices.size();
-    
-    int i = 0;
-//#pragma omp parallel for private(i)
-    for (i = 0; i < vertexN; ++i)
-    {
-        Vector4 hc = mvp.MultiplyPoint(mesh.vertices[i]);
-        u32 clipCode = Clipper::CalculateClipCode(hc);
-        if (0 != clipCode) continue;
-        
-		Projection point = Projection::CalculateViewProjection(hc, width, height);
-        canvas->SetPixel(point.x, point.y, color);
-    }
-}
-
-void Rasterizer::DrawMeshWireFrame(const Mesh& mesh, const Matrix4x4& transform, const Color32& color)
-{
-	assert(canvas != nullptr);
-	assert(camera != nullptr);
-
-	u32 width = canvas->GetWidth();
-	u32 height = canvas->GetHeight();
-
-    const Matrix4x4* view = camera->GetViewMatrix();
-    const Matrix4x4* projection = camera->GetProjectionMatrix();
-    Matrix4x4 mvp = (*projection).Multiply((*view).Multiply(transform));
-
-    int vertexN = (int)mesh.vertices.size();
-    
-	std::vector<VertexBase> vertices;
-	vertices.resize(vertexN);
-	for (int i = 0; i < (int)mesh.vertices.size(); ++i)
-	{
-		VertexBase vertex;
-        vertex.hc = mvp.MultiplyPoint(mesh.vertices[i]);
-		vertex.clipCode = Clipper::CalculateClipCode(vertex.hc);
-		vertices[i] = vertex;
-	}
-
-	for (int i = 0; i + 2 < (int)mesh.indices.size(); i += 3)
-	{
-		int v0 = mesh.indices[i];
-		int v1 = mesh.indices[i + 1];
-		int v2 = mesh.indices[i + 2];
-        
-        //if (IsBackFace(vertices[v0].position, vertices[v1].position, vertices[v2].position)) continue;
-
-		std::vector<Line<VertexBase> > lines;
-        auto l1 = Clipper::ClipLine(vertices[v0], vertices[v1]);
-        lines.insert(lines.end(), l1.begin(), l1.end());
-		auto l2 = Clipper::ClipLine(vertices[v0], vertices[v2]);
-        lines.insert(lines.end(), l2.begin(), l2.end());
-		auto l3 = Clipper::ClipLine(vertices[v1], vertices[v2]);
-        lines.insert(lines.end(), l3.begin(), l3.end());
-        
-        for (auto& line : lines)
-        {
-			Projection p0 = line.v0.GetViewProjection(width, height);
-			Projection p1 = line.v1.GetViewProjection(width, height);
-			DrawLine(p0.x, p1.x, p0.y, p1.y, color);
-        }
 	}
 }
 
@@ -400,17 +264,17 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform)
 	assert(canvas != nullptr);
 	assert(camera != nullptr);
 
-    //Matrix4x4 mvp = (*projection).Multiply((*view).Multiply(transform));
+	//Matrix4x4 mvp = (*projection).Multiply((*view).Multiply(transform));
 	shader._MATRIX_V = *camera->GetViewMatrix();
 	shader._MATRIX_P = *camera->GetProjectionMatrix();
-    shader._MATRIX_VP = shader._MATRIX_P.Multiply(shader._MATRIX_V);
-    shader._Object2World = transform;
+	shader._MATRIX_VP = shader._MATRIX_P.Multiply(shader._MATRIX_V);
+	shader._Object2World = transform;
 	shader._World2Object = transform.Inverse();
-    shader._MATRIX_MV = shader._MATRIX_V.Multiply(transform);
-    shader._MATRIX_MVP = shader._MATRIX_VP.Multiply(transform);
-    shader.material = material;
-    shader.light = light;
-    shader.camera = camera;
+	shader._MATRIX_MV = shader._MATRIX_V.Multiply(transform);
+	shader._MATRIX_MVP = shader._MATRIX_VP.Multiply(transform);
+	shader.material = material;
+	shader.light = light;
+	shader.camera = camera;
 
 	u32 width = canvas->GetWidth();
 	u32 height = canvas->GetHeight();
@@ -421,7 +285,7 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform)
 
 	//TODO vertex buff
 	int i = 0;
-//#pragma omp parallel for private(i)
+	//#pragma omp parallel for private(i)
 	for (i = 0; i < vertexN; ++i)
 	{
 		shader.position = &mesh.vertices[i];
@@ -429,32 +293,74 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform)
 		if (mesh.tangents.size() != 0) shader.tangent = &mesh.tangents[i];
 		if (mesh.texcoords.size() != 0) shader.texcoord = &mesh.texcoords[i];
 		shader.VertexShader(vertices[i]);
+
+		if (isDrawPoint)
+		{
+			if (!vertices[i].clipCode)
+			{
+				Projection point = Projection::CalculateViewProjection(vertices[i].hc, width, height);
+				canvas->SetPixel(point.x, point.y, Color::red);
+			}
+		}
 	}
 
 	//TODO Z pre-pass
 	int faceN = (int)mesh.indices.size() / 3;
-//#pragma omp parallel for private(i)
+	//#pragma omp parallel for private(i)
 	for (i = 0; i < faceN; ++i)
 	{
 		int i0 = mesh.indices[i * 3];
 		int i1 = mesh.indices[i * 3 + 1];
 		int i2 = mesh.indices[i * 3 + 2];
-  
-        //TODO Guard-band clipping
-        auto triangles = Clipper::ClipTriangle(vertices[i0], vertices[i1], vertices[i2]);
-        for (auto& triangle : triangles)
-        {
-			Projection p0 = triangle.v0.GetViewProjection(width, height);
-			Projection p1 = triangle.v1.GetViewProjection(width, height);
-			Projection p2 = triangle.v2.GetViewProjection(width, height);
-            
-            if (Orient2D(p0.x, p0.y, p1.x, p1.y, p2.x, p2.y) < 0.f) continue;
-            
-            DrawTriangle(p0, p1, p2, triangle);
 
-			//DrawLine(p0.x, p1.x, p0.y, p1.y, Color::green);
-			//DrawLine(p1.x, p2.x, p1.y, p2.y, Color::green);
-			//DrawLine(p2.x, p0.x, p2.y, p0.y, Color::green);
+		if (isDrawTextured)
+		{
+			//TODO Guard-band clipping
+			auto triangles = Clipper::ClipTriangle(vertices[i0], vertices[i1], vertices[i2]);
+			for (auto& triangle : triangles)
+			{
+				Projection p0 = triangle.v0.GetViewProjection(width, height);
+				Projection p1 = triangle.v1.GetViewProjection(width, height);
+				Projection p2 = triangle.v2.GetViewProjection(width, height);
+
+				if (Orient2D(p0.x, p0.y, p1.x, p1.y, p2.x, p2.y) < 0.f) continue;
+
+				DrawTriangle(p0, p1, p2, triangle);
+
+				//DrawLine(p0.x, p1.x, p0.y, p1.y, Color::green);
+				//DrawLine(p1.x, p2.x, p1.y, p2.y, Color::green);
+				//DrawLine(p2.x, p0.x, p2.y, p0.y, Color::green);
+			}
+		}
+
+		if (isDrawWireFrame)
+		{
+			std::vector<Line<VertexStd> > lines;
+			auto l1 = Clipper::ClipLine(vertices[i0], vertices[i1]);
+			lines.insert(lines.end(), l1.begin(), l1.end());
+			auto l2 = Clipper::ClipLine(vertices[i0], vertices[i2]);
+			lines.insert(lines.end(), l2.begin(), l2.end());
+			auto l3 = Clipper::ClipLine(vertices[i1], vertices[i2]);
+			lines.insert(lines.end(), l3.begin(), l3.end());
+
+			for (auto& line : lines)
+			{
+				Projection p0 = line.v0.GetViewProjection(width, height);
+				Projection p1 = line.v1.GetViewProjection(width, height);
+				DrawLine(p0.x, p1.x, p0.y, p1.y, Color::blue);
+			}
+		}
+	}
+
+	if (isDrawPoint)
+	{
+		for (i = 0; i < vertexN; ++i)
+		{
+			if (!vertices[i].clipCode)
+			{
+				Projection point = Projection::CalculateViewProjection(vertices[i].hc, width, height);
+				canvas->SetPixel(point.x, point.y, Color::red);
+			}
 		}
 	}
 
