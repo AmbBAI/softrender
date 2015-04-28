@@ -191,6 +191,7 @@ void Rasterizer::DrawTriangle(const Projection& p0, const Projection& p1, const 
                 
                 for (int i = 0; i < 4; ++i)
                 {
+                    quad[i] = PSInput(triangle.v0, triangle.v1, triangle.v2, f_x[i], f_y[i], f_z[i]);
 #else
             int i_w0[4], i_w1[4], i_w2[4];
             for (int i = 0; i < 4; ++i)
@@ -217,10 +218,10 @@ void Rasterizer::DrawTriangle(const Projection& p0, const Projection& p1, const 
 					f_y *= f_invSum;
 					f_z *= f_invSum;
 
+                    quad[i] = PSInput(triangle.v0, triangle.v1, triangle.v2, f_x, f_y, f_z);
 					f_depth[i] = (f_w0 + f_w1 + f_w2) * f_invSum;
 #endif
 					f_depth[i] = camera->GetLinearDepth(f_depth[i]);
-                    quad[i] = PSInput(triangle.v0, triangle.v1, triangle.v2, f_x, f_y, f_z);
 				}
 
 				Vector2 ddx = Shader0::CalcDDX(quad);
@@ -384,6 +385,7 @@ void Rasterizer::Render()
 		return renderList[a].depth < renderList[b].depth;
 	});
 
+    //int renderCount = 0;
 	for (auto& idx : indices)
 	{
 		RenderBlock& block = renderList[idx];
@@ -391,6 +393,7 @@ void Rasterizer::Render()
 		{
 			canvas->SetDepth(block.x, block.y, block.depth);
 
+            //renderCount ++;
 			shader.material = block.material;
 			shader.ddx = block.ddx;
 			shader.ddy = block.ddy;
@@ -398,6 +401,7 @@ void Rasterizer::Render()
 			canvas->SetPixel(block.x, block.y, color);
 		}
 	}
+    //printf("%d / %d\n", renderCount, (int)renderList.size());
 }
 
 }
