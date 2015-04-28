@@ -20,7 +20,7 @@ Application::~Application()
 		canvas = nullptr;
 	}
 
-    //UI::Finalize();
+    UI::Finalize();
     
 	if (input != nullptr)
 	{
@@ -43,7 +43,6 @@ bool Application::CreateApplication(const char* title, int width, int height)
         return false;
     }
 
-	//glfwWindowHint(GLFW_DOUBLEBUFFER, 0);
 	glfwWindowHint(GLFW_RESIZABLE, 0);
     window = glfwCreateWindow(width, height, title, nullptr, nullptr);
     if (!window)

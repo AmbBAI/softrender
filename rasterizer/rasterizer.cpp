@@ -386,7 +386,7 @@ void Rasterizer::Render()
     int renderCount = 0;
 	for (auto& block : renderQueue)
 	{
-        if (Mathf::Approximately(block.depth, canvas->GetDepth(block.x, block.y)))
+        if (block.depth <= canvas->GetDepth(block.x, block.y))
 		{
             renderCount ++;
 			shader.material = block.material;
