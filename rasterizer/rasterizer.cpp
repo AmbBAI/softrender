@@ -8,7 +8,7 @@ CameraPtr Rasterizer::camera;
 rasterizer::MaterialPtr Rasterizer::material;
 rasterizer::LightPtr Rasterizer::light;
 rasterizer::Shader0 Rasterizer::shader;
-std::vector<Rasterizer::RenderBlock> Rasterizer::renderList;
+std::vector<Rasterizer::RenderBlock> Rasterizer::renderQueue;
 
 
 bool Rasterizer::isDrawTextured = true;
@@ -231,15 +231,21 @@ void Rasterizer::DrawTriangle(const Projection& p0, const Projection& p1, const 
 				{
 					if (maskCode & (1 << i))
 					{
+                        int cx = x + quadX[i];
+                        int cy = y + quadY[i];
+                        
+                        if (f_depth[i] > canvas->GetDepth(cx, cy)) continue;
+                        canvas->SetDepth(cx, cy, f_depth[i]);
+                        
 						RenderBlock block;
-						block.x = x + quadX[i];
-						block.y = y + quadY[i];
+						block.x = cx;
+						block.y = cy;
 						block.material = material;
 						block.depth = f_depth[i];
 						block.ddx = ddx;
 						block.ddy = ddy;
 						block.input = quad[i];
-						renderList.push_back(block);
+						renderQueue.push_back(block);
 					}
 				}
 			}
@@ -372,28 +378,17 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform)
 
 void Rasterizer::PrepareRender()
 {
-	renderList.clear();
+	renderQueue.clear();
 }
 
 void Rasterizer::Render()
 {
-	std::vector<u32> indices(renderList.size(), 0);
-	for (u32 i = 0; i < indices.size(); ++i) indices[i] = i;
-
-	std::sort(indices.begin(), indices.end(), [](const u32& a, const u32& b)
+    int renderCount = 0;
+	for (auto& block : renderQueue)
 	{
-		return renderList[a].depth < renderList[b].depth;
-	});
-
-    //int renderCount = 0;
-	for (auto& idx : indices)
-	{
-		RenderBlock& block = renderList[idx];
-		if (block.depth < canvas->GetDepth(block.x, block.y))
+        if (Mathf::Approximately(block.depth, canvas->GetDepth(block.x, block.y)))
 		{
-			canvas->SetDepth(block.x, block.y, block.depth);
-
-            //renderCount ++;
+            renderCount ++;
 			shader.material = block.material;
 			shader.ddx = block.ddx;
 			shader.ddy = block.ddy;
@@ -401,7 +396,9 @@ void Rasterizer::Render()
 			canvas->SetPixel(block.x, block.y, color);
 		}
 	}
-    //printf("%d / %d\n", renderCount, (int)renderList.size());
+    printf("%d / %d\n", renderCount, (int)renderQueue.size());
+    
+    // transparent
 }
 
 }

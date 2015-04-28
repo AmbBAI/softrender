@@ -221,7 +221,8 @@ struct Rasterizer
 		float depth;
 		Vector2 ddx, ddy;
 	};
-	static std::vector<RenderBlock> renderList;
+	static std::vector<RenderBlock> renderQueue;
+    // static std::vector<RenderBlock> transparentRenderQueue;
 
 	static void PrepareRender();
 	static void Render();
