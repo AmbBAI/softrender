@@ -62,7 +62,7 @@ struct Shader0 : Shader < VertexStd, PSInput >
 	const Vector4* tangent = nullptr;
 	const Vector2* texcoord = nullptr;
     
-    PSInput quad[4];
+	Vector2 ddx, ddy;
 
 	void VertexShader(VertexStd& out) override
 	{
@@ -82,20 +82,20 @@ struct Shader0 : Shader < VertexStd, PSInput >
 		out.clipCode = Clipper::CalculateClipCode(out.hc);
 	}
 
-    const Vector2 ddx() const
+	static const Vector2 CalcDDX(const PSInput quad[4])
     {
-        return quad[1].uv - quad[0].uv;
+		return quad[1].uv - quad[0].uv;
     }
     
-    const Vector2 ddy() const
-    {
-        return quad[2].uv - quad[0].uv;
-    }
+	static const Vector2 CalcDDY(const PSInput quad[4])
+	{
+		return quad[2].uv - quad[0].uv;
+	}
     
     const float calc_lod(u32 width, u32 height) const
     {
-        Vector2 dx = ddx() * (float)width;
-        Vector2 dy = ddy() * (float)height;
+        Vector2 dx = ddx * (float)width;
+        Vector2 dy = ddy * (float)height;
         float d = Mathf::Max(dx.Dot(dx), dy.Dot(dy));
         return 0.5f * Mathf::Log2(d);
     }
@@ -212,6 +212,19 @@ struct Rasterizer
     static void DrawMesh(const Mesh& mesh, const Matrix4x4& transform);
 
 	static int Orient2D(int x0, int y0, int x1, int y1, int x2, int y2);
+
+	struct RenderBlock
+	{
+		int x, y;
+		PSInput input;
+		MaterialPtr material;
+		float depth;
+		Vector2 ddx, ddy;
+	};
+	static std::vector<RenderBlock> renderList;
+
+	static void PrepareRender();
+	static void Render();
 };
 
 }

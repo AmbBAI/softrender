@@ -98,11 +98,15 @@ void MainLoop()
 
 	Matrix4x4 transM = trans.GetMatrix();
 
+	Rasterizer::PrepareRender();
+
 	for (auto& m : mesh)
 	{
 		if (m->materials.size() > 0) Rasterizer::material = m->materials[0];
 		Rasterizer::DrawMesh(*m, transM);
 	}
+
+	Rasterizer::Render();
 
     canvas->Present();
 

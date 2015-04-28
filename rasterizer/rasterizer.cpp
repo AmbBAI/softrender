@@ -8,8 +8,10 @@ CameraPtr Rasterizer::camera;
 rasterizer::MaterialPtr Rasterizer::material;
 rasterizer::LightPtr Rasterizer::light;
 rasterizer::Shader0 Rasterizer::shader;
+std::vector<Rasterizer::RenderBlock> Rasterizer::renderList;
 
-bool Rasterizer::isDrawTextured = false;
+
+bool Rasterizer::isDrawTextured = true;
 bool Rasterizer::isDrawWireFrame = false;
 bool Rasterizer::isDrawPoint = false;
 
@@ -141,14 +143,14 @@ void Rasterizer::DrawTriangle(const Projection& p0, const Projection& p1, const 
 
 	SIMD_ALIGN float f_x[4], f_y[4], f_z[4];
 	SIMD_ALIGN float f_depth[4];
-	SIMD_ALIGN int i_x[4], i_y[4];
 #else
     int i_w0_delta[4] = {0, dy01, -dx01, dy01 - dx01};
     int i_w1_delta[4] = {0, dy12, -dx12, dy12 - dx12};
     int i_w2_delta[4] = {0, dy20, -dx20, dy20 - dx20};
     
-    int i_x[4], i_y[4];
+	float f_depth[4];
 #endif
+	PSInput quad[4];
 
 	for (int y = minY; y <= maxY; y+=2)
 	{
@@ -189,9 +191,6 @@ void Rasterizer::DrawTriangle(const Projection& p0, const Projection& p1, const 
                 
                 for (int i = 0; i < 4; ++i)
                 {
-                    shader.quad[i] = PSInput(triangle.v0, triangle.v1, triangle.v2, f_x[i], f_y[i], f_z[i]);
-
-                    float depth = camera->GetLinearDepth(f_depth[i]);
 #else
             int i_w0[4], i_w1[4], i_w2[4];
             for (int i = 0; i < 4; ++i)
@@ -206,43 +205,40 @@ void Rasterizer::DrawTriangle(const Projection& p0, const Projection& p1, const 
             {
                 for (int i=0; i<4; ++i)
                 {
-                    float f_w0 = (float)i_w0[i];
-                    float f_w1 = (float)i_w1[i];
-                    float f_w2 = (float)i_w2[i];
-                    
-                    float f_x = f_w1 * p0.invW;
-                    float f_y = f_w2 * p1.invW;
-                    float f_z = f_w0 * p2.invW;
-                    float f_invSum = 1.f / (f_x + f_y + f_z);
+					float f_w0 = (float)i_w0[i];
+					float f_w1 = (float)i_w1[i];
+					float f_w2 = (float)i_w2[i];
+
+					float f_x = f_w1 * p0.invW;
+					float f_y = f_w2 * p1.invW;
+					float f_z = f_w0 * p2.invW;
+					float f_invSum = 1.f / (f_x + f_y + f_z);
 					f_x *= f_invSum;
 					f_y *= f_invSum;
 					f_z *= f_invSum;
-                    
-					float depth = (f_w0 + f_w1 + f_w2) * f_invSum;
-					depth = camera->GetLinearDepth(depth);
-                    
-                    shader.quad[i] = PSInput(triangle.v0, triangle.v1, triangle.v2, f_x, f_y, f_z);
+
+					f_depth[i] = (f_w0 + f_w1 + f_w2) * f_invSum;
 #endif
-                    i_x[i] = x + quadX[i];
-                    i_y[i] = y + quadY[i];
-                    
-					if (maskCode & (1 << i))
-					{
-						if (depth >= 0.f && depth <= 1.f && depth < canvas->GetDepth(i_x[i], i_y[i]))
-						{
-							canvas->SetDepth(i_x[i], i_y[i], depth);
-							//canvas->SetPixel(i_x[i], i_y[i], Color(1.f, 1.f - depth, 1.f - depth, 1.f - depth));
-						}
-						else maskCode &= ~(1 << i);
-					}
+					f_depth[i] = camera->GetLinearDepth(f_depth[i]);
+                    quad[i] = PSInput(triangle.v0, triangle.v1, triangle.v2, f_x, f_y, f_z);
 				}
+
+				Vector2 ddx = Shader0::CalcDDX(quad);
+				Vector2 ddy = Shader0::CalcDDY(quad);
 
 				for (int i = 0; i < 4; ++i)
 				{
 					if (maskCode & (1 << i))
 					{
-						Color color = shader.PixelShader(shader.quad[i]);
-						canvas->SetPixel(i_x[i], i_y[i], color);
+						RenderBlock block;
+						block.x = x + quadX[i];
+						block.y = y + quadY[i];
+						block.material = material;
+						block.depth = f_depth[i];
+						block.ddx = ddx;
+						block.ddy = ddy;
+						block.input = quad[i];
+						renderList.push_back(block);
 					}
 				}
 			}
@@ -370,6 +366,37 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform)
 	{
 		Projection point = Projection::CalculateViewProjection(hc, width, height);
 		canvas->SetPixel(point.x, point.y, Color::green);
+	}
+}
+
+void Rasterizer::PrepareRender()
+{
+	renderList.clear();
+}
+
+void Rasterizer::Render()
+{
+	std::vector<u32> indices(renderList.size(), 0);
+	for (u32 i = 0; i < indices.size(); ++i) indices[i] = i;
+
+	std::sort(indices.begin(), indices.end(), [](const u32& a, const u32& b)
+	{
+		return renderList[a].depth < renderList[b].depth;
+	});
+
+	for (auto& idx : indices)
+	{
+		RenderBlock& block = renderList[idx];
+		if (block.depth < canvas->GetDepth(block.x, block.y))
+		{
+			canvas->SetDepth(block.x, block.y, block.depth);
+
+			shader.material = block.material;
+			shader.ddx = block.ddx;
+			shader.ddy = block.ddy;
+			Color color = shader.PixelShader(block.input);
+			canvas->SetPixel(block.x, block.y, color);
+		}
 	}
 }
 
