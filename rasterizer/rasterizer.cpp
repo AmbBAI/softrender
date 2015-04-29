@@ -322,6 +322,9 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform)
 		if (isDrawTextured)
 		{
 			//TODO Guard-band clipping
+			Rasterizer::material = nullptr;
+			if (i <= (int)mesh.materials.size()) Rasterizer::material = mesh.materials[i];
+
 			auto triangles = Clipper::ClipTriangle(vertices[i0], vertices[i1], vertices[i2]);
 			for (auto& triangle : triangles)
 			{

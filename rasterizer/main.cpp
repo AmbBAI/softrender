@@ -102,7 +102,6 @@ void MainLoop()
 
 	for (auto& m : mesh)
 	{
-		if (m->materials.size() > 0) Rasterizer::material = m->materials[0];
 		Rasterizer::DrawMesh(*m, transM);
 	}
 
