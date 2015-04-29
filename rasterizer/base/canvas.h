@@ -15,6 +15,15 @@ class Canvas
 	~Canvas() = default;
 
 public:
+	Color32 GetPixel(int x, int y)
+	{
+		if (x < 0 || x >= width) return Color32::black;
+		if (y < 0 || y >= height) return Color32::black;
+
+		int offset = y * width + x;
+		return Color32(pixels[offset]);
+	}
+
 	bool SetPixel(int x, int y, const Color& color)
     {
         return SetPixel(x, y, Color32(color));

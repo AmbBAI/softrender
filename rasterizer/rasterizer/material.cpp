@@ -59,13 +59,30 @@ void Material::LoadMaterial(std::vector<MaterialPtr>& materials, const std::vect
                 }
             }
         }
+		if (newM->normalTexture != nullptr) newM->normalTexture->GenerateMipmaps();
+
         if (m.specular_texname.size() > 0)
         {
             std::string texPath = fileDir + m.specular_texname;
             std::replace(texPath.begin(), texPath.end(), '\\', '/');
             newM->specularTexture = Texture::LoadTexture(texPath.c_str());
         }
-        if (newM->normalTexture != nullptr) newM->normalTexture->GenerateMipmaps();
+
+		// alpha_mask
+		auto paramItor = m.unknown_parameter.find("map_d");
+		if (paramItor != m.unknown_parameter.end())
+		{
+			std::string texPath = fileDir + paramItor->second;
+			std::replace(texPath.begin(), texPath.end(), '\\', '/');
+			newM->alphaMaskTexture = Texture::LoadTexture(texPath.c_str());
+		}
+		//newM->alpha = m.dissolve;
+
+		newM->isTransparent = false;
+		if (newM->alpha < 1.f - Mathf::epsilon || newM->alphaMaskTexture != nullptr)
+		{
+			newM->isTransparent = true;
+		}
         
         materials.push_back(newM);
     }

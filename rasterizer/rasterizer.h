@@ -187,6 +187,18 @@ struct Shader0 : Shader < VertexStd, PSInput >
 			output = LightingPhong(lightInput, normal, lightDir, lightColor, viewDir, attenuation);
         } else output = lightInput.ambient;
 
+		if (material && material->isTransparent)
+		{
+			output.a = material->alpha;
+
+			if (material->alphaMaskTexture)
+			{
+				Color alpha = material->alphaMaskTexture->Sample(input.uv.x, input.uv.y);
+				output.a = output.a * (1.f - alpha.b);
+			}
+		}
+		else output.a = 1.f;
+
         return output;
 	}
 };
@@ -222,7 +234,7 @@ struct Rasterizer
 		Vector2 ddx, ddy;
 	};
 	static std::vector<RenderBlock> renderQueue;
-    // static std::vector<RenderBlock> transparentRenderQueue;
+    static std::vector<RenderBlock> transparentRenderQueue;
 
 	static void PrepareRender();
 	static void Render();

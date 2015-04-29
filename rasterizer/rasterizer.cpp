@@ -9,6 +9,7 @@ rasterizer::MaterialPtr Rasterizer::material;
 rasterizer::LightPtr Rasterizer::light;
 rasterizer::Shader0 Rasterizer::shader;
 std::vector<Rasterizer::RenderBlock> Rasterizer::renderQueue;
+std::vector<Rasterizer::RenderBlock> Rasterizer::transparentRenderQueue;
 
 
 bool Rasterizer::isDrawTextured = true;
@@ -235,7 +236,7 @@ void Rasterizer::DrawTriangle(const Projection& p0, const Projection& p1, const 
                         int cy = y + quadY[i];
                         
                         if (f_depth[i] > canvas->GetDepth(cx, cy)) continue;
-                        canvas->SetDepth(cx, cy, f_depth[i]);
+                        if (!material->isTransparent) canvas->SetDepth(cx, cy, f_depth[i]);
                         
 						RenderBlock block;
 						block.x = cx;
@@ -245,7 +246,9 @@ void Rasterizer::DrawTriangle(const Projection& p0, const Projection& p1, const 
 						block.ddx = ddx;
 						block.ddy = ddy;
 						block.input = quad[i];
-						renderQueue.push_back(block);
+
+						if (material->isTransparent) transparentRenderQueue.push_back(block);
+						else renderQueue.push_back(block);
 					}
 				}
 			}
@@ -379,6 +382,7 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform)
 void Rasterizer::PrepareRender()
 {
 	renderQueue.clear();
+	transparentRenderQueue.clear();
 }
 
 void Rasterizer::Render()
@@ -396,9 +400,33 @@ void Rasterizer::Render()
 			canvas->SetPixel(block.x, block.y, color);
 		}
 	}
-    printf("%d / %d\n", renderCount, (int)renderQueue.size());
     
     // transparent
+	std::vector<u32> indices(transparentRenderQueue.size(), 0);
+	for (u32 i = 0; i < indices.size(); ++i) indices[i] = i;
+	std::sort(indices.begin(), indices.end(), [](const u32& a, const u32& b)
+	{
+		return transparentRenderQueue[a].depth > transparentRenderQueue[b].depth;
+	});
+
+	for (u32 blockID : indices)
+	{
+		RenderBlock& block = transparentRenderQueue[blockID];
+
+		if (block.depth < canvas->GetDepth(block.x, block.y))
+		{
+			renderCount++;
+			shader.material = block.material;
+			shader.ddx = block.ddx;
+			shader.ddy = block.ddy;
+			Color color = shader.PixelShader(block.input);
+			Color oc = canvas->GetPixel(block.x, block.y);
+			color = Color::Lerp(color, oc, color.a);
+			canvas->SetPixel(block.x, block.y, color);
+		}
+	}
+
+	printf("%d / %d\n", renderCount, (int)renderQueue.size());
 }
 
 }
