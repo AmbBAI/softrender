@@ -44,6 +44,11 @@ struct Light
             cosHalfTheta = Mathf::Cos(theta * Mathf::deg2rad / 2.f);
         }
     }
+
+	float CalcAtten(float distance) const
+	{
+		return 1.f / (atten0 + atten1 * distance + atten2 * distance * distance);
+	}
 	
 #if _MATH_SIMD_INTRINSIC_ && defined(_MSC_VER)
 	MEMALIGN_NEW_OPERATOR_OVERRIDE(16)

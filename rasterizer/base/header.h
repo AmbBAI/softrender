@@ -17,6 +17,10 @@
 #include <map>
 #include <algorithm>
 
+#if _USE_OPENMP_
+#include "omp.h"
+#endif
+
 #if _MATH_SIMD_INTRINSIC_
 #include "smmintrin.h"
 #if defined(_MSC_VER)

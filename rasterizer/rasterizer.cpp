@@ -4,12 +4,9 @@ namespace rasterizer
 {
 
 Canvas* Rasterizer::canvas = nullptr;
-CameraPtr Rasterizer::camera;
-rasterizer::MaterialPtr Rasterizer::material;
-rasterizer::LightPtr Rasterizer::light;
-rasterizer::Shader0 Rasterizer::shader;
-std::vector<Rasterizer::RenderBlock> Rasterizer::renderQueue;
-std::vector<Rasterizer::RenderBlock> Rasterizer::transparentRenderQueue;
+CameraPtr Rasterizer::camera = nullptr;
+LightPtr Rasterizer::light = nullptr;
+RenderData<Vertex, Pixel, 2> Rasterizer::renderData;
 
 
 bool Rasterizer::isDrawTextured = true;
@@ -95,8 +92,15 @@ int Rasterizer::Orient2D(int x0, int y0, int x1, int y1, int x2, int y2)
 	return (x1 - x0) * (y2 - y1) - (y1 - y0) * (x2 - x1);
 }
 
-void Rasterizer::DrawTriangle(const Projection& p0, const Projection& p1, const Projection& p2, const Triangle<VertexStd>& triangle)
+void Rasterizer::DrawTriangle(u32 meshIndex, u32 triangleIndex)
 {
+	auto& mesh = renderData.meshes[meshIndex];
+	auto& triangle = mesh.triangles[triangleIndex];
+
+	const Projection& p0 = triangle.projection.v0;
+	const Projection& p1 = triangle.projection.v1;
+	const Projection& p2 = triangle.projection.v2;
+
 	int minX = Mathf::Min(p0.x, p1.x, p2.x);
 	int minY = Mathf::Min(p0.y, p1.y, p2.y);
 	int maxX = Mathf::Max(p0.x, p1.x, p2.x);
@@ -149,9 +153,13 @@ void Rasterizer::DrawTriangle(const Projection& p0, const Projection& p1, const 
     int i_w1_delta[4] = {0, dy12, -dx12, dy12 - dx12};
     int i_w2_delta[4] = {0, dy20, -dx20, dy20 - dx20};
     
+	float f_x[4], f_y[4], f_z[4];
 	float f_depth[4];
 #endif
-	PSInput quad[4];
+
+	const Vertex& v0 = triangle.vertices.v0;
+	const Vertex& v1 = triangle.vertices.v1;
+	const Vertex& v2 = triangle.vertices.v2;
 
 	for (int y = minY; y <= maxY; y+=2)
 	{
@@ -192,7 +200,6 @@ void Rasterizer::DrawTriangle(const Projection& p0, const Projection& p1, const 
                 
                 for (int i = 0; i < 4; ++i)
                 {
-                    quad[i] = PSInput(triangle.v0, triangle.v1, triangle.v2, f_x[i], f_y[i], f_z[i]);
 #else
             int i_w0[4], i_w1[4], i_w2[4];
             for (int i = 0; i < 4; ++i)
@@ -211,22 +218,21 @@ void Rasterizer::DrawTriangle(const Projection& p0, const Projection& p1, const 
 					float f_w1 = (float)i_w1[i];
 					float f_w2 = (float)i_w2[i];
 
-					float f_x = f_w1 * p0.invW;
-					float f_y = f_w2 * p1.invW;
-					float f_z = f_w0 * p2.invW;
-					float f_invSum = 1.f / (f_x + f_y + f_z);
-					f_x *= f_invSum;
-					f_y *= f_invSum;
-					f_z *= f_invSum;
+					f_x[i] = f_w1 * p0.invW;
+					f_y[i] = f_w2 * p1.invW;
+					f_z[i] = f_w0 * p2.invW;
+					float f_invSum = 1.f / (f_x[i] + f_y[i] + f_z[i]);
+					f_x[i] *= f_invSum;
+					f_y[i] *= f_invSum;
+					f_z[i] *= f_invSum;
 
-                    quad[i] = PSInput(triangle.v0, triangle.v1, triangle.v2, f_x, f_y, f_z);
 					f_depth[i] = (f_w0 + f_w1 + f_w2) * f_invSum;
 #endif
 					f_depth[i] = camera->GetLinearDepth(f_depth[i]);
 				}
 
-				Vector2 ddx = Shader0::CalcDDX(quad);
-				Vector2 ddy = Shader0::CalcDDY(quad);
+				Vector2 ddx = TriInterp(v0.texcoord, v1.texcoord, v2.texcoord, f_x[1] - f_x[0], f_y[1] - f_y[0], f_z[1] - f_z[0]);
+				Vector2 ddy = TriInterp(v0.texcoord, v1.texcoord, v2.texcoord, f_x[2] - f_x[0], f_y[2] - f_y[0], f_z[2] - f_z[0]);
 
 				for (int i = 0; i < 4; ++i)
 				{
@@ -236,19 +242,23 @@ void Rasterizer::DrawTriangle(const Projection& p0, const Projection& p1, const 
                         int cy = y + quadY[i];
                         
                         if (f_depth[i] > canvas->GetDepth(cx, cy)) continue;
-                        if (!material->isTransparent) canvas->SetDepth(cx, cy, f_depth[i]);
-                        
-						RenderBlock block;
-						block.x = cx;
-						block.y = cy;
-						block.material = material;
-						block.depth = f_depth[i];
-						block.ddx = ddx;
-						block.ddy = ddy;
-						block.input = quad[i];
 
-						if (material->isTransparent) transparentRenderQueue.push_back(block);
-						else renderQueue.push_back(block);
+						bool isTransparent = triangle.material->isTransparent;
+						if (!isTransparent) canvas->SetDepth(cx, cy, f_depth[i]);
+                        
+						RenderPixelData<Pixel> pixelData;
+						pixelData.meshIndex = meshIndex;
+						pixelData.triangleIndex = triangleIndex;
+						pixelData.x = cx;
+						pixelData.y = cy;
+						pixelData.depth = f_depth[i];
+						pixelData.ddx = ddx;
+						pixelData.ddy = ddy;
+						pixelData.pixel = Pixel(v0, v1, v2, f_x[i], f_y[i], f_z[i]);
+
+//#pragma omp critical
+						if (isTransparent) renderData.renderList[1].push_back(pixelData);
+						else renderData.renderList[0].push_back(pixelData);
 					}
 				}
 			}
@@ -270,86 +280,93 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform)
 	assert(canvas != nullptr);
 	assert(camera != nullptr);
 
-	//Matrix4x4 mvp = (*projection).Multiply((*view).Multiply(transform));
-	shader._MATRIX_V = *camera->GetViewMatrix();
-	shader._MATRIX_P = *camera->GetProjectionMatrix();
-	shader._MATRIX_VP = shader._MATRIX_P.Multiply(shader._MATRIX_V);
-	shader._Object2World = transform;
-	shader._World2Object = transform.Inverse();
-	shader._MATRIX_MV = shader._MATRIX_V.Multiply(transform);
-	shader._MATRIX_MVP = shader._MATRIX_VP.Multiply(transform);
-	shader.material = material;
-	shader.light = light;
-	shader.camera = camera;
+	RenderMeshData<Vertex> meshData;
+	meshData._MATRIX_V = *camera->GetViewMatrix();
+	meshData._MATRIX_P = *camera->GetProjectionMatrix();
+	meshData._MATRIX_VP = meshData._MATRIX_P.Multiply(meshData._MATRIX_V);
+	meshData._Object2World = transform;
+	meshData._World2Object = transform.Inverse();
+	meshData._MATRIX_MV = meshData._MATRIX_V.Multiply(transform);
+	meshData._MATRIX_MVP = meshData._MATRIX_VP.Multiply(transform);
+	meshData.light = light;
+	meshData.camera = camera;
+	renderData.meshes.push_back(meshData);
+
+	u32 meshID = renderData.meshes.size() - 1;
+	RenderMeshData<Vertex>& meshRef = renderData.meshes[meshID];
 
 	u32 width = canvas->GetWidth();
 	u32 height = canvas->GetHeight();
 
-	int vertexN = (int)mesh.vertices.size();
-	std::vector<VertexStd> vertices;
-	vertices.resize(vertexN);
-
-	//TODO vertex buff
 	int i = 0;
-	//#pragma omp parallel for private(i)
+	int vertexN = (int)mesh.vertices.size();
 	for (i = 0; i < vertexN; ++i)
 	{
-		shader.position = &mesh.vertices[i];
-		shader.normal = &mesh.normals[i];
-		if (mesh.tangents.size() != 0) shader.tangent = &mesh.tangents[i];
-		if (mesh.texcoords.size() != 0) shader.texcoord = &mesh.texcoords[i];
-		shader.VertexShader(vertices[i]);
-
-		if (isDrawPoint)
-		{
-			if (!vertices[i].clipCode)
-			{
-				Projection point = Projection::CalculateViewProjection(vertices[i].hc, width, height);
-				canvas->SetPixel(point.x, point.y, Color::red);
-			}
-		}
+		RenderVertexData<Vertex> vertexData;
+		vertexData.meshIndex = meshID;
+		vertexData.position = mesh.vertices[i];
+		vertexData.normal = mesh.normals[i];
+		if (mesh.tangents.size() != 0) vertexData.tangent = mesh.tangents[i];
+		if (mesh.texcoords.size() != 0) vertexData.texcoord = mesh.texcoords[i];
+		meshRef.vertices.push_back(vertexData);
 	}
 
-	//TODO Z pre-pass
+//#pragma omp parallel for private(i)
+	for (i = 0; i < vertexN; ++i)
+	{
+		RenderVertexData<Vertex>& vertexRef = meshRef.vertices[i];
+		VS vs(meshRef, vertexRef);
+		vs.vsMain(vertexRef.vertex);
+	}
+
 	int faceN = (int)mesh.indices.size() / 3;
-	//#pragma omp parallel for private(i)
 	for (i = 0; i < faceN; ++i)
 	{
 		int i0 = mesh.indices[i * 3];
 		int i1 = mesh.indices[i * 3 + 1];
 		int i2 = mesh.indices[i * 3 + 2];
 
+		Vertex& v0 = meshRef.vertices[i0].vertex;
+		Vertex& v1 = meshRef.vertices[i1].vertex;
+		Vertex& v2 = meshRef.vertices[i2].vertex;
+
 		if (isDrawTextured)
 		{
 			//TODO Guard-band clipping
-			Rasterizer::material = nullptr;
-			if (i <= (int)mesh.materials.size()) Rasterizer::material = mesh.materials[i];
+			MaterialPtr material = nullptr;
+			if (i <= (int)mesh.materials.size()) material = mesh.materials[i];
 
-			auto triangles = Clipper::ClipTriangle(vertices[i0], vertices[i1], vertices[i2]);
+			auto triangles = Clipper::ClipTriangle(v0, v1, v2);
 			for (auto& triangle : triangles)
 			{
 				Projection p0 = triangle.v0.GetViewProjection(width, height);
 				Projection p1 = triangle.v1.GetViewProjection(width, height);
 				Projection p2 = triangle.v2.GetViewProjection(width, height);
-
 				if (Orient2D(p0.x, p0.y, p1.x, p1.y, p2.x, p2.y) < 0.f) continue;
-
-				DrawTriangle(p0, p1, p2, triangle);
 
 				//DrawLine(p0.x, p1.x, p0.y, p1.y, Color::green);
 				//DrawLine(p1.x, p2.x, p1.y, p2.y, Color::green);
 				//DrawLine(p2.x, p0.x, p2.y, p0.y, Color::green);
+
+				RenderTriangleData<Vertex> triangleData;
+				triangleData.meshIndex = meshID;
+				triangleData.material = material;
+				triangleData.vertices = triangle;
+				triangleData.projection.v0 = p0;
+				triangleData.projection.v1 = p1;
+				triangleData.projection.v2 = p2;
+				meshRef.triangles.push_back(triangleData);
 			}
 		}
 
 		if (isDrawWireFrame)
 		{
-			std::vector<Line<VertexStd> > lines;
-			auto l1 = Clipper::ClipLine(vertices[i0], vertices[i1]);
+			std::vector<Line<Vertex> > lines;
+			auto l1 = Clipper::ClipLine(v0, v1);
 			lines.insert(lines.end(), l1.begin(), l1.end());
-			auto l2 = Clipper::ClipLine(vertices[i0], vertices[i2]);
+			auto l2 = Clipper::ClipLine(v0, v2);
 			lines.insert(lines.end(), l2.begin(), l2.end());
-			auto l3 = Clipper::ClipLine(vertices[i1], vertices[i2]);
+			auto l3 = Clipper::ClipLine(v1, v2);
 			lines.insert(lines.end(), l3.begin(), l3.end());
 
 			for (auto& line : lines)
@@ -361,19 +378,27 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform)
 		}
 	}
 
+	int triangleN = (int)meshRef.triangles.size();
+//#pragma omp parallel for private(i)
+	for (i = 0; i < triangleN; ++i)
+	{
+		DrawTriangle(meshID, i);
+	}
+
 	if (isDrawPoint)
 	{
 		for (i = 0; i < vertexN; ++i)
 		{
-			if (!vertices[i].clipCode)
+			Vertex& vertex = meshRef.vertices[i].vertex;
+			if (!vertex.clipCode)
 			{
-				Projection point = Projection::CalculateViewProjection(vertices[i].hc, width, height);
+				Projection point = Projection::CalculateViewProjection(vertex.hc, width, height);
 				canvas->SetPixel(point.x, point.y, Color::red);
 			}
 		}
 	}
 
-	Vector4 hc = shader._MATRIX_VP.MultiplyPoint(light->position);
+	Vector4 hc = meshRef._MATRIX_VP.MultiplyPoint(light->position);
 	u32 clipCode = Clipper::CalculateClipCode(hc);
 	if (0 == clipCode)
 	{
@@ -384,52 +409,69 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform)
 
 void Rasterizer::PrepareRender()
 {
-	renderQueue.clear();
-	transparentRenderQueue.clear();
+	renderData.meshes.clear();
+	renderData.renderList[0].clear();
+	renderData.renderList[1].clear();
 }
 
 void Rasterizer::Render()
 {
-    int renderCount = 0;
-	for (auto& block : renderQueue)
+	int i = 0;
+	int size = 0;
+
+	size = (int)renderData.renderList[0].size();
+//#pragma omp parallel for private(i)
+	for (i = 0; i < size; ++i)
 	{
-        if (block.depth <= canvas->GetDepth(block.x, block.y))
+		auto& pixel = renderData.renderList[0][i];
+		if (pixel.depth <= canvas->GetDepth(pixel.x, pixel.y))
 		{
-            renderCount ++;
-			shader.material = block.material;
-			shader.ddx = block.ddx;
-			shader.ddy = block.ddy;
-			Color color = shader.PixelShader(block.input);
-			canvas->SetPixel(block.x, block.y, color);
+			const auto& meshRef = renderData.meshes[pixel.meshIndex];
+			const auto& triangleRef = meshRef.triangles[pixel.triangleIndex];
+
+			PS ps;
+			ps.material = triangleRef.material;
+			ps.light = meshRef.light;
+			ps.camera = meshRef.camera;
+			ps.ddx = pixel.ddx;
+			ps.ddy = pixel.ddy;
+
+			Color color = ps.psMain(pixel.pixel);
+			canvas->SetPixel(pixel.x, pixel.y, color);
 		}
 	}
     
     // transparent
-	std::vector<u32> indices(transparentRenderQueue.size(), 0);
+	auto& renderList = renderData.renderList[1];
+	std::vector<u32> indices(renderList.size(), 0);
 	for (u32 i = 0; i < indices.size(); ++i) indices[i] = i;
-	std::sort(indices.begin(), indices.end(), [](const u32& a, const u32& b)
+	std::sort(indices.begin(), indices.end(), [&renderList](const u32& a, const u32& b)
 	{
-		return transparentRenderQueue[a].depth > transparentRenderQueue[b].depth;
+		return renderList[a].depth > renderList[b].depth;
 	});
 
-	for (u32 blockID : indices)
+	size = (int)indices.size();
+	for (i = 0; i < size; ++i)
 	{
-		RenderBlock& block = transparentRenderQueue[blockID];
-
-		if (block.depth < canvas->GetDepth(block.x, block.y))
+		u32 blockID = indices[i];
+		auto& pixel = renderList[blockID];
+		if (pixel.depth < canvas->GetDepth(pixel.x, pixel.y))
 		{
-			renderCount++;
-			shader.material = block.material;
-			shader.ddx = block.ddx;
-			shader.ddy = block.ddy;
-			Color color = shader.PixelShader(block.input);
-			Color oc = canvas->GetPixel(block.x, block.y);
+			const auto& meshRef = renderData.meshes[pixel.meshIndex];
+			const auto& triangleRef = meshRef.triangles[pixel.triangleIndex];
+
+			PS ps;
+			ps.material = triangleRef.material;
+			ps.light = meshRef.light;
+			ps.camera = meshRef.camera;
+			ps.ddx = pixel.ddx;
+			ps.ddy = pixel.ddy;
+			Color color = ps.psMain(pixel.pixel);
+			Color oc = canvas->GetPixel(pixel.x, pixel.y);
 			color = Color::Lerp(color, oc, color.a);
-			canvas->SetPixel(block.x, block.y, color);
+			canvas->SetPixel(pixel.x, pixel.y, color);
 		}
 	}
-
-	printf("%d / %d\n", renderCount, (int)renderQueue.size());
 }
 
 }

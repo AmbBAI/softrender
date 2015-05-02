@@ -11,15 +11,33 @@ Canvas::Canvas(int width, int height)
 
 	if (width > 0 && height > 0)
 	{
-		pixels.assign(width * height, 0);
-		depths.assign(width * height, 1.0f);
+		pixels = new u32[width * height];
+		depths = new float[width * height];
+	}
+}
+
+Canvas::~Canvas()
+{
+	if (pixels != nullptr)
+	{
+		delete[] pixels;
+		pixels = nullptr;
+	}
+
+	if (depths != nullptr)
+	{
+		delete[] depths;
+		depths = nullptr;
 	}
 }
 
 void Canvas::Clear()
 {
-	pixels.assign(width * height, 0);
-	depths.assign(width * height, 1.f);
+	assert(pixels != nullptr);
+	assert(depths != nullptr);
+
+	std::fill(pixels, pixels + width * height, 0x0);
+	std::fill(depths, depths + width * height, 1.f);
     
     glViewport(0, 0, width, height);
     glClearColor(0,0,0,1);
@@ -28,7 +46,7 @@ void Canvas::Clear()
 
 void Canvas::Present()
 {
-	glDrawPixels(width, height, GL_RGBA, GL_UNSIGNED_BYTE, &pixels[0]);
+	glDrawPixels(width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 	glFlush();
 }
 

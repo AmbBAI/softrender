@@ -12,7 +12,7 @@ class Canvas
 {
 	friend Application;
 	Canvas(int width, int height);
-	~Canvas() = default;
+	~Canvas();
 
 public:
 	Color32 GetPixel(int x, int y)
@@ -66,8 +66,8 @@ private:
 	int width;
 	int height;
 
-	std::vector<u32> pixels;
-	std::vector<float> depths;
+	u32* pixels = nullptr;
+	float* depths = nullptr;
 };
 
 }
