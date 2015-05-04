@@ -31,7 +31,6 @@ struct PixelShader
 
 	const Color LightingLambert(const LightInput& input, const Vector3& normal, const Vector3& lightDir, const Color& lightColor, float attenuation)
 	{
-		assert(light != nullptr);
 		float nDotL = Mathf::Clamp01(normal.Dot(lightDir));
 		Color output;
 		output.rgb = input.ambient.rgb + input.diffuse.rgb * lightColor.rgb * (nDotL * attenuation * 2.f);
@@ -41,7 +40,6 @@ struct PixelShader
 
 	const Color LightingHalfLambert(const LightInput& input, const Vector3& normal, const Vector3& lightDir, const Color& lightColor, float attenuation)
 	{
-		assert(light != nullptr);
 		float nDotL = Mathf::Clamp01(normal.Dot(lightDir));
 		nDotL = nDotL * 0.8f + 0.2f;
 		Color output;
