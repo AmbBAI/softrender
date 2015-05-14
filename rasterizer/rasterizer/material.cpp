@@ -52,7 +52,7 @@ void Material::LoadMaterial(std::vector<MaterialPtr>& materials, const std::vect
                     bumpPath = fileDir + bumpPath;
                     std::replace(bumpPath.begin(), bumpPath.end(), '\\', '/');
                     newM->normalTexture = Texture::LoadTexture(bumpPath.c_str());
-                    if (newM->normalTexture && newM->normalTexture->GetBPP() == 1)
+                    if (newM->normalTexture)
                     {
                         newM->normalTexture->ConvertBumpToNormal();
                     }

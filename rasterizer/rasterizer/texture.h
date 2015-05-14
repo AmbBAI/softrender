@@ -2,8 +2,8 @@
 #define _BASE_TEXTURE_H_
 
 #include "base/header.h"
+#include "rasterizer/bitmap.h"
 #include "base/color.h"
-#include "math/vector3.h"
 
 namespace rasterizer
 {
@@ -34,9 +34,9 @@ public:
 		FilterMode_Bilinear,
 		FilterMode_Trilinear
 	};
-    
-	typedef std::vector<Color32> Bitmap;
-	typedef Color(*SampleFunc)(const Texture::Bitmap& bitmap, u32 width, u32 height, float u, float v);
+
+	typedef u8* Bitmap;
+	typedef Color(*SampleFunc)(const BitmapPtr bitmap, float u, float v);
 	static SampleFunc sampleFunc[2][AddressModeCount][AddressModeCount];
 
 public:
@@ -52,19 +52,17 @@ public:
 	virtual ~Texture() = default;
 
 public:
-    u32 GetWidth() { return width; }
-    u32 GetHeight() { return height; }
-    u32 GetBPP() { return bpp; }
+    u32 GetWidth() { return mainTex ? mainTex->GetWidth() : 0; }
+    u32 GetHeight() { return mainTex ? mainTex->GetHeight() : 0; }
 
 	void ConvertBumpToNormal(float strength = 0.04f);
 	bool GenerateMipmaps();
 
-	const Color GetColor(u32 x, u32 y, int miplv = 0) const;
 	const Color Sample(float u, float v, float lod = 0.f) const;
 
 protected:
-    bool UnparkColor(u8* bytes, u32 width, u32 height, u32 pitch, u32 bpp);
-	const Bitmap* CheckMipmap(u32& bmp_width, u32& bmp_height, int miplv) const;
+	static BitmapPtr Texture::UnparkColor(u8* bytes, u32 width, u32 height, u32 pitch, u32 bpp);
+	const BitmapPtr GetBitmap(int miplv) const;
     
 public:
     AddressMode xAddressMode = AddressMode_Warp;
@@ -73,12 +71,9 @@ public:
     
 protected:
 	std::string file;
-	u32 width = 0;
-	u32 height = 0;
-	u32 bpp = 3;
 
-	Bitmap bitmap;
-	std::vector<Bitmap> mipmaps;
+	BitmapPtr mainTex;
+	std::vector<BitmapPtr> mipmaps;
 
 };
 

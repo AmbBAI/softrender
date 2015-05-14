@@ -61,23 +61,32 @@ TexturePtr Texture::CreateTexture(const char* file)
 	FREE_IMAGE_FORMAT imageFormat = FreeImage_GetFileType(file);
 	FIBITMAP* fiBitmap = FreeImage_Load(imageFormat, file);
 	if (fiBitmap == nullptr)
-    {
-        printf("%s FAILED!\n", file);
-        return nullptr;
-    }
-    
+	{
+		printf("%s FAILED!\n", file);
+		return nullptr;
+	}
+
 	u32 width = FreeImage_GetWidth(fiBitmap);
 	u32 height = FreeImage_GetHeight(fiBitmap);
 	u32 pitch = FreeImage_GetPitch(fiBitmap);
+	FREE_IMAGE_TYPE imageType = FreeImage_GetImageType(fiBitmap);
 	u32 bpp = (FreeImage_GetBPP(fiBitmap) >> 3);
-	BYTE* bytes = FreeImage_GetBits(fiBitmap);
+	u8* bytes = FreeImage_GetBits(fiBitmap);
+
+	if (imageType != FIT_BITMAP)
+	{
+		printf("%s (imageType %d)\n", file, imageType);
+		FreeImage_Unload(fiBitmap);
+		fiBitmap = nullptr;
+		return nullptr;
+	}
 
 	TexturePtr tex(new Texture());
 	tex->file = file;
-	tex->UnparkColor(bytes, width, height, pitch, bpp);
+	tex->mainTex = UnparkColor(bytes, width, height, pitch, bpp);
+	if (tex->mainTex == nullptr) tex = nullptr;
 
 	FreeImage_Unload(fiBitmap);
-    printf("%s SUCCEED!\n", file);
 	return tex;
 }
 
@@ -97,51 +106,57 @@ TexturePtr Texture::LoadTexture(const char* file)
 	}
 }
 
-bool Texture::UnparkColor(u8* bytes, u32 width, u32 height, u32 pitch, u32 bpp)
+BitmapPtr Texture::UnparkColor(u8* bytes, u32 width, u32 height, u32 pitch, u32 bpp)
 {
-	if (bytes == nullptr) return false;
-	if (width <= 0 || height <= 0) return false;
-	if (bpp != 1 && bpp != 3 && bpp != 4) return false;
+	if (bytes == nullptr) return nullptr;
+	if (width <= 0 || height <= 0) return nullptr;
 
-	this->width = width;
-	this->height = height;
-	this->bpp = bpp;
-	this->bitmap.assign(width * height, Color32::black);
+	Bitmap::BitmapType pixelType = Bitmap::BitmapType_Unknown;
+	switch (bpp)
+	{
+	case 1:
+		pixelType = Bitmap::BitmapType_8Bit;
+		break;
+	case 3:
+		pixelType = Bitmap::BitmapType_RGB;
+		break;
+	case 4:
+		pixelType = Bitmap::BitmapType_RGBA;
+		break;
+	default:
+		return nullptr;
+	}
 
-	//TODO S3TC
-	u8* line = bytes;
+	BitmapPtr bitmap = Bitmap::Create(width, height, pixelType);
+	u8* bmpBytes = bitmap->GetBytes();
+	u32 bmpPitch = width * bpp;
+
+	u8* imgBytes = bytes;
 	for (u32 y = 0; y < height; ++y)
 	{
-		u8* byte = line;
-		for (u32 x = 0; x < width; ++x)
-		{
-			Color32& color = this->bitmap[y * width + x];
-			if (bpp == 1)
-			{
-				color.a = color.r = color.g = color.b = byte[0];
-			}
-			else
-			{
-				color.b = byte[0];
-				color.g = byte[1];
-				color.r = byte[2];
-				color.a = (bpp == 4) ? byte[3] : 255;
-			}
-			byte += bpp;
-		}
-		line += pitch;
+		memcpy(bmpBytes, imgBytes, sizeof(u8) * bmpPitch);
+		
+		bmpBytes += bmpPitch;
+		imgBytes += pitch;
 	}
-	return true;
+	return bitmap;
 }
 
 void Texture::ConvertBumpToNormal(float strength/* = 0.04f*/)
 {
+	u32 width = mainTex->GetWidth();
+	u32 height = mainTex->GetHeight();
 	std::vector<float> bump(width * height, 0.f);
-	for (int i = 0; i < (int)bitmap.size(); ++i)
+	for (u32 y = 0; y < height; ++y)
 	{
-		bump[i] = bitmap[i].b;
+		for (u32 x = 0; x < width; ++x)
+		{
+			bump[y * width + x] = mainTex->GetColor(x, y).a;
+		}
 	}
 
+	mainTex = Bitmap::Create(width, height, Bitmap::BitmapType_RGBA);
+	u8* bytes = mainTex->GetBytes();
 	for (int y = 0; y < (int)height; ++y)
 	{
 		for (int x = 0; x < (int)width; ++x)
@@ -169,25 +184,9 @@ void Texture::ConvertBumpToNormal(float strength/* = 0.04f*/)
 			color.g = (normal.y + 1.0f) / 2.0f;
 			color.b = (normal.z + 1.0f) / 2.0f;
 			color.a = ph;
-			bitmap[offset] = color;
+			*((u32*)bytes + offset) = Color32(color).rgba;
 		}
 	}
-}
-
-const Color Texture::GetColor(u32 x, u32 y, int miplv/* = 0*/) const
-{
-	u32 bmp_width = width;
-	u32 bmp_height = height;
-	const Bitmap* bmp = CheckMipmap(bmp_width, bmp_height, miplv);
-	assert(bmp != nullptr);
-
-	assert(x < bmp_width);
-	assert(y < bmp_height);
-
-	u32 offset = y * bmp_width + x;
-	assert(offset < (int)bitmap.size());
-
-	return (*bmp)[offset];
 }
 
 const Color Texture::Sample(float u, float v, float lod/* = 0.f*/) const
@@ -197,21 +196,17 @@ const Color Texture::Sample(float u, float v, float lod/* = 0.f*/) const
         {
             int miplv = Mathf::RoundToInt(lod);
             
-            u32 bmp_width = width;
-            u32 bmp_height = height;
-            const Bitmap* bmp = CheckMipmap(bmp_width, bmp_height, miplv);
+            const BitmapPtr bmp = GetBitmap(miplv);
             assert(bmp != nullptr);
-            return sampleFunc[0][xAddressMode][xAddressMode](*bmp, bmp_width, bmp_height, u, v);
+            return sampleFunc[0][xAddressMode][xAddressMode](bmp, u, v);
         }
 	case FilterMode_Bilinear:
         {
             int miplv = Mathf::RoundToInt(lod);
             
-            u32 bmp_width = width;
-            u32 bmp_height = height;
-            const Bitmap* bmp = CheckMipmap(bmp_width, bmp_height, miplv);
-            assert(bmp != nullptr);
-            return sampleFunc[1][xAddressMode][xAddressMode](*bmp, bmp_width, bmp_height, u, v);
+			const BitmapPtr bmp = GetBitmap(miplv);
+			assert(bmp != nullptr);
+            return sampleFunc[1][xAddressMode][xAddressMode](bmp, u, v);
         }
 	case FilterMode_Trilinear:
         {
@@ -219,15 +214,13 @@ const Color Texture::Sample(float u, float v, float lod/* = 0.f*/) const
             int miplv2 = miplv1 + 1;
             float frac = lod - miplv1;
             
-            u32 bmp_width = width;
-            u32 bmp_height = height;
-            const Bitmap* bmp1 = CheckMipmap(bmp_width, bmp_height, miplv1);
+			const BitmapPtr bmp1 = GetBitmap(miplv1);
             assert(bmp1 != nullptr);
-            Color color1 = sampleFunc[1][xAddressMode][xAddressMode](*bmp1, bmp_width, bmp_height, u, v);
+            Color color1 = sampleFunc[1][xAddressMode][xAddressMode](bmp1, u, v);
             
-            const Bitmap* bmp2 = CheckMipmap(bmp_width, bmp_height, miplv2);
+			const BitmapPtr bmp2 = GetBitmap(miplv1);
             if (bmp2 == bmp1) return color1;
-            Color color2 = sampleFunc[1][xAddressMode][xAddressMode](*bmp2, bmp_width, bmp_height, u, v);
+            Color color2 = sampleFunc[1][xAddressMode][xAddressMode](bmp2, u, v);
             return Color::Lerp(color1, color2, frac);
         }
 	}
@@ -237,18 +230,21 @@ const Color Texture::Sample(float u, float v, float lod/* = 0.f*/) const
 
 bool Texture::GenerateMipmaps()
 {
+	u32 width = mainTex->GetWidth();
+	u32 height = mainTex->GetHeight();
+
 	if (width != height) return false;
 	if (!Mathf::IsPowerOfTwo(width)) return false;
-	if (bitmap.size() != width * height) return false;
-
+	
 	mipmaps.clear();
 
-	Bitmap* source = &bitmap;
+	BitmapPtr source = mainTex;
 	u32 s = (width >> 1);
 	u32 ss = width;
 	for (int l = 0;; ++l)
 	{
-		Bitmap mipmap(s * s, Color32::black);
+		BitmapPtr mipmap = Bitmap::Create(s, s, Bitmap::BitmapType_RGBA);
+		u8* bytes = mipmap->GetBytes();
 		for (u32 y = 0; y < s; ++y)
 		{
 			u32 y0 = y * 2;
@@ -257,16 +253,16 @@ bool Texture::GenerateMipmaps()
 			{
 				u32 x0 = x * 2;
 				u32 x1 = x0 + 1;
-				Color c0 = (*source)[y0 * ss + x0];
-				Color c1 = (*source)[y0 * ss + x1];
-				Color c2 = (*source)[y1 * ss + x0];
-				Color c3 = (*source)[y1 * ss + x1];
-				mipmap[y * s + x] = Color::Lerp(c0, c1, c2, c3, 0.5f, 0.5f);
+				Color c0 = source->GetColor(x0, y0);
+				Color c1 = source->GetColor(x1, y0);
+				Color c2 = source->GetColor(x0, y1);
+				Color c3 = source->GetColor(x1, y1);
+				*((u32*)bytes + y * s + x) = Color32(Color::Lerp(c0, c1, c2, c3, 0.5f, 0.5f)).rgba;
 			}
 		}
 
 		mipmaps.push_back(mipmap);
-		source = &mipmaps[l];
+		source = mipmaps[l];
 		ss = s;
 		s >>= 1;
 		if (s <= 0) break;
@@ -274,23 +270,16 @@ bool Texture::GenerateMipmaps()
 	return true;
 }
 
-const Texture::Bitmap* Texture::CheckMipmap(u32& bmp_width, u32& bmp_height, int miplv) const
+const BitmapPtr Texture::GetBitmap(int miplv) const
 {
     if (miplv < 0) miplv = 0;
 	if (mipmaps.size() <= 0) miplv = 0;
-	const Bitmap* bmp = nullptr;
-	bmp_width = width;
-	bmp_height = height;
-	if (miplv == 0) bmp = &bitmap;
+	if (miplv == 0) return mainTex;
 	else
 	{
 		miplv = Mathf::Clamp(miplv, 0, (int)mipmaps.size());
-		bmp = &mipmaps[miplv - 1];
-		bmp_width >>= miplv;
-		bmp_height >>= miplv;
+		return mipmaps[miplv - 1];
 	}
-	assert(bmp != nullptr);
-	return bmp;
 }
 
 }

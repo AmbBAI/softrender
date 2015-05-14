@@ -56,22 +56,28 @@ struct MirrorAddresser
 struct PointSampler
 {
 	template<typename XAddresserType, typename YAddresserType>
-	static Color Sample(const Texture::Bitmap& bitmap, u32 width, u32 height, float u, float v)
+	static Color Sample(const BitmapPtr bitmap, float u, float v)
 	{
+		u32 width = bitmap->GetWidth();
+		u32 height = bitmap->GetHeight();
+
 		float fx = XAddresserType::CalcAddress(u, width);
 		int x = XAddresserType::FixAddress(Mathf::RoundToInt(fx), width);
 		float fy = YAddresserType::CalcAddress(v, height);
 		int y = YAddresserType::FixAddress(Mathf::RoundToInt(fy), height);
 
-		return bitmap[y * width + x];
+		return bitmap->GetColor(x, y);
 	}
 };
 
 struct LinearSampler
 {
 	template<typename XAddresserType, typename YAddresserType>
-	static Color Sample(const Texture::Bitmap& bitmap, u32 width, u32 height, float u, float v)
+	static Color Sample(const BitmapPtr bitmap, float u, float v)
 	{
+		u32 width = bitmap->GetWidth();
+		u32 height = bitmap->GetHeight();
+
 		float fx = XAddresserType::CalcAddress(u, width);
 		int x0 = Mathf::FloorToInt(fx);
 		float fy = YAddresserType::CalcAddress(v, height);
@@ -83,10 +89,10 @@ struct LinearSampler
 		int x1 = XAddresserType::FixAddress(x0 + 1, width);
 		int y1 = YAddresserType::FixAddress(y0 + 1, height);
 
-		Color c0 = bitmap[y0 * width + x0];
-		Color c1 = bitmap[y0 * width + x1];
-		Color c2 = bitmap[y1 * width + x0];
-		Color c3 = bitmap[y1 * width + x1];
+		Color c0 = bitmap->GetColor(x0, y0);
+		Color c1 = bitmap->GetColor(x1, y0);
+		Color c2 = bitmap->GetColor(x0, y1);
+		Color c3 = bitmap->GetColor(x1, y1);
 
 		return Color::Lerp(c0, c1, c2, c3, xFrac, yFrac);
 	}
