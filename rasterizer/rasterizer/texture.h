@@ -55,7 +55,7 @@ public:
     u32 GetWidth() { return mainTex ? mainTex->GetWidth() : 0; }
     u32 GetHeight() { return mainTex ? mainTex->GetHeight() : 0; }
 
-	void ConvertBumpToNormal(float strength = 0.04f);
+	void ConvertBumpToNormal(float strength = 10.f);
 	bool GenerateMipmaps();
 
 	const Color Sample(float u, float v, float lod = 0.f) const;

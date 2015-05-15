@@ -115,34 +115,49 @@ BitmapPtr Texture::UnparkColor(u8* bytes, u32 width, u32 height, u32 pitch, u32 
 	switch (bpp)
 	{
 	case 1:
-		pixelType = Bitmap::BitmapType_8Bit;
+		pixelType = Bitmap::BitmapType_L8;
 		break;
 	case 3:
-		pixelType = Bitmap::BitmapType_RGB;
+		pixelType = Bitmap::BitmapType_RGB888;
 		break;
 	case 4:
-		pixelType = Bitmap::BitmapType_RGBA;
+		pixelType = Bitmap::BitmapType_RGBA8888;
 		break;
 	default:
 		return nullptr;
 	}
 
 	BitmapPtr bitmap = Bitmap::Create(width, height, pixelType);
-	u8* bmpBytes = bitmap->GetBytes();
+	u8* bmpLine = bitmap->GetBytes();
 	u32 bmpPitch = width * bpp;
 
-	u8* imgBytes = bytes;
+	u8* imgLine = bytes;
 	for (u32 y = 0; y < height; ++y)
 	{
-		memcpy(bmpBytes, imgBytes, sizeof(u8) * bmpPitch);
-		
-		bmpBytes += bmpPitch;
-		imgBytes += pitch;
+		if (bpp == 1)
+		{
+			memcpy(bmpLine, imgLine, sizeof(u8) * bmpPitch);
+		}
+		else
+		{
+			for (u32 x = 0; x < width; ++x)
+			{
+				u8* imgByte = imgLine + x * bpp;
+				u8* bmpByte = bmpLine + x * bpp;
+				*(bmpByte + 2) = *(imgByte + 0);
+				*(bmpByte + 1) = *(imgByte + 1);
+				*(bmpByte + 0) = *(imgByte + 2);
+				if (bpp == 4) *(bmpByte + 3) = *(imgByte + 3);
+			}
+		}
+
+		bmpLine += bmpPitch;
+		imgLine += pitch;
 	}
 	return bitmap;
 }
 
-void Texture::ConvertBumpToNormal(float strength/* = 0.04f*/)
+void Texture::ConvertBumpToNormal(float strength/* = 10.f*/)
 {
 	u32 width = mainTex->GetWidth();
 	u32 height = mainTex->GetHeight();
@@ -155,7 +170,7 @@ void Texture::ConvertBumpToNormal(float strength/* = 0.04f*/)
 		}
 	}
 
-	mainTex = Bitmap::Create(width, height, Bitmap::BitmapType_RGBA);
+	mainTex = Bitmap::Create(width, height, Bitmap::BitmapType_RGBA8888);
 	u8* bytes = mainTex->GetBytes();
 	for (int y = 0; y < (int)height; ++y)
 	{
@@ -243,7 +258,7 @@ bool Texture::GenerateMipmaps()
 	u32 ss = width;
 	for (int l = 0;; ++l)
 	{
-		BitmapPtr mipmap = Bitmap::Create(s, s, Bitmap::BitmapType_RGBA);
+		BitmapPtr mipmap = Bitmap::Create(s, s, Bitmap::BitmapType_RGBA8888);
 		u8* bytes = mipmap->GetBytes();
 		for (u32 y = 0; y < s; ++y)
 		{

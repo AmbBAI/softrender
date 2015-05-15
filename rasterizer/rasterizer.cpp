@@ -50,7 +50,8 @@ void TestTexture(Canvas* canvas, const Vector4& rect, const Texture& texture, fl
 		for (int x = minX; x < maxX; ++x)
 		{
 			float u = ((float)x - rect.x) / (rect.z - rect.x);
-			canvas->SetPixel(x, y, texture.Sample(u, v, lod));
+			Color color = texture.Sample(u, v, lod);
+			canvas->SetPixel(x, y, color);
 		}
 	}
 }

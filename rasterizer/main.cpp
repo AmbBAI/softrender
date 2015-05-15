@@ -15,10 +15,6 @@ int main(int argc, char *argv[])
 	app = Application::GetInstance();
 	app->CreateApplication("rasterizer", 800, 600);
 	canvas = app->GetCanvas();
-    
-    UI::SetFont("resources/DejaVuSans.ttf");
-    UI::SetIconImage("resources/blender_icons16.png");
-    
 	app->SetRunLoop(MainLoop);
 	app->RunLoop();
 	return 0;
@@ -81,13 +77,15 @@ void MainLoop()
   //      Rasterizer::light->atten1 = 2.f;
   //      Rasterizer::light->atten2 = 1.f;
   //      Rasterizer::light->Initilize();
-        
 
 		for (auto& m : mesh)
 		{
 			if (m->normals.size() <= 0)
 				m->RecalculateNormals();
 		}
+
+		UI::SetFont("resources/DejaVuSans.ttf");
+		UI::SetIconImage("resources/blender_icons16.png");
     }
 
 	//Rasterizer::light->position -= Vector3(0.01f, 0, 0);
@@ -161,13 +159,12 @@ void TestTextureLoop()
 	static TexturePtr tex = nullptr;
 	if (tex == nullptr)
 	{
-		tex = Texture::LoadTexture("resources/crytek-sponza/textures/lion_bump.png");
-		tex->ConvertBumpToNormal();
-//		if (tex != nullptr)
-//		{
-//			tex->filterMode = Texture::FilterMode_Point;
-//			tex->GenerateMipmaps();
-//		}
+		tex = Texture::LoadTexture("resources/crytek-sponza/textures/sponza_thorn_diff.tga");
+		tex->filterMode = Texture::FilterMode_Point;
+		tex->xAddressMode = Texture::AddressMode_Clamp;
+		tex->yAddressMode = Texture::AddressMode_Clamp;
+//		tex->ConvertBumpToNormal(10);
+//		tex->GenerateMipmaps();
 	}
 
 	canvas->Clear();

@@ -17,9 +17,9 @@ public:
 	enum BitmapType
 	{
 		BitmapType_Unknown = 0,
-		BitmapType_8Bit = 1,
-		BitmapType_RGB = 3,
-		BitmapType_RGBA = 4,
+		BitmapType_L8 = 1,
+		BitmapType_RGB888 = 3,
+		BitmapType_RGBA8888 = 4,
 		BitmapType_DXT1 = 10
 	};
 
@@ -30,7 +30,17 @@ public:
 
 	Color GetColor(u32 x, u32 y)
 	{
-		// TODO
+		switch (type)
+		{
+		case BitmapType_L8:
+			return GetPixel_L8(x, y);
+		case BitmapType_RGB888:
+			return GetPixel_RGB888(x, y);
+		case BitmapType_RGBA8888:
+			return GetPixel_RGBA8888(x, y);
+		case BitmapType_DXT1:
+			return GetPixel_DXT1(x, y);
+		}
 		return Color::black;
 	}
 
@@ -38,6 +48,12 @@ public:
 	u32 GetWidth() const { return width; }
 	u32 GetHeight() const { return height; }
 	BitmapType GetType() const { return type; }
+
+protected:
+	Color GetPixel_L8(u32 x, u32 y);
+	Color GetPixel_RGB888(u32 x, u32 y);
+	Color GetPixel_RGBA8888(u32 x, u32 y);
+	Color GetPixel_DXT1(u32 x, u32 y);
 
 private:
 	BitmapType type = BitmapType_Unknown;
