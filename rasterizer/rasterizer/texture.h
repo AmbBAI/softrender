@@ -35,7 +35,6 @@ public:
 		FilterMode_Trilinear
 	};
 
-	typedef u8* Bitmap;
 	typedef Color(*SampleFunc)(const BitmapPtr bitmap, float u, float v);
 	static SampleFunc sampleFunc[2][AddressModeCount][AddressModeCount];
 
@@ -61,7 +60,7 @@ public:
 	const Color Sample(float u, float v, float lod = 0.f) const;
 
 protected:
-	static BitmapPtr Texture::UnparkColor(u8* bytes, u32 width, u32 height, u32 pitch, u32 bpp);
+	static BitmapPtr UnparkColor(u8* bytes, u32 width, u32 height, u32 pitch, u32 bpp);
 	const BitmapPtr GetBitmap(int miplv) const;
     
 public:
