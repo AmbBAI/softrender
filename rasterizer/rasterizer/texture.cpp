@@ -297,4 +297,13 @@ const BitmapPtr Texture::GetBitmap(int miplv) const
 	}
 }
 
+void Texture::CompressTexture()
+{
+	if (mainTex->GetType() == Bitmap::BitmapType_RGB888)
+	{
+		mainTex = mainTex->CompressToDXT1();
+	}
+}
+
+
 }

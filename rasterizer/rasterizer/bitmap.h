@@ -49,6 +49,8 @@ public:
 	u32 GetHeight() const { return height; }
 	BitmapType GetType() const { return type; }
 
+	BitmapPtr CompressToDXT1();
+
 protected:
 	Color GetPixel_L8(u32 x, u32 y);
 	Color GetPixel_RGB888(u32 x, u32 y);

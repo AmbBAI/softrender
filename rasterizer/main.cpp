@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
 	app = Application::GetInstance();
 	app->CreateApplication("rasterizer", 800, 600);
 	canvas = app->GetCanvas();
-	app->SetRunLoop(MainLoop);
+	app->SetRunLoop(TestTextureLoop);
 	app->RunLoop();
 	return 0;
 }
@@ -159,10 +159,11 @@ void TestTextureLoop()
 	static TexturePtr tex = nullptr;
 	if (tex == nullptr)
 	{
-		tex = Texture::LoadTexture("resources/crytek-sponza/textures/sponza_thorn_diff.tga");
+		tex = Texture::LoadTexture("resources/crytek-sponza/textures/gi_flag.tga");
 		tex->filterMode = Texture::FilterMode_Point;
 		tex->xAddressMode = Texture::AddressMode_Clamp;
 		tex->yAddressMode = Texture::AddressMode_Clamp;
+		tex->CompressTexture();
 //		tex->ConvertBumpToNormal(10);
 //		tex->GenerateMipmaps();
 	}

@@ -56,6 +56,7 @@ public:
 
 	void ConvertBumpToNormal(float strength = 10.f);
 	bool GenerateMipmaps();
+	void CompressTexture();
 
 	const Color Sample(float u, float v, float lod = 0.f) const;
 
