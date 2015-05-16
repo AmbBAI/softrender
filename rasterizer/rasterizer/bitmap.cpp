@@ -85,6 +85,7 @@ Color Bitmap::GetPixel_DXT1(u32 x, u32 y)
 		c0.b = (float)((colorByte >> 16) & 31) / 31;
 		if (index == 0) return c0;
 	}
+	
 	if (index == 1 || (index & 2))
 	{
 		c1.a = 1.;
@@ -121,7 +122,7 @@ BitmapPtr Bitmap::CompressToDXT1()
 			Vector3 maxColor(0.,0.,0.);
 			for (int i = 0; i < 16; ++i)
 			{
-				Color color = GetColor(x + (i & 15), y + (i >> 2));
+				Color color = GetColor(x + (i & 3), y + (i >> 2));
 				minColor.x = Mathf::Min(minColor.x, color.r);
 				minColor.y = Mathf::Min(minColor.y, color.g);
 				minColor.z = Mathf::Min(minColor.z, color.b);
@@ -129,6 +130,7 @@ BitmapPtr Bitmap::CompressToDXT1()
 				maxColor.y = Mathf::Max(maxColor.y, color.g);
 				maxColor.z = Mathf::Max(maxColor.z, color.b);
 			}
+
 			Vector3 line(maxColor - minColor);
 			float lineLen = line.Length();
 
@@ -143,7 +145,7 @@ BitmapPtr Bitmap::CompressToDXT1()
 
 				for (int i = 0; i < 16; ++i)
 				{
-					Color color = GetColor(x + (i & 15), y + (i >> 2));
+					Color color = GetColor(x + (i & 3), y + (i >> 2));
 					Vector3 sample(color.r, color.g, color.b);
 					float iVal = (sample - minColor).Dot(line) / lineLen;
 					u32 index = 0;
@@ -161,13 +163,12 @@ BitmapPtr Bitmap::CompressToDXT1()
 			}
 
 			u32 color = 0x00;
-			//minColor * Vector3(31, 63, 31);
-			color |= (int)(minColor.x * 31) << 27;
-			color |= (int)(minColor.y * 63) << 21;
-			color |= (int)(minColor.z * 31) << 16;
-			color |= (int)(maxColor.x * 31) << 11;
-			color |= (int)(maxColor.y * 63) << 5;
-			color |= (int)(maxColor.z * 31) << 0;
+			color |= (u32)(minColor.x * 31) << 27;
+			color |= (u32)(minColor.y * 63) << 21;
+			color |= (u32)(minColor.z * 31) << 16;
+			color |= (u32)(maxColor.x * 31) << 11;
+			color |= (u32)(maxColor.y * 63) << 5;
+			color |= (u32)(maxColor.z * 31) << 0;
 
 			int offset = ((y >> 2) * (width >> 2) + (x >> 2)) << 3;
 			u8* byte = newBytes + offset;
