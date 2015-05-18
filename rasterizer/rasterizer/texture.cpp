@@ -81,7 +81,7 @@ TexturePtr Texture::CreateTexture(const char* file)
 		return nullptr;
 	}
 
-	TexturePtr tex(new Texture());
+	TexturePtr tex = std::make_shared<Texture>();
 	tex->file = file;
 	tex->mainTex = UnparkColor(bytes, width, height, pitch, bpp);
 	if (tex->mainTex == nullptr) tex = nullptr;

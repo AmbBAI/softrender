@@ -7,7 +7,7 @@ void Material::LoadMaterial(std::vector<MaterialPtr>& materials, const std::vect
     materials.clear();
     for (auto& m : objMaterials)
     {
-        MaterialPtr newM(new Material());
+        MaterialPtr newM = std::make_shared<Material>();
         newM->ambient = Color(1.f, m.ambient[0], m.ambient[1], m.ambient[2]);
         newM->diffuse = Color(1.f, m.diffuse[0], m.diffuse[1], m.diffuse[2]);
         newM->specular = Color(1.f, m.specular[0], m.specular[1], m.specular[2]);

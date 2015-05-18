@@ -20,69 +20,57 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
-std::vector<MeshPtr> mesh;
-Transform trans;
 void MainLoop()
 {
-    if (mesh.size() == 0)
+	static bool isInitilized = false;
+	static std::vector<MeshPtr> mesh;
+	static Transform trans;
+
+	if (!isInitilized)
     {
+		isInitilized = true;
+
 		Rasterizer::Initialize();
         Rasterizer::canvas = canvas;
-		Rasterizer::camera = CameraPtr(new Camera());
+		Rasterizer::camera = std::make_shared<Camera>();
 		CameraController::InitCamera(Rasterizer::camera);
 
-//		mesh.push_back(CreatePlane());
-//		position = Vector3(0, 0, -20);
-//		rotation = Vector3(0, 0, 0);
-//		scale = Vector3(10, 10, 10);
-//		MaterialPtr material(new Material());
-//		material->diffuseTexture = Texture::LoadTexture("resources/cube/default.png");
-//		material->normalTexture = Texture::LoadTexture("resources/sponza/textures/lion_ddn.tga");
-//		mesh[0]->materials.push_back(material);
-//        Rasterizer::light = LightPtr(new Light());
-//        Rasterizer::light->type = Light::LightType_Point;
-//        Rasterizer::light->position = Vector3(0.f, 0.f, -15.f);
-//        Rasterizer::light->range = 10.f;
-//        Rasterizer::light->atten0 = 2.f;
-//        Rasterizer::light->atten1 = 2.f;
-//        Rasterizer::light->atten2 = 1.f;
-//        Rasterizer::light->Initilize();
-
-        LoadSponzaMesh(mesh, trans);
-		Rasterizer::light = LightPtr(new Light());
+		Rasterizer::light = std::make_shared<Light>();
 		Rasterizer::light->type = Light::LightType_Directional;
 		Rasterizer::light->position = Vector3(0, 300, 0);
 		Rasterizer::light->direction = Vector3(-1.f, -1.f, -1.f).Normalize();
 		Rasterizer::light->range = 1000.f;
+		Rasterizer::light->atten0 = 2.f;
+		Rasterizer::light->atten1 = 2.f;
+		Rasterizer::light->atten2 = 1.f;
 		Rasterizer::light->Initilize();
-        
-		//Mesh::LoadMesh(mesh, "resources/head/head.OBJ");
-		//position = Vector3(0, 10, -50);
-		//rotation = Vector3(10, 10, 0);
-		//scale = Vector3(250, 250, 250);
-        
-  //      CameraController::moveScale = 0.5f;
-  //      Mesh::LoadMesh(mesh, "resources/cornell-box/CornellBox-Sphere.obj");
-  //      position = Vector3(0, -1, -2);
-  //      rotation = Vector3(0, 0, 0);
-  //      scale = Vector3(1, 1, 1);
-  //      Rasterizer::light = LightPtr(new Light());
-  //      Rasterizer::light->type = Light::LightType_Point;
-		//Rasterizer::light->color = Color::white;
-  //      //Rasterizer::light->position = Vector3(5.f, 0.f, -2.f);
-		//Rasterizer::light->position = Vector3(0.f, 5.f, -2.f);
-  //      Rasterizer::light->direction = Vector3(0.f, -1.f, 0.f);
-  //      Rasterizer::light->range = 10.f;
-  //      Rasterizer::light->atten0 = 2.f;
-  //      Rasterizer::light->atten1 = 2.f;
-  //      Rasterizer::light->atten2 = 1.f;
-  //      Rasterizer::light->Initilize();
 
-		for (auto& m : mesh)
-		{
-			if (m->normals.size() <= 0)
-				m->RecalculateNormals();
-		}
+		//MaterialPtr material = std::make_shared<Material>();
+		//material->diffuseTexture = Texture::LoadTexture("resources/cube/default.png");
+		//material->normalTexture = Texture::LoadTexture("resources/sponza/textures/lion_ddn.tga");
+		//mesh.push_back(CreatePlane(material));
+		//trans.position = Vector3(0, 0, -20);
+		//trans.rotation = Vector3(0, 0, 0);
+		//trans.scale = Vector3(10, 10, 10);
+
+        LoadSponzaMesh(mesh, trans);
+        
+		//CameraController::moveScale = 0.5f;
+		//Mesh::LoadMesh(mesh, "resources/cornell-box/CornellBox-Sphere.obj");
+		//trans.position = Vector3(0, -1, -2);
+		//trans.rotation = Vector3(0, 0, 0);
+		//trans.scale = Vector3(1, 1, 1);
+		//Rasterizer::light = std::make_shared<Light>();
+		//Rasterizer::light->type = Light::LightType_Point;
+		//Rasterizer::light->color = Color::white;
+		////Rasterizer::light->position = Vector3(5.f, 0.f, -2.f);
+		//Rasterizer::light->position = Vector3(0.f, 5.f, -2.f);
+		//Rasterizer::light->direction = Vector3(0.f, -1.f, 0.f);
+		//Rasterizer::light->range = 10.f;
+		//Rasterizer::light->atten0 = 2.f;
+		//Rasterizer::light->atten1 = 2.f;
+		//Rasterizer::light->atten2 = 1.f;
+		//Rasterizer::light->Initilize();
 
 		UI::SetFont("resources/DejaVuSans.ttf");
 		UI::SetIconImage("resources/blender_icons16.png");

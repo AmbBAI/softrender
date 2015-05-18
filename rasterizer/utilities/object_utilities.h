@@ -4,7 +4,7 @@
 #include "rasterizer.h"
 
 
-rasterizer::MeshPtr CreatePlane();
+rasterizer::MeshPtr CreatePlane(const rasterizer::MaterialPtr& mat);
 
 void LoadSponzaMesh(std::vector<rasterizer::MeshPtr>& mesh, rasterizer::Transform& trans);
 
