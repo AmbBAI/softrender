@@ -3,8 +3,9 @@ using namespace rasterizer;
 
 MeshPtr CreatePlane(const MaterialPtr& mat)
 {
-    MeshPtr mesh = std::make_shared<Mesh>();
-    mesh->vertices.push_back(Vector3(-1, -1, 0));
+    //MeshPtr mesh = std::make_shared<Mesh>();
+	MeshPtr mesh = MeshPtr(new Mesh());
+	mesh->vertices.push_back(Vector3(-1, -1, 0));
     mesh->vertices.push_back(Vector3(1, -1, 0));
     mesh->vertices.push_back(Vector3(1, 1, 0));
     mesh->vertices.push_back(Vector3(-1, 1, 0));

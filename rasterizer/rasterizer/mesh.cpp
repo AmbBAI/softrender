@@ -37,7 +37,8 @@ void Mesh::LoadMesh(std::vector<MeshPtr>& meshes, const std::vector<tinyobj::sha
         auto& _i = s.mesh.indices;
         auto& _tc = s.mesh.texcoords;
         
-        MeshPtr mesh = std::make_shared<Mesh>();
+        //MeshPtr mesh = std::make_shared<Mesh>();
+		MeshPtr mesh = MeshPtr(new Mesh());
         for (int i = 0; i + 2 < (int)_p.size(); i += 3)
         {
             mesh->vertices.push_back(Vector3(_p[i], _p[i + 1], _p[i + 2]));

@@ -27,6 +27,7 @@
 #define SIMD_ALIGN __declspec(align(16))
 #define MEMALIGN_NEW_OPERATOR_OVERRIDE(align) \
 	void* operator new(size_t size) { \
+		/*puts("override new");*/\
 		if (size == 0) size = 1; \
 		void* p = nullptr; \
 		while ((p = _aligned_malloc(size, align)) == 0) { \
@@ -38,6 +39,7 @@
 	}
 #define MEMALIGN_DELETE_OPERATOR_OVERRIDE \
 	void operator delete(void* ptr) { \
+		/*puts("override delete");*/\
 		if (ptr) ::_aligned_free(ptr); \
 	}
 #else

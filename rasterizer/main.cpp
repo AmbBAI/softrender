@@ -31,10 +31,12 @@ void MainLoop()
 
 		Rasterizer::Initialize();
         Rasterizer::canvas = canvas;
-		Rasterizer::camera = std::make_shared<Camera>();
+		//Rasterizer::camera = std::make_shared<Camera>();
+		Rasterizer::camera = CameraPtr(new Camera());
 		CameraController::InitCamera(Rasterizer::camera);
 
-		Rasterizer::light = std::make_shared<Light>();
+		//Rasterizer::light = std::make_shared<Light>();
+		Rasterizer::light = LightPtr(new Light());
 		Rasterizer::light->type = Light::LightType_Directional;
 		Rasterizer::light->position = Vector3(0, 300, 0);
 		Rasterizer::light->direction = Vector3(-1.f, -1.f, -1.f).Normalize();
@@ -44,12 +46,13 @@ void MainLoop()
 		Rasterizer::light->atten2 = 1.f;
 		Rasterizer::light->Initilize();
 
-		//MaterialPtr material = std::make_shared<Material>();
-		//material->diffuseTexture = Texture::LoadTexture("resources/cube/default.png");
-		//material->normalTexture = Texture::LoadTexture("resources/sponza/textures/lion_ddn.tga");
+		//CameraController::moveScale = 0.5f;
+		////MaterialPtr material = std::make_shared<Material>();
+		//MaterialPtr material = MaterialPtr(new Material());
+		//material->diffuseTexture = Texture::LoadTexture("resources/crytek-sponza/textures/gi_flag.tga");
 		//mesh.push_back(CreatePlane(material));
 		//trans.position = Vector3(0, 0, -20);
-		//trans.rotation = Vector3(0, 0, 0);
+		//trans.rotation = Vector3(90, 0, 0);
 		//trans.scale = Vector3(10, 10, 10);
 
         LoadSponzaMesh(mesh, trans);
@@ -59,7 +62,7 @@ void MainLoop()
 		//trans.position = Vector3(0, -1, -2);
 		//trans.rotation = Vector3(0, 0, 0);
 		//trans.scale = Vector3(1, 1, 1);
-		//Rasterizer::light = std::make_shared<Light>();
+		//Rasterizer::light = LightPtr(new Light());
 		//Rasterizer::light->type = Light::LightType_Point;
 		//Rasterizer::light->color = Color::white;
 		////Rasterizer::light->position = Vector3(5.f, 0.f, -2.f);

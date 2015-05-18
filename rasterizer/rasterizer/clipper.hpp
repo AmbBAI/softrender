@@ -75,9 +75,9 @@ struct Clipper
 
 		std::vector<Triangle<VertexType> > clippedTriangles;
 		for (auto& p : viewFrustumPlanes)
-			//for (int i = 0; i < 6; ++i)
+		//for (int i = 0; i < 2; ++i)
 		{
-			//	Plane& p = viewFrustumPlanes[i];
+			//Plane& p = viewFrustumPlanes[i];
 			clippedTriangles.clear();
 			for (auto& f : triangles)
 			{

@@ -207,6 +207,8 @@ struct Rasterizer
 	static bool isDrawPoint;
 	static bool isDrawWireFrame;
 	static bool isDrawTextured;
+	static int pixelDrawCount;
+	static int triangleDrawCount;
 
     static void Initialize();
     

@@ -12,7 +12,8 @@ RenderData<Vertex, Pixel, 2> Rasterizer::renderData;
 bool Rasterizer::isDrawTextured = true;
 bool Rasterizer::isDrawWireFrame = false;
 bool Rasterizer::isDrawPoint = false;
-
+int Rasterizer::pixelDrawCount = 0;
+int Rasterizer::triangleDrawCount = 0;
 
 void Rasterizer::Initialize()
 {
@@ -247,6 +248,8 @@ void Rasterizer::DrawTriangle(u32 meshIndex, u32 triangleIndex)
 						bool isTransparent = triangle.material->isTransparent;
 						if (!isTransparent) canvas->SetDepth(cx, cy, f_depth[i]);
                         
+						//canvas->SetPixel(cx, cy, Color(f_depth[i], f_depth[i], f_depth[i], f_depth[i]));
+						
 						RenderPixelData<Pixel> pixelData;
 						pixelData.meshIndex = meshIndex;
 						pixelData.triangleIndex = triangleIndex;
@@ -257,9 +260,9 @@ void Rasterizer::DrawTriangle(u32 meshIndex, u32 triangleIndex)
 						pixelData.ddy = ddy;
 						pixelData.pixel = Pixel(v0, v1, v2, f_x[i], f_y[i], f_z[i]);
 
-//#pragma omp critical
 						if (isTransparent) renderData.renderList[1].push_back(pixelData);
 						else renderData.renderList[0].push_back(pixelData);
+						
 					}
 				}
 			}
@@ -345,6 +348,8 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform)
 				Projection p2 = triangle.v2.GetViewProjection(width, height);
 				if (Orient2D(p0.x, p0.y, p1.x, p1.y, p2.x, p2.y) < 0.f) continue;
 
+				++triangleDrawCount;
+
 				//DrawLine(p0.x, p1.x, p0.y, p1.y, Color::green);
 				//DrawLine(p1.x, p2.x, p1.y, p2.y, Color::green);
 				//DrawLine(p2.x, p0.x, p2.y, p0.y, Color::green);
@@ -399,13 +404,17 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform)
 		}
 	}
 
-	Vector4 hc = meshRef._MATRIX_VP.MultiplyPoint(light->position);
-	u32 clipCode = Clipper::CalculateClipCode(hc);
-	if (0 == clipCode)
+	if (light)
 	{
-		Projection point = Projection::CalculateViewProjection(hc, width, height);
-		canvas->SetPixel(point.x, point.y, Color::green);
+		Vector4 hc = meshRef._MATRIX_VP.MultiplyPoint(light->position);
+		u32 clipCode = Clipper::CalculateClipCode(hc);
+		if (0 == clipCode)
+		{
+			Projection point = Projection::CalculateViewProjection(hc, width, height);
+			canvas->SetPixel(point.x, point.y, Color::green);
+		}
 	}
+
 }
 
 void Rasterizer::PrepareRender()
@@ -413,6 +422,9 @@ void Rasterizer::PrepareRender()
 	renderData.meshes.clear();
 	renderData.renderList[0].clear();
 	renderData.renderList[1].clear();
+
+	pixelDrawCount = 0;
+	triangleDrawCount = 0;
 }
 
 void Rasterizer::Render()
@@ -439,6 +451,7 @@ void Rasterizer::Render()
 
 			Color color = ps.psMain(pixel.pixel);
 			canvas->SetPixel(pixel.x, pixel.y, color);
+			++pixelDrawCount;
 		}
 	}
     
@@ -473,6 +486,9 @@ void Rasterizer::Render()
 			canvas->SetPixel(pixel.x, pixel.y, color);
 		}
 	}
+
+	printf("Pixel Draw Count %d\n", pixelDrawCount);
+	printf("Triangle Draw Count %d\n", triangleDrawCount);
 }
 
 }

@@ -4,7 +4,8 @@ using namespace rasterizer;
 
 BitmapPtr Bitmap::Create(u32 width, u32 height, BitmapType type)
 {
-	BitmapPtr bitmap = std::make_shared<Bitmap>();
+	//BitmapPtr bitmap = std::make_shared<Bitmap>();
+	BitmapPtr bitmap = BitmapPtr(new Bitmap());
 	bitmap->width = width;
 	bitmap->height = height;
 	bitmap->type = type;
