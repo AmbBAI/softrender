@@ -4,7 +4,6 @@
 #include "base/ui.h"
 using namespace rasterizer;
 
-Canvas* canvas;
 Application* app;
 
 void MainLoop();
@@ -14,7 +13,6 @@ int main(int argc, char *argv[])
 {
 	app = Application::GetInstance();
 	app->CreateApplication("rasterizer", 800, 600);
-	canvas = app->GetCanvas();
 	app->SetRunLoop(MainLoop);
 	app->RunLoop();
 	return 0;
@@ -25,6 +23,7 @@ void MainLoop()
 	static bool isInitilized = false;
 	static std::vector<MeshPtr> mesh;
 	static Transform trans;
+	Canvas* canvas = app->GetCanvas();
 
 	if (!isInitilized)
     {
@@ -145,6 +144,9 @@ void MainLoop()
 void TestTextureLoop()
 {
 	static TexturePtr tex = nullptr;
+
+	Canvas* canvas = app->GetCanvas();
+
 	if (tex == nullptr)
 	{
 		tex = Texture::LoadTexture("resources/crytek-sponza/textures/background.tga");

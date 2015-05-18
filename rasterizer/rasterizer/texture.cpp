@@ -199,7 +199,19 @@ void Texture::ConvertBumpToNormal(float strength/* = 10.f*/)
 			color.g = (normal.y + 1.0f) / 2.0f;
 			color.b = (normal.z + 1.0f) / 2.0f;
 			color.a = ph;
+
 			*((u32*)bytes + offset) = Color32(color).rgba;
+
+			//float invZ = 1.f / (normal.z + 1.);
+			//float px = normal.x * invZ;
+			//float py = normal.y * invZ;
+			//// float d = 2. / (1 + px * px + py * py);
+			//// normal.x = px * d;
+			//// normal.y = py * d;
+			//// normal.z = d - 1;
+
+			//*(bytes + (offset << 1)) = (u8)(px * 255.f);
+			//*(bytes + (offset << 1 | 1)) = (u8)(py * 255.f);
 		}
 	}
 }

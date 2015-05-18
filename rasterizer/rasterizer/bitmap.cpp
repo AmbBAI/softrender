@@ -19,13 +19,16 @@ BitmapPtr Bitmap::Create(u32 width, u32 height, BitmapType type)
 		size *= 3;
 		break;
 	case Bitmap::BitmapType_RGBA8888:
-		size = size << 2;
+		size <<= 2;
 		break;
 	case Bitmap::BitmapType_DXT1:
 		if (width & 3) return nullptr;
 		if (height & 3) return nullptr;
 		size = (size >> 4) << 3;
 		break;
+	//case Bitmap::BitmapType_Normal:
+	//	size <<= 1;
+	//	break;
 	}
 
 	bitmap->bytes = new u8[size];

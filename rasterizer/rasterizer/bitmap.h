@@ -20,6 +20,7 @@ public:
 		BitmapType_L8 = 1,
 		BitmapType_RGB888 = 3,
 		BitmapType_RGBA8888 = 4,
+		//BitmapType_Normal = 9,
 		BitmapType_DXT1 = 10
 	};
 
@@ -38,6 +39,8 @@ public:
 			return GetPixel_RGB888(x, y);
 		case BitmapType_RGBA8888:
 			return GetPixel_RGBA8888(x, y);
+		//case BitmapType_Normal:
+		//	return GetPixel_Normal(x, y);
 		case BitmapType_DXT1:
 			return GetPixel_DXT1(x, y);
 		}
