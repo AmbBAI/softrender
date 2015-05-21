@@ -156,7 +156,7 @@ struct PS : PixelShader < Pixel >
 				lightDir = light->position - input.position;
 				float distance = lightDir.Length();
 				lightDir /= distance;
-				attenuation = light->range * light->CalcAtten(distance);
+				attenuation = light->range * light->CalcAttenuation(distance);
 			}
 			break;
 			case Light::LightType_Spot:
@@ -164,12 +164,8 @@ struct PS : PixelShader < Pixel >
 				lightDir = light->position - input.position;
 				float distance = lightDir.Length();
 				lightDir /= distance;
-				attenuation = light->range * light->CalcAtten(distance);
-
-				float scale = (light->direction.Dot(lightDir) - light->cosHalfPhi) / (light->cosHalfTheta - light->cosHalfPhi);
-				scale = Mathf::Clamp01(Mathf::Pow(scale, light->falloff));
-				intensity = intensity * scale;
-
+				attenuation = light->range * light->CalcAttenuation(distance);
+				intensity = intensity * light->CalcSpotlightFactor(lightDir);
 			}
 			break;
 			}

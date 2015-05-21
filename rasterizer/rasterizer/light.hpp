@@ -38,6 +38,7 @@ struct Light
     
     void Initilize()
     {
+		direction = direction.Normalize();
         if (type == LightType_Spot)
         {
             cosHalfPhi = Mathf::Cos(phi * Mathf::deg2rad / 2.f);
@@ -45,9 +46,16 @@ struct Light
         }
     }
 
-	float CalcAtten(float distance) const
+	float CalcAttenuation(float distance) const
 	{
 		return 1.f / (atten0 + atten1 * distance + atten2 * distance * distance);
+	}
+
+	float CalcSpotlightFactor(const Vector3& lightDir) const
+	{
+		float factor = ((-direction).Dot(lightDir) - cosHalfPhi) / (cosHalfTheta - cosHalfPhi);
+		factor = Mathf::Clamp01(Mathf::Pow(factor, falloff));
+		return factor;
 	}
 	
 #if _MATH_SIMD_INTRINSIC_ && defined(_MSC_VER)
