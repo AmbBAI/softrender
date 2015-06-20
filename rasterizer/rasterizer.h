@@ -21,10 +21,6 @@
 namespace rasterizer
 {
 
-void TestColor(Canvas* canvas);
-void TestTexture(Canvas* canvas, const Vector4& rect, const Texture& texture, float lod = 0.f);
-
-
 template<typename Type>
 static Type TriInterp(const Type& v0, const Type& v1, const Type& v2,
                                   float x, float y, float z)

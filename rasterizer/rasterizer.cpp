@@ -19,43 +19,6 @@ void Rasterizer::Initialize()
 {
     Texture::Initialize();
 }
-    
-void TestColor(Canvas* canvas)
-{
-	int w = canvas->GetWidth();
-	int h = canvas->GetHeight();
-
-	for (int y = 0; y < h; ++y)
-	{
-		for (int x = 0; x < w; ++x)
-		{
-			canvas->SetPixel(x, y,
-				Color(1.f, (float)x / w, (float)y / h, 0.f));
-		}
-	}
-}
-
-void TestTexture(Canvas* canvas, const Vector4& rect, const Texture& texture, float lod /*= 0.f*/)
-{
-	int width = (int)canvas->GetWidth();
-	int height = (int)canvas->GetHeight();
-
-	int minX = Mathf::Clamp(Mathf::FloorToInt(rect.x), 0, width);
-	int maxX = Mathf::Clamp(Mathf::FloorToInt(rect.z), 0, width);
-	int minY = Mathf::Clamp(Mathf::CeilToInt(rect.y), 0, height);
-	int maxY = Mathf::Clamp(Mathf::CeilToInt(rect.w), 0, height);
-
-	for (int y = minY; y < maxY; ++y)
-	{
-		float v = ((float)y - rect.y) / (rect.w - rect.y);
-		for (int x = minX; x < maxX; ++x)
-		{
-			float u = ((float)x - rect.x) / (rect.z - rect.x);
-			Color color = texture.Sample(u, v, lod);
-			canvas->SetPixel(x, y, color);
-		}
-	}
-}
 
 void Rasterizer::DrawLine(int x0, int x1, int y0, int y1, const Color32& color)
 {
