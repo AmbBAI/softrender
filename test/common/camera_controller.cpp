@@ -1,7 +1,5 @@
 #include "camera_controller.h"
-
-namespace rasterizer
-{
+using namespace rasterizer;
 
 CameraPtr CameraController::camera = nullptr;
 Vector3 CameraController::position = Vector3(0.f, 0.f, 0.f);
@@ -71,6 +69,4 @@ void CameraController::_UpdateCamera(bool force /*= false*/)
 		camera->SetLookAt(position, position + z, y);
 		dirty = false;
 	}
-}
-
 }

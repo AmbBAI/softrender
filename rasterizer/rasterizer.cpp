@@ -6,7 +6,7 @@ namespace rasterizer
 Canvas* Rasterizer::canvas = nullptr;
 CameraPtr Rasterizer::camera = nullptr;
 LightPtr Rasterizer::light = nullptr;
-RenderData<Vertex, Pixel, 2> Rasterizer::renderData;
+RenderData Rasterizer::renderData;
 
 
 bool Rasterizer::isDrawTextured = true;
@@ -247,43 +247,23 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform)
 	assert(canvas != nullptr);
 	assert(camera != nullptr);
 
-	RenderMeshData<Vertex> meshData;
-	meshData._MATRIX_V = *camera->GetViewMatrix();
-	meshData._MATRIX_P = *camera->GetProjectionMatrix();
-	meshData._MATRIX_VP = meshData._MATRIX_P.Multiply(meshData._MATRIX_V);
-	meshData._Object2World = transform;
-	meshData._World2Object = transform.Inverse();
-	meshData._MATRIX_MV = meshData._MATRIX_V.Multiply(transform);
-	meshData._MATRIX_MVP = meshData._MATRIX_VP.Multiply(transform);
-	meshData.light = light;
-	meshData.camera = camera;
-	renderData.meshes.push_back(meshData);
-
-	u32 meshID = renderData.meshes.size() - 1;
-	RenderMeshData<Vertex>& meshRef = renderData.meshes[meshID];
-
 	u32 width = canvas->GetWidth();
 	u32 height = canvas->GetHeight();
 
-	int i = 0;
-	int vertexN = (int)mesh.vertices.size();
-	for (i = 0; i < vertexN; ++i)
-	{
-		RenderVertexData<Vertex> vertexData;
-		vertexData.meshIndex = meshID;
-		vertexData.position = mesh.vertices[i];
-		vertexData.normal = mesh.normals[i];
-		if (mesh.tangents.size() != 0) vertexData.tangent = mesh.tangents[i];
-		if (mesh.texcoords.size() != 0) vertexData.texcoord = mesh.texcoords[i];
-		meshRef.vertices.push_back(vertexData);
-	}
+	_shader->_MATRIX_V = *camera->GetViewMatrix();
+	_shader->_MATRIX_P = *camera->GetProjectionMatrix();
+	_shader->_MATRIX_VP = _shader->_MATRIX_P.Multiply(_shader->_MATRIX_V);
+	_shader->_Object2World = transform;
+	_shader->_World2Object = transform.Inverse();
+	_shader->_MATRIX_MV = _shader->_MATRIX_V.Multiply(transform);
+	_shader->_MATRIX_MVP = _shader->_MATRIX_VP.Multiply(transform);
 
-//#pragma omp parallel for private(i)
-	for (i = 0; i < vertexN; ++i)
+	u32 vertexCount = renderData.GetVertexCount();
+	renderData.CreateVaryingData();
+	for (u32 i = 0; i < vertexCount; ++i)
 	{
-		RenderVertexData<Vertex>& vertexRef = meshRef.vertices[i];
-		VS vs(meshRef, vertexRef);
-		vs.vsMain(vertexRef.vertex);
+		_shader->varyingData = renderData.GetVaryingData(varyingDataId);
+		_shader->vsMain(renderData.GetVertexData(i));
 	}
 
 	int faceN = (int)mesh.indices.size() / 3;
@@ -299,10 +279,6 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform)
 
 		if (isDrawTextured)
 		{
-			//TODO Guard-band clipping
-			MaterialPtr material = nullptr;
-			if (i <= (int)mesh.materials.size()) material = mesh.materials[i];
-
 			auto triangles = Clipper::ClipTriangle(v0, v1, v2);
 			for (auto& triangle : triangles)
 			{
@@ -318,7 +294,6 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform)
 				//DrawLine(p2.x, p0.x, p2.y, p0.y, Color::green);
 
 				RenderTriangleData<Vertex> triangleData;
-				triangleData.meshIndex = meshID;
 				triangleData.material = material;
 				triangleData.vertices = triangle;
 				triangleData.projection.v0 = p0;
@@ -361,31 +336,27 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform)
 			Vertex& vertex = meshRef.vertices[i].vertex;
 			if (!vertex.clipCode)
 			{
-				Projection point = Projection::CalculateViewProjection(vertex.hc, width, height);
+				Projection point = Projection::CalculateViewProjection(vertex.position, width, height);
 				canvas->SetPixel(point.x, point.y, Color::red);
 			}
 		}
 	}
 
-	if (light)
-	{
-		Vector4 hc = meshRef._MATRIX_VP.MultiplyPoint(light->position);
-		u32 clipCode = Clipper::CalculateClipCode(hc);
-		if (0 == clipCode)
-		{
-			Projection point = Projection::CalculateViewProjection(hc, width, height);
-			canvas->SetPixel(point.x, point.y, Color::green);
-		}
-	}
+	//if (light)
+	//{
+	//	Vector4 hc = renderData._MATRIX_VP.MultiplyPoint(light->position);
+	//	u32 clipCode = Clipper::CalculateClipCode(hc);
+	//	if (0 == clipCode)
+	//	{
+	//		Projection point = Projection::CalculateViewProjection(hc, width, height);
+	//		canvas->SetPixel(point.x, point.y, Color::green);
+	//	}
+	//}
 
 }
 
 void Rasterizer::PrepareRender()
 {
-	renderData.meshes.clear();
-	renderData.renderList[0].clear();
-	renderData.renderList[1].clear();
-
 	pixelDrawCount = 0;
 	triangleDrawCount = 0;
 }
@@ -452,6 +423,22 @@ void Rasterizer::Render()
 
 	printf("Pixel Draw Count %d\n", pixelDrawCount);
 	printf("Triangle Draw Count %d\n", triangleDrawCount);
+}
+
+void* Rasterizer::CreateVertexBuff(int count, u32 size)
+{
+	assert(count > 0);
+	assert(count <= RenderData::VERTEX_MAX_COUNT);
+	if (count <= 0) return nullptr;
+	if (count > RenderData::VERTEX_MAX_COUNT) return nullptr;
+
+	return renderData.CreateVertexBuff(count, size);
+}
+
+u16* Rasterizer::CreateIndexBuff(int count)
+{
+	assert(count > 0);
+	return renderData.CreateIndexBuff(count);
 }
 
 }

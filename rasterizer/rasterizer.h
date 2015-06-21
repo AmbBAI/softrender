@@ -52,33 +52,8 @@ struct Pixel
 	}
 };
 
-struct VS : VertexShader < Vertex >
+struct PS : shader::Shader<Vertex, VaryingData>
 {
-	const RenderMeshData<Vertex>* mesh;
-	const RenderVertexData<Vertex>* vertex;
-	VS(const RenderMeshData<Vertex>& _mesh, const RenderVertexData<Vertex>& _vertex)
-		: mesh(&_mesh), vertex(&_vertex) { }
-
-	void vsMain(Vertex& out) override
-	{
-		out.hc = mesh->_MATRIX_MVP.MultiplyPoint(vertex->position);
-		out.position = mesh->_Object2World.MultiplyPoint3x4(vertex->position);
-		out.normal = mesh->_Object2World.MultiplyVector(vertex->normal).Normalize();
-
-		out.tangent = mesh->_Object2World.MultiplyVector(vertex->tangent.xyz).Normalize();
-		out.bitangent = vertex->normal.Cross(vertex->tangent.xyz) * vertex->tangent.w;
-		out.bitangent = mesh->_Object2World.MultiplyVector(out.bitangent).Normalize();
-		out.texcoord = vertex->texcoord;
-
-		out.clipCode = Clipper::CalculateClipCode(out.hc);
-	}
-};
-
-struct PS : PixelShader < Pixel >
-{
-	MaterialPtr material = nullptr;
-	LightPtr light = nullptr;
-	CameraPtr camera = nullptr;
 	Vector2 ddx, ddy;
 
 	const float calcLOD(u32 width, u32 height) const
@@ -89,9 +64,16 @@ struct PS : PixelShader < Pixel >
 		return 0.5f * Mathf::Log2(d);
 	}
 
-	const Color psMain(const Pixel& input) override
+	const float clacTexLod(TexturePtr tex) const
 	{
-		LightInput lightInput;
+		u32 width = tex->GetWidth();
+		u32 height = tex->GetHeight();
+		return calcLOD(width, height);
+	}
+
+	const Color psMain() override
+	{
+		shader::LightInput lightInput;
 		lightInput.ambient = material->ambient;
 		lightInput.diffuse = material->diffuse;
 		lightInput.specular = material->specular;
@@ -99,12 +81,8 @@ struct PS : PixelShader < Pixel >
 
 		if (material && material->diffuseTexture)
 		{
-			u32 width = material->diffuseTexture->GetWidth();
-			u32 height = material->diffuseTexture->GetHeight();
-			float lod = calcLOD(width, height);
 
-			//float lodDepth = 1.f - lod / 10.f;
-			//Color texColor = Color(lodDepth, lodDepth, lodDepth, lodDepth);
+			float lod = clacTexLod(material->diffuseTexture);
 			Color texColor = material->diffuseTexture->Sample(input.texcoord.x, input.texcoord.y, lod);
 			lightInput.ambient = lightInput.ambient.Modulate(texColor);
 			lightInput.diffuse = lightInput.diffuse.Modulate(texColor);
@@ -117,10 +95,7 @@ struct PS : PixelShader < Pixel >
 			Vector3 bitangent = input.bitangent;
 			Matrix4x4 tbn = Matrix4x4::TBN(tangent, bitangent, normal);
 
-			u32 width = material->normalTexture->GetWidth();
-			u32 height = material->normalTexture->GetHeight();
-			float lod = calcLOD(width, height);
-
+			float lod = clacTexLod(material->normalTexture);
 			Color normalColor = material->normalTexture->Sample(input.texcoord.x, input.texcoord.y, lod);
 			normal = Vector3(normalColor.r * 2 - 1, normalColor.g * 2 - 1, normalColor.b * 2 - 1);
 
@@ -137,40 +112,7 @@ struct PS : PixelShader < Pixel >
 		//output.g = (normal.y + 1.f) * 0.5f;
 		//output.b = (normal.z + 1.f) * 0.5f;
 
-		if (light)
-		{
-			//output = LightingLambert(lightInput, normal, light->direction, light->intensity);
-
-			Vector3 lightDir = light->direction.Negate();
-			float attenuation = 1.f;
-			float intensity = light->intensity;
-			switch (light->type) {
-			case Light::LightType_Directional:
-				break;
-			case Light::LightType_Point:
-			{
-				lightDir = light->position - input.position;
-				float distance = lightDir.Length();
-				lightDir /= distance;
-				attenuation = light->range * light->CalcAttenuation(distance);
-			}
-			break;
-			case Light::LightType_Spot:
-			{
-				lightDir = light->position - input.position;
-				float distance = lightDir.Length();
-				lightDir /= distance;
-				attenuation = light->range * light->CalcAttenuation(distance);
-				intensity = intensity * light->CalcSpotlightFactor(lightDir);
-			}
-			break;
-			}
-			Color lightColor = light->color;
-			lightColor.rgb = lightColor.rgb * intensity;
-			Vector3 viewDir = (camera->GetPosition() - input.position).Normalize();
-			output = LightingPhong(lightInput, normal, lightDir, lightColor, viewDir, attenuation);
-		}
-		else output = lightInput.ambient;
+		shader::CalcLight(lightInput, Rasterizer::light, shader::LightingBlinnPhong, input.position, normal);
 
 		if (material && material->isTransparent)
 		{
@@ -190,11 +132,14 @@ struct PS : PixelShader < Pixel >
 
 struct Rasterizer
 {
-	static RenderData<Vertex, Pixel, 2> renderData;
+	static RenderData renderData;
 
 	static Canvas* canvas;
 	static CameraPtr camera;
     static LightPtr light;
+	static MaterialPtr material;
+
+	static shader::ShaderBase* _shader;
 
 	static bool isDrawPoint;
 	static bool isDrawWireFrame;
@@ -204,6 +149,13 @@ struct Rasterizer
 
     static void Initialize();
     
+	static void SetCamera(CameraPtr camera);
+	static void SetMainLight(LightPtr light);
+	//static void SetVertexDecl(std::vector<VertexDecl>& vertexDecl);
+	static void* CreateVertexBuff(int count, u32 size);
+	static u16* CreateIndexBuff(int count);
+	static void SetShader(shader::ShaderBase* _shader);
+	static void SetTransform(const Matrix4x4& transform);
 	static void DrawLine(int x0, int x1, int y0, int y1, const Color32& color);
 	static void DrawTriangle(u32 meshIndex, u32 triangleIndex);
     static void DrawMesh(const Mesh& mesh, const Matrix4x4& transform);

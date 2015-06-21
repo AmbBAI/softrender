@@ -30,7 +30,7 @@ struct Mesh
 	std::vector<Vector3> normals;
 	std::vector<Vector4> tangents;
 	std::vector<Vector2> texcoords;
-	std::vector<MaterialPtr> materials;
+	std::vector<std::tuple<MaterialPtr, int, int> > materials;
 };
 
 }

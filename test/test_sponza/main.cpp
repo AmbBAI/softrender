@@ -1,6 +1,6 @@
 #include "rasterizer.h"
-#include "utilities/camera_controller.h"
-#include "utilities/object_utilities.h"
+#include "camera_controller.h"
+#include "object_utilities.h"
 using namespace rasterizer;
 
 Application* app;
@@ -14,6 +14,20 @@ int main(int argc, char *argv[])
 	app->SetRunLoop(MainLoop);
 	app->RunLoop();
 	return 0;
+}
+
+void LoadSponzaMesh(std::vector<MeshPtr>& mesh, Transform& trans)
+{
+	Mesh::LoadMesh(mesh, "resources/crytek-sponza/sponza.obj");
+	trans.position = Vector3(0, 0, 0);
+	trans.rotation = Vector3(0, 0, 0);
+	trans.scale = Vector3(1, 1, 1);
+
+	for (auto& m : mesh)
+	{
+		if (m->normals.size() <= 0)
+			m->RecalculateNormals();
+	}
 }
 
 void MainLoop()

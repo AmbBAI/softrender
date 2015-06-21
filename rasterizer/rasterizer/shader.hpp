@@ -5,90 +5,63 @@
 #include "math/vector3.h"
 #include "math/vector4.h"
 #include "math/mathf.h"
+#include "shaderf.hpp"
 
 namespace rasterizer
 {
-
-struct LightInput
+namespace shader
 {
-    Color ambient;
-    Color diffuse;
-    Color specular;
-	float shininess;
+
+struct ShaderBase
+{
+	RenderData* renderData;
+
+	VaryingDataDecl decl;
+	void* varyingData = nullptr;
+
+	Matrix4x4 _MATRIX_MVP;
+	Matrix4x4 _MATRIX_MV;
+	Matrix4x4 _MATRIX_V;
+	Matrix4x4 _MATRIX_P;
+	Matrix4x4 _MATRIX_VP;
+	Matrix4x4 _Object2World;
+	Matrix4x4 _World2Object;
+
+	virtual void vsMain(const void* input) = 0;
+	virtual Color psMain() = 0;
 };
 
-   
-template<typename VertexType>
-struct VertexShader
+template <typename VSInputType, typename VaryingDataType>
+struct Shader : ShaderBase
 {
-	virtual void vsMain(VertexType& out) = 0;
-};
 
-template<typename PSInputType>
-struct PixelShader
-{
-	virtual const Color psMain(const PSInputType& input) = 0;
-
-	const Color LightingLambert(const LightInput& input, const Vector3& normal, const Vector3& lightDir, const Color& lightColor, float attenuation)
+	void vsMain(const void* input) override
 	{
-		float nDotL = Mathf::Clamp01(normal.Dot(lightDir));
-		Color output;
-		output.rgb = input.ambient.rgb + input.diffuse.rgb * lightColor.rgb * (nDotL * attenuation * 2.f);
-		output.a = input.diffuse.a;
+		VSInputType* vertexInput = (VSInputType*)input;
+		*varyingData = vs(*vertexInput);
+		varyingData->clipCode = Clipper::CalculateClipCode(varyingData->position);
+	}
+
+	Color psMain() override
+	{
+		return frag(*(VaryingDataType*)(varyingData));
+	}
+
+	virtual VaryingDataType vert(const VSInputType& input)
+	{
+		VaryingDataType output;
+		output.position = Rasterizer::_MATRIX_MVP.Multiply(input.position);
 		return output;
 	}
 
-	const Color LightingHalfLambert(const LightInput& input, const Vector3& normal, const Vector3& lightDir, const Color& lightColor, float attenuation)
+	virtual Color frag(const VaryingDataType& input)
 	{
-		float nDotL = Mathf::Clamp01(normal.Dot(lightDir));
-		nDotL = nDotL * 0.8f + 0.2f;
-		Color output;
-		output.rgb = input.ambient.rgb + input.diffuse.rgb * lightColor.rgb * (nDotL * attenuation * 2.f);
-		output.a = input.diffuse.a;
-		return output;
-	}
-
-	const Color LightingBlinnPhong(const LightInput& input, const Vector3& normal, const Vector3& lightDir, const Color& lightColor, const Vector3& viewDir, float attenuation)
-	{
-		float lambertian = Mathf::Clamp01(normal.Dot(lightDir));
-		float specular = 0.f;
-
-		if (lambertian > 0.f)
-		{
-			Vector3 halfDir = (lightDir + viewDir).Normalize();
-			float specAngle = Mathf::Max(halfDir.Dot(normal), 0.f);
-			specular = Mathf::Pow(specAngle, input.shininess * 4.f);
-		}
-
-		Color output = Color::white;
-		output.rgb = input.ambient.rgb
-			+ (input.diffuse.rgb * lightColor.rgb * lambertian
-			+ input.specular.rgb * lightColor.rgb * specular) * attenuation;
-		output.a = input.diffuse.a;
-		return output;
-	}
-
-	const Color LightingPhong(const LightInput& input, const Vector3& normal, const Vector3& lightDir, const Color& lightColor, const Vector3& viewDir, float attenuation)
-	{
-		float lambertian = Mathf::Clamp01(normal.Dot(lightDir));
-		float specular = 0.f;
-
-		if (lambertian > 0.f)
-		{
-			Vector3 reflectDir = (normal * normal.Dot(lightDir) * 2.f - lightDir).Normalize();
-			float specAngle = Mathf::Max(reflectDir.Dot(viewDir), 0.f);
-			specular = Mathf::Pow(specAngle, input.shininess);
-		}
-
-		Color output;
-		output.rgb = input.ambient.rgb
-			+ (input.diffuse.rgb * lightColor.rgb * lambertian
-			+ input.specular.rgb * lightColor.rgb * specular) * attenuation;
-		output.a = input.diffuse.a;
-		return output;
+		return Color::white;
 	}
 };
 
-}
+} // namespace shader
 
-#endif //! _RASTERIZER_SHADER_Hv_
+} // namespace rasterizer
+
+#endif //! _RASTERIZER_SHADER_H_

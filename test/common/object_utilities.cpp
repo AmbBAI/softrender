@@ -37,16 +37,3 @@ MeshPtr CreatePlane(const MaterialPtr& mat)
     return mesh;
 }
 
-void LoadSponzaMesh(std::vector<MeshPtr>& mesh, Transform& trans)
-{
-    Mesh::LoadMesh(mesh, "resources/crytek-sponza/sponza.obj");
-    trans.position = Vector3(0, 0, 0);
-    trans.rotation = Vector3(0, 0, 0);
-    trans.scale = Vector3(1, 1, 1);
-
-	for (auto& m : mesh)
-	{
-		if (m->normals.size() <= 0)
-			m->RecalculateNormals();
-	}
-}

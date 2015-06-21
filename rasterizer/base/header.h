@@ -15,6 +15,7 @@
 #include <sstream>
 #include <vector>
 #include <map>
+#include <tuple>
 #include <algorithm>
 
 #if _USE_OPENMP_
@@ -47,6 +48,11 @@
 #endif
 #endif
 
+#define FOREACH_RANGE_STEP(vec, i, s, e, step) for(int i = s; i + step <= e; i += step)
+#define FOREACH_RANGE(vec, i, s, e) FOREACH_RANGE_STEP(vec, i, s, e, 1)
+#define FOREACH_STEP(vec, i, step) FOREACH_RANGE(vec, i, 0, (int)vec.size(), step)
+#define FOREACH(vec, i) FOREACH_STEP(vec, i, 1)
+
 #ifdef _USE_GLEW_
 #include "glew/include/GL/glew.h"
 #define NANOVG_GLEW
@@ -54,6 +60,7 @@
 #include "glfw/include/GLFW/glfw3.h"
 
 typedef unsigned char u8;
+typedef unsigned short u16;
 typedef unsigned int u32;
 
 #endif // !_BASE_HEADER_H_

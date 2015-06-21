@@ -7,6 +7,7 @@ function createTestProject(_name)
     includedirs {
       "rasterizer/",
       "thirdpart/",
+      "test/common/",
       path.join("test", "test_" .. _name),
     }
 
@@ -16,8 +17,8 @@ function createTestProject(_name)
     }
 
     libdirs {"lib/", "thirdpart/freeimage/"}
-    links {"rasterizer", "glfw", "tinyobjloader", "nanovg", "freeimage"}
 
+    links {"common", "rasterizer", "glfw", "tinyobjloader", "nanovg", "freeimage"}
     configuration "windows"
       defines { "_CRT_SECURE_NO_WARNINGS" }
       links {"opengl32.lib", "glu32.lib", "thirdpart/glew/lib/Release/Win32/glew32.lib"}
@@ -31,30 +32,52 @@ location "build"
 solution "rasterizer"
   configurations {"Debug", "Debug_SIMD", "Release", "Release_SIMD"}
   language "C++"
+  startproject "test_hello"
 
   configuration "Debug or Debug_SIMD"
-      defines { "DEBUG" }
-      flags { "Symbols"}
-      targetsuffix "_d"
+    defines { "DEBUG" }
+    flags { "Symbols"}
+    targetsuffix "_d"
 
   configuration "Release"
-      defines { "NDEBUG" }
-      flags { "Optimize"}
-
-  startproject "test_hello"
+    defines { "NDEBUG" }
+    flags { "Optimize"}
 
   group "test"
   createTestProject("hello")
   createTestProject("image")
   createTestProject("sponza")
 
+  project "common"
+    kind "StaticLib"
+    targetdir "lib/"
+    includedirs {
+      "rasterizer/",
+      "thirdpart/",
+      "test/common/",
+    }
+    libdirs {"lib/", "thirdpart/freeimage/"}
+    files {
+      "test/common/**.h",
+      "test/common/**.cpp",
+    }
+
+    configuration "windows"
+      defines { "_CRT_SECURE_NO_WARNINGS" }
+      links {"opengl32.lib", "glu32.lib", "thirdpart/glew/lib/Release/Win32/glew32.lib"}
+
+    configuration "macosx"
+      buildoptions {"-std=c++11", "-msse4.1", "-Wno-deprecated-declarations"}
+      links {"Cocoa.framework", "OpenGL.framework", "IOKit.framework", "CoreVideo.framework", "Carbon.framework"}
+
+
   dofile "thirdpart.lua"
 
   group ""
   project "rasterizer"
     kind "StaticLib"
+    targetdir "lib/"
     includedirs { "rasterizer/", "thirdpart/"}
-    targetdir ("bin/")
     libdirs {"lib/", "thirdpart/freeimage/"}
     files {
       "rasterizer/**.h",
@@ -67,9 +90,11 @@ solution "rasterizer"
         defines { "_MATH_SIMD_INTRINSIC_" }
 
     configuration "windows"
-      defines { "_CRT_SECURE_NO_WARNINGS", "_USE_GLEW_" }
+      defines { "_CRT_SECURE_NO_WARNINGS", "_USE_GLEW_"}
       links {"opengl32.lib", "glu32.lib", "thirdpart/glew/lib/Release/Win32/glew32.lib"}
 
     configuration "macosx"
       buildoptions {"-std=c++11", "-msse4.1", "-Wno-deprecated-declarations"}
       links {"Cocoa.framework", "OpenGL.framework", "IOKit.framework", "CoreVideo.framework", "Carbon.framework"}
+
+

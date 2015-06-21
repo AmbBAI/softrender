@@ -34,19 +34,20 @@ struct Projection
 struct VertexBase
 {
 	u32 clipCode = 0x00;
-	Vector4 hc = Vector4();
+	Vector4 position = Vector4();
+	Projection projection = Projection();
 
 	virtual Projection GetViewProjection(u32 width, u32 height)
 	{
-		return Projection::CalculateViewProjection(hc, width, height);
+		return Projection::CalculateViewProjection(position, width, height);
 	}
 
 	static VertexBase Lerp(const VertexBase& a, const VertexBase& b, float t)
 	{
 		assert(0.f <= t && t <= 1.f);
 		VertexBase out;
-		out.hc = Vector4::Lerp(a.hc, b.hc, t);
-		out.clipCode = Clipper::CalculateClipCode(out.hc);
+		out.position = Vector4::Lerp(a.position, b.position, t);
+		out.clipCode = Clipper::CalculateClipCode(out.position);
 		return out;
 	}
 };
