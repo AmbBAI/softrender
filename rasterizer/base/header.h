@@ -50,7 +50,7 @@
 
 #define FOREACH_RANGE_STEP(vec, i, s, e, step) for(int i = s; i + step <= e; i += step)
 #define FOREACH_RANGE(vec, i, s, e) FOREACH_RANGE_STEP(vec, i, s, e, 1)
-#define FOREACH_STEP(vec, i, step) FOREACH_RANGE(vec, i, 0, (int)vec.size(), step)
+#define FOREACH_STEP(vec, i, step) FOREACH_RANGE_STEP(vec, i, 0, (int)vec.size(), step)
 #define FOREACH(vec, i) FOREACH_STEP(vec, i, 1)
 
 #ifdef _USE_GLEW_

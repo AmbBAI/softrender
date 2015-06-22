@@ -39,7 +39,8 @@ struct Shader : ShaderBase
 	{
 		VSInputType* vertexInput = (VSInputType*)input;
 		*((VaryingDataType*)vertexOut->data) = vs(*vertexInput);
-		vertexOut->clipCode = Clipper::CalculateClipCode(vertexOut->GetPosition());
+		// TODO vertexOut->position =
+		vertexOut->clipCode = Clipper::CalculateClipCode(vertexOut->position);
 	}
 
 	Color psMain() override
@@ -57,6 +58,54 @@ struct Shader : ShaderBase
 	virtual Color frag(const VaryingDataType& input)
 	{
 		return Color::white;
+	}
+
+	Vector3 cameraPosition;
+	Vector3 GetViewDir(const Vector3 position)
+	{
+		return (cameraPosition - position).Normalize();
+	}
+
+	typedef Color(*LightFunc)(const LightInput& input, const Vector3& normal, const Vector3& lightDir, const Color& lightColor, const Vector3& viewDir, float attenuation);
+	static Color CalcLight(const LightInput& input, const LightPtr& light, LightFunc lightFunc, const Vector3& position, const Vector3& normal)
+	{
+		if (light && lightFunc)
+		{
+			Vector3 lightDir = light->direction.Negate();
+			float attenuation = 1.f;
+			float intensity = light->intensity;
+			switch (light->type) {
+			case Light::LightType_Directional:
+				break;
+			case Light::LightType_Point:
+			{
+				lightDir = light->position - position;
+				float distance = lightDir.Length();
+				lightDir /= distance;
+				attenuation = light->range * light->CalcAttenuation(distance);
+			}
+			break;
+			case Light::LightType_Spot:
+			{
+				lightDir = light->position - position;
+				float distance = lightDir.Length();
+				lightDir /= distance;
+				attenuation = light->range * light->CalcAttenuation(distance);
+				intensity = intensity * light->CalcSpotlightFactor(lightDir);
+			}
+			break;
+			}
+			Color lightColor = light->color;
+			lightColor.rgb = lightColor.rgb * intensity;
+			Vector3 viewDir = GetViewDir(position);
+			return lightFunc(input, normal, lightDir, lightColor, viewDir, attenuation);
+		}
+		else
+		{
+			Color out = input.diffuse;
+			out.rgb += input.ambient.rgb;
+			return out;
+		}
 	}
 };
 

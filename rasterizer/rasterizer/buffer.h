@@ -15,8 +15,11 @@ public:
 	~Buffer();
 
 public:
-	bool Initialize(int blockSize, bool isDynamic = true);
+	bool Initialize(int blockSize, bool isDynamic = false);
 	void Finalize();
+
+	template<typename BlockType>
+	bool Assign(std::vector<BlockType> datas);
 
 	bool Alloc(int blockCount);
 	bool Realloc(int blockCount);
@@ -27,16 +30,20 @@ public:
 	struct Iterator
 	{
 	private:
-		Buffer* buffer;
-		int index;
+		friend class Buffer;
+		Buffer* buffer = nullptr;
+		int index = 0;
 
 	public:
-		void* operator->() const;
+		//void* operator->() const;
 
 		void Seek(int index);
 		void* Get() const;
 		void* Next();
 	} itor;
+
+	template<typename Type>
+	static Type* Value(const void* data, int offset);
 
 protected:
 	bool AllocPage(int page);
@@ -51,6 +58,29 @@ private:
 	bool isDynamicBuffer = true;
 	int allocatedBlockCount = 0;
 };
+
+template<typename Type>
+Type* rasterizer::Buffer::Value(const void* data, int offset)
+{
+	return (Type*)((u8*)data + offset);
+}
+
+template<typename BlockType>
+bool Buffer::Assign(std::vector<BlockType> datas)
+{
+	if (!Initialize(sizeof(BlockType))) return false;
+	int totalBlockCount = (int)datas.size();
+	if (!Alloc(totalBlockCount)) return false;
+
+	for (int p = 0;; ++p)
+	{
+		int blockOffset = p * blockPrePage;
+		if (blockOffset >= totalBlockCount) return true;
+		int blockCount = totalBlockCount - blockOffset;
+		if (blockCount > blockPrePage) blockCount = blockPrePage;
+		memcpy(data[p], &datas[blockOffset], blockCount * blockSize);
+	}
+}
 
 
 }

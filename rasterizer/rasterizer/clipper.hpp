@@ -151,12 +151,12 @@ struct Clipper
 		const VertexType& v0, const VertexType& v1, const VertexType& v2, const Plane& plane)
 	{
 		// v0 & v1 in, v2 out
-		float t1 = plane.clippingFunc(v2.hc, v1.hc);
-		float t0 = plane.clippingFunc(v2.hc, v0.hc);
+		float t1 = plane.clippingFunc(v2.position, v1.position);
+		float t0 = plane.clippingFunc(v2.position, v0.position);
 		assert(0.f <= t1 && t1 <= 1.f);
 		assert(0.f <= t0 && t0 <= 1.f);
-		VertexType tv0 = VertexType::Lerp(v2, v1, t1);
-		VertexType tv1 = VertexType::Lerp(v2, v0, t0);
+		VertexType tv0 = VertexType::LinearInterp(v2, v1, t1);
+		VertexType tv1 = VertexType::LinearInterp(v2, v0, t0);
 		clippedTriangles.push_back(Triangle<VertexType>(v0, v1, tv0));
 		clippedTriangles.push_back(Triangle<VertexType>(v0, tv0, tv1));
 	}
@@ -166,12 +166,12 @@ struct Clipper
 		const VertexType& v0, const VertexType& v1, const VertexType& v2, const Plane& plane)
 	{
 		// v0 in, v1, v2 out
-		float t1 = plane.clippingFunc(v1.hc, v0.hc);
-		float t2 = plane.clippingFunc(v2.hc, v0.hc);
+		float t1 = plane.clippingFunc(v1.position, v0.position);
+		float t2 = plane.clippingFunc(v2.position, v0.position);
 		assert(0.f <= t1 && t1 <= 1.f);
 		assert(0.f <= t2 && t2 <= 1.f);
-		VertexType tv0 = VertexType::Lerp(v1, v0, t1);
-		VertexType tv1 = VertexType::Lerp(v2, v0, t2);
+		VertexType tv0 = VertexType::LinearInterp(v1, v0, t1);
+		VertexType tv1 = VertexType::LinearInterp(v2, v0, t2);
 		clippedTriangles.push_back(Triangle<VertexType>(v0, tv0, tv1));
 	}
 

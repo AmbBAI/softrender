@@ -5,32 +5,24 @@ MeshPtr CreatePlane(const MaterialPtr& mat)
 {
     //MeshPtr mesh = std::make_shared<Mesh>();
 	MeshPtr mesh = MeshPtr(new Mesh());
-	mesh->vertices.push_back(Vector3(-1, -1, 0));
-    mesh->vertices.push_back(Vector3(1, -1, 0));
-    mesh->vertices.push_back(Vector3(1, 1, 0));
-    mesh->vertices.push_back(Vector3(-1, 1, 0));
+	mesh->vertices.emplace_back(-1.f, -1.f, 0.f);
+	mesh->vertices.emplace_back(1.f, -1.f, 0.f);
+	mesh->vertices.emplace_back(1.f, 1.f, 0.f);
+	mesh->vertices.emplace_back(-1.f, 1.f, 0.f);
     
-    mesh->normals.push_back(Vector3(0, 0, 1));
-    mesh->normals.push_back(Vector3(0, 0, 1));
-    mesh->normals.push_back(Vector3(0, 0, 1));
-    mesh->normals.push_back(Vector3(0, 0, 1));
+	mesh->normals.emplace_back(0.f, 0.f, 1.f);
+	mesh->normals.emplace_back(0.f, 0.f, 1.f);
+	mesh->normals.emplace_back(0.f, 0.f, 1.f);
+	mesh->normals.emplace_back(0.f, 0.f, 1.f);
     
-    mesh->texcoords.push_back(Vector2(0, 0));
-    mesh->texcoords.push_back(Vector2(1, 0));
-    mesh->texcoords.push_back(Vector2(1, 1));
-    mesh->texcoords.push_back(Vector2(0, 1));
+	mesh->texcoords.emplace_back(0.f, 0.f);
+	mesh->texcoords.emplace_back(1.f, 0.f);
+	mesh->texcoords.emplace_back(1.f, 1.f);
+	mesh->texcoords.emplace_back(0.f, 1.f);
 
-	mesh->materials.push_back(mat);
-	mesh->materials.push_back(mat);
-	mesh->materials.push_back(mat);
-	mesh->materials.push_back(mat);
+	mesh->materials.emplace_back(mat, 0, 4);
 
-    mesh->indices.push_back(0);
-    mesh->indices.push_back(1);
-    mesh->indices.push_back(2);
-    mesh->indices.push_back(2);
-    mesh->indices.push_back(3);
-    mesh->indices.push_back(0);
+	mesh->indices = {0, 1, 2, 2, 3, 0};
 
     mesh->CalculateTangents();
     

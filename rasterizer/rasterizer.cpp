@@ -6,12 +6,14 @@ namespace rasterizer
 Canvas* Rasterizer::canvas = nullptr;
 CameraPtr Rasterizer::camera = nullptr;
 LightPtr Rasterizer::light = nullptr;
+shader::ShaderBase* Rasterizer::_shader = nullptr;
+RenderState Rasterizer::renderState;
 RenderData Rasterizer::renderData;
-
 
 bool Rasterizer::isDrawTextured = true;
 bool Rasterizer::isDrawWireFrame = false;
 bool Rasterizer::isDrawPoint = false;
+
 int Rasterizer::pixelDrawCount = 0;
 int Rasterizer::triangleDrawCount = 0;
 
@@ -200,7 +202,7 @@ void Rasterizer::DrawTriangle(Triangle<std::pair<Projection, VertexOutData> > tr
                         int cy = y + quadY[i];
                         
                         if (f_depth[i] > canvas->GetDepth(cx, cy)) continue;
-						if (zWrite) canvas->SetDepth(cx, cy, f_depth[i]);
+						if (renderState.zWrite) canvas->SetDepth(cx, cy, f_depth[i]);
                         
 						//canvas->SetPixel(cx, cy, Color(f_depth[i], f_depth[i], f_depth[i], f_depth[i]));
 						
@@ -251,7 +253,7 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform)
 	renderData.InitVertexOutData();
 	for (u32 i = 0; i < vertexCount; ++i)
 	{
-		_shader->vertexOut = renderData.GetVertexOutData(i);
+		_shader->vertexOut = &renderData.GetVertexOutData(i);
 		_shader->vsMain(renderData.GetVertexData(i));
 	}
 
@@ -262,18 +264,18 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform)
 		int i1 = mesh.indices[i * 3 + 1];
 		int i2 = mesh.indices[i * 3 + 2];
 
-		VertexOutData& v0 = *(renderData.GetVertexOutData(i0));
-		VertexOutData& v1 = *(renderData.GetVertexOutData(i1));
-		VertexOutData& v2 = *(renderData.GetVertexOutData(i2));
+		VertexOutData& v0 = renderData.GetVertexOutData(i0);
+		VertexOutData& v1 = renderData.GetVertexOutData(i1);
+		VertexOutData& v2 = renderData.GetVertexOutData(i2);
 
 		if (isDrawTextured)
 		{
 			auto triangles = Clipper::ClipTriangle(v0, v1, v2);
 			for (auto& triangle : triangles)
 			{
-				Projection p0 = Projection::CalculateViewProjection(*triangle.v0.GetPosition(), width, height);
-				Projection p1 = Projection::CalculateViewProjection(*triangle.v1.GetPosition(), width, height);
-				Projection p2 = Projection::CalculateViewProjection(*triangle.v2.GetPosition(), width, height);
+				Projection p0 = Projection::CalculateViewProjection(triangle.v0.position, width, height);
+				Projection p1 = Projection::CalculateViewProjection(triangle.v1.position, width, height);
+				Projection p2 = Projection::CalculateViewProjection(triangle.v2.position, width, height);
 				if (Orient2D(p0.x, p0.y, p1.x, p1.y, p2.x, p2.y) < 0.f) continue;
 
 				++triangleDrawCount;

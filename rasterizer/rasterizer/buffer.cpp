@@ -11,7 +11,7 @@ Buffer::Buffer(int pageSize /*= 0*/)
 	this->pageSize = pageSize;
 	blockPrePage = PAGE_SIZE_MAX / blockSize;
 
-	itor = Iterator{this, 0};
+	itor.buffer = this;
 }
 
 Buffer::~Buffer()
@@ -19,7 +19,7 @@ Buffer::~Buffer()
 	Dealloc();
 }
 
-bool Buffer::Initialize(int blockSize, bool isDynamic/* = true*/)
+bool Buffer::Initialize(int blockSize, bool isDynamic/* = false*/)
 {
 	assert(pageSize > 0);
 	if (blockSize <= 0 || blockSize > pageSize) return false;
@@ -71,6 +71,7 @@ bool Buffer::Realloc(int blockCount)
 		}
 		data.resize(page);
 	}
+	return true;
 }
 
 void Buffer::Dealloc()
@@ -86,7 +87,7 @@ bool Buffer::AllocPage(int page)
 
 	if (data[page] == nullptr)
 	{
-		data[page] = new u8*[pageSize];
+		data[page] = new u8[pageSize];
 	}
 	return true;
 }
@@ -102,9 +103,10 @@ bool Buffer::DeallocPage(int page)
 		delete data[page];
 		data[page] = nullptr;
 	}
+	return true;
 }
 
-void* Buffer::operator[](int idx) const
+void* Buffer::operator[](int idx)
 {
 	assert(pageSize > 0);
 	assert(blockPrePage <= 0);
@@ -126,7 +128,7 @@ void Buffer::Iterator::Seek(int index)
 void* Buffer::Iterator::Get() const
 {
 	assert(buffer != nullptr);
-	return buffer[index];
+	return (*buffer)[index];
 }
 
 void* Buffer::Iterator::Next()

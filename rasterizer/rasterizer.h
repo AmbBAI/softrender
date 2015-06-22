@@ -21,13 +21,6 @@
 namespace rasterizer
 {
 
-template<typename Type>
-static Type TriInterp(const Type& v0, const Type& v1, const Type& v2,
-                                  float x, float y, float z)
-{
-	return v0 * x + v1 * y + v2 * z;
-}
-
 /*
 struct Pixel
 {
@@ -176,34 +169,17 @@ struct Rasterizer
 	static void SetMainLight(LightPtr light);
 	static void SetShader(shader::ShaderBase* _shader);
 	static void SetTransform(const Matrix4x4& transform);
+	static void Submit();
+
+
 	static void DrawLine(int x0, int x1, int y0, int y1, const Color32& color);
 	static void DrawTriangle(Triangle<std::pair<Projection, VertexOutData> > triangle);
-    static void DrawMesh(const Mesh& mesh, const Matrix4x4& transform);
+	static void DrawMesh(const Mesh& mesh, const Matrix4x4& transform);
 
 	static int Orient2D(int x0, int y0, int x1, int y1, int x2, int y2);
 
 	static void PrepareRender();
 	static void Render();
-
-	template<typename VertexType>
-	static bool SetVertexData(std::vector<VertexType> vertices)
-	{
-		int count = (int)vertices.size();
-		assert(count <= RenderData::VERTEX_MAX_COUNT);
-		if (count > RenderData::VERTEX_MAX_COUNT) return false;
-
-		renderData.CreateVertexBuffer(count, size);
-		// TODO
-		return true;
-	}
-
-	static bool SetIndicesData(std::vector<u16> indices)
-	{
-		int count = (int)indices.size();
-		renderData.CreateIndexBuffer(count);
-		// TODO
-		return true;
-	}
 };
 
 }

@@ -14,18 +14,23 @@
 namespace rasterizer
 {
 
-
-struct PixelInData
-{
-	void* data = nullptr;
-};
-
+class RenderData;
 struct VertexOutData
 {
+	RenderData* renderData;
 	u32 clipCode = 0x00;
 	void* data = nullptr;
 
-	Vector4* GetPosition();
+	Vector4 position;
+	static VertexOutData LinearInterp(const VertexOutData& a, const VertexOutData& b, float t);
+};
+
+struct PixelInData
+{
+	RenderData* renderData;
+	void* data = nullptr;
+
+	static PixelInData TriangleInterp(VertexOutData& v0, VertexOutData& v1, VertexOutData& v2, float x, float y, float z);
 };
 
 struct VaryingDataDecl
@@ -46,35 +51,59 @@ struct VaryingDataDecl
 		VaryingDataDeclFormat_Vector4,
 	};
 
-	struct VertexDeclData
+	struct VaryingDeclData
 	{
 		int offset;
 		VaryingDataDeclUsage usage;
 		VaryingDataDeclFormat format;
 	};
-	std::vector<VertexDeclData> decl;
+	std::vector<VaryingDeclData> decl;
+	int dataSize;
 
 	void Initilize();
-	u32 GetSize();
-	void Lerp(void* output, void* input1, void* input2, float t);
+	int GetSize() { return dataSize; }
+
+	void LinearInterp(void* output, const void* a, const void* b, float t) const;
+	void TriangleInterp(void* output, const void* a, const void* b, const void* c, float x, float y, float z) const;
 };
 
 class RenderData
 {
+//	friend struct PixelInData;
+//	friend struct VertexOutData;
+
 public:
 	static const u32 VERTEX_MAX_COUNT;
 
-	void CreateVertexBuffer(u32 count, u32 size);
-	void* GetVertexData(u32 index);
+	template<typename VertexType>
+	bool AssignVertexBuffer(std::vector<VertexType> vertices)
+	{
+		int count = (int)vertices.size();
+		assert(count <= VERTEX_MAX_COUNT);
+		if (count > VERTEX_MAX_COUNT) return false;
+		vertexBuffer.Assign(vertices);
+		return true;
+	}
+
 	u32 GetVertexCount() { return vertexCount; }
 
-	void CreateIndexBuffer(u32 count);
+	bool AssignIndexBuffer(std::vector<u16> indices)
+	{
+		int count = (int)indices.size();
+		indexBuffer.Assign(indices);
+		return true;
+	}
 	u32 GetIndicesCount() { return indexCount; }
-	
+
+	void* GetVertexData(u32 index);
+
 	void InitVertexOutData();
-	VertexOutData* GetVertexOutData(int index);
-	int CreateDynamicVaryingData();
-	VertexOutData* GetDyamicVaryingData(int index);
+	VertexOutData& GetVertexOutData(int index);
+	void InitDynamicVaryingData();
+	void* CreateDynamicVaryingData();
+	//VertexOutData* GetDyamicVaryingData(int index);
+
+	const VaryingDataDecl& GetVaryingDataDecl() { return decl; }
 
 private:
 	Buffer vertexBuffer;
@@ -91,7 +120,6 @@ private:
 	Buffer pixelVaryingDataBuffer;
 };
 
-
-}
+} // namespace rasterizer
 
 #endif // !_RASTERIZER_RENDER_DATA_H_
