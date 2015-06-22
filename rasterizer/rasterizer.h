@@ -28,7 +28,7 @@ static Type TriInterp(const Type& v0, const Type& v1, const Type& v2,
 	return v0 * x + v1 * y + v2 * z;
 }
 
-    
+/*
 struct Pixel
 {
     Vector3 position;
@@ -52,7 +52,7 @@ struct Pixel
 	}
 };
 
-struct PS : shader::Shader<Vertex, VaryingData>
+struct PS : shader::Shader<Vertex, VertexOutData>
 {
 	Vector2 ddx, ddy;
 
@@ -129,16 +129,39 @@ struct PS : shader::Shader<Vertex, VaryingData>
 		return output;
 	}
 };
+*/
+
+struct RenderState
+{
+	enum ZTestType
+	{
+		ZTestType_Always = 0,
+		ZTestType_Less,
+		ZTestType_Greater,
+		ZTestType_LEqual,
+		ZTestType_GEqual,
+		ZTestType_Equal,
+		ZTestType_NotEqual
+	} ztest = ZTestType_LEqual;
+	bool zWrite = true;
+
+	enum CullType
+	{
+		CullType_Off = 0,
+		CullType_Back,
+		CullType_Front,
+	} cull = CullType_Back;
+};
 
 struct Rasterizer
 {
+	static RenderState renderState;
 	static RenderData renderData;
 
 	static Canvas* canvas;
 	static CameraPtr camera;
     static LightPtr light;
 	static MaterialPtr material;
-
 	static shader::ShaderBase* _shader;
 
 	static bool isDrawPoint;
@@ -151,19 +174,36 @@ struct Rasterizer
     
 	static void SetCamera(CameraPtr camera);
 	static void SetMainLight(LightPtr light);
-	//static void SetVertexDecl(std::vector<VertexDecl>& vertexDecl);
-	static void* CreateVertexBuff(int count, u32 size);
-	static u16* CreateIndexBuff(int count);
 	static void SetShader(shader::ShaderBase* _shader);
 	static void SetTransform(const Matrix4x4& transform);
 	static void DrawLine(int x0, int x1, int y0, int y1, const Color32& color);
-	static void DrawTriangle(u32 meshIndex, u32 triangleIndex);
+	static void DrawTriangle(Triangle<std::pair<Projection, VertexOutData> > triangle);
     static void DrawMesh(const Mesh& mesh, const Matrix4x4& transform);
 
 	static int Orient2D(int x0, int y0, int x1, int y1, int x2, int y2);
 
 	static void PrepareRender();
 	static void Render();
+
+	template<typename VertexType>
+	static bool SetVertexData(std::vector<VertexType> vertices)
+	{
+		int count = (int)vertices.size();
+		assert(count <= RenderData::VERTEX_MAX_COUNT);
+		if (count > RenderData::VERTEX_MAX_COUNT) return false;
+
+		renderData.CreateVertexBuffer(count, size);
+		// TODO
+		return true;
+	}
+
+	static bool SetIndicesData(std::vector<u16> indices)
+	{
+		int count = (int)indices.size();
+		renderData.CreateIndexBuffer(count);
+		// TODO
+		return true;
+	}
 };
 
 }

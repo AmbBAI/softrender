@@ -3,36 +3,32 @@ using namespace rasterizer;
 
 const u32 RenderData::VERTEX_MAX_COUNT = (1 << 16) - 1;
 
-void* RenderData::CreateVertexBuff(u32 count, u32 size)
+void RenderData::CreateVertexBuffer(u32 count, u32 size)
 {
 	vertexCount = count;
 	vertexSize = size;
 
-	vertexBuff.assign(count * size, 0);
-	return (void*)(&vertexBuff[0]);
+	vertexBuffer.Initialize(size, false);
+	vertexBuffer.Alloc(count);
 }
 
-u16* RenderData::CreateIndexBuff(u32 count)
+void RenderData::CreateIndexBuffer(u32 count)
 {
 	indexCount = count;
-
-	indexBuff.assign(count, 0);
-	return &indexBuff[0];
+	indexBuffer.Initialize(sizeof(u16), false);
+	indexBuffer.Alloc(count);
 }
 
 void* RenderData::GetVertexData(u32 index)
 {
-	u32 offset = index * vertexSize;
-	assert(offset < vertexBuff.size());
-	assert(offset + vertexSize < vertexBuff.size());
-	if (offset >= vertexBuff.size()) return nullptr;
-	if (offset + vertexSize >= vertexBuff.size()) return nullptr;
-	return (void*)&vertexBuff[offset];
+	return vertexBuffer[index];
 }
 
-void rasterizer::RenderData::CreateVaryingData()
+void rasterizer::RenderData::InitVertexOutData()
 {
-	int size = decl.GetDataSize();
-	
+	int size = decl.GetSize();
+
+	vertexVaryingDataBuffer.Initialize(size, false);
+	vertexVaryingDataBuffer.Alloc(vertexCount);
 }
 

@@ -57,14 +57,11 @@ int Rasterizer::Orient2D(int x0, int y0, int x1, int y1, int x2, int y2)
 	return (x1 - x0) * (y2 - y1) - (y1 - y0) * (x2 - x1);
 }
 
-void Rasterizer::DrawTriangle(u32 meshIndex, u32 triangleIndex)
+void Rasterizer::DrawTriangle(Triangle<std::pair<Projection, VertexOutData> > triangle)
 {
-	auto& mesh = renderData.meshes[meshIndex];
-	auto& triangle = mesh.triangles[triangleIndex];
-
-	const Projection& p0 = triangle.projection.v0;
-	const Projection& p1 = triangle.projection.v1;
-	const Projection& p2 = triangle.projection.v2;
+	const Projection& p0 = triangle.v0.first;
+	const Projection& p1 = triangle.v1.first;
+	const Projection& p2 = triangle.v2.first;
 
 	int minX = Mathf::Min(p0.x, p1.x, p2.x);
 	int minY = Mathf::Min(p0.y, p1.y, p2.y);
@@ -121,10 +118,6 @@ void Rasterizer::DrawTriangle(u32 meshIndex, u32 triangleIndex)
 	float f_x[4], f_y[4], f_z[4];
 	float f_depth[4];
 #endif
-
-	const Vertex& v0 = triangle.vertices.v0;
-	const Vertex& v1 = triangle.vertices.v1;
-	const Vertex& v2 = triangle.vertices.v2;
 
 	for (int y = minY; y <= maxY; y+=2)
 	{
@@ -196,8 +189,8 @@ void Rasterizer::DrawTriangle(u32 meshIndex, u32 triangleIndex)
 					f_depth[i] = camera->GetLinearDepth(f_depth[i]);
 				}
 
-				Vector2 ddx = TriInterp(v0.texcoord, v1.texcoord, v2.texcoord, f_x[1] - f_x[0], f_y[1] - f_y[0], f_z[1] - f_z[0]);
-				Vector2 ddy = TriInterp(v0.texcoord, v1.texcoord, v2.texcoord, f_x[2] - f_x[0], f_y[2] - f_y[0], f_z[2] - f_z[0]);
+				//Vector2 ddx = TriInterp(v0.texcoord, v1.texcoord, v2.texcoord, f_x[1] - f_x[0], f_y[1] - f_y[0], f_z[1] - f_z[0]);
+				//Vector2 ddy = TriInterp(v0.texcoord, v1.texcoord, v2.texcoord, f_x[2] - f_x[0], f_y[2] - f_y[0], f_z[2] - f_z[0]);
 
 				for (int i = 0; i < 4; ++i)
 				{
@@ -207,15 +200,11 @@ void Rasterizer::DrawTriangle(u32 meshIndex, u32 triangleIndex)
                         int cy = y + quadY[i];
                         
                         if (f_depth[i] > canvas->GetDepth(cx, cy)) continue;
-
-						bool isTransparent = triangle.material->isTransparent;
-						if (!isTransparent) canvas->SetDepth(cx, cy, f_depth[i]);
+						if (zWrite) canvas->SetDepth(cx, cy, f_depth[i]);
                         
 						//canvas->SetPixel(cx, cy, Color(f_depth[i], f_depth[i], f_depth[i], f_depth[i]));
 						
-						RenderPixelData<Pixel> pixelData;
-						pixelData.meshIndex = meshIndex;
-						pixelData.triangleIndex = triangleIndex;
+						/*
 						pixelData.x = cx;
 						pixelData.y = cy;
 						pixelData.depth = f_depth[i];
@@ -225,7 +214,7 @@ void Rasterizer::DrawTriangle(u32 meshIndex, u32 triangleIndex)
 
 						if (isTransparent) renderData.renderList[1].push_back(pixelData);
 						else renderData.renderList[0].push_back(pixelData);
-						
+						*/
 					}
 				}
 			}
@@ -259,32 +248,32 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform)
 	_shader->_MATRIX_MVP = _shader->_MATRIX_VP.Multiply(transform);
 
 	u32 vertexCount = renderData.GetVertexCount();
-	renderData.CreateVaryingData();
+	renderData.InitVertexOutData();
 	for (u32 i = 0; i < vertexCount; ++i)
 	{
-		_shader->varyingData = renderData.GetVaryingData(varyingDataId);
+		_shader->vertexOut = renderData.GetVertexOutData(i);
 		_shader->vsMain(renderData.GetVertexData(i));
 	}
 
 	int faceN = (int)mesh.indices.size() / 3;
-	for (i = 0; i < faceN; ++i)
+	for (int i = 0; i < faceN; ++i)
 	{
 		int i0 = mesh.indices[i * 3];
 		int i1 = mesh.indices[i * 3 + 1];
 		int i2 = mesh.indices[i * 3 + 2];
 
-		Vertex& v0 = meshRef.vertices[i0].vertex;
-		Vertex& v1 = meshRef.vertices[i1].vertex;
-		Vertex& v2 = meshRef.vertices[i2].vertex;
+		VertexOutData& v0 = *(renderData.GetVertexOutData(i0));
+		VertexOutData& v1 = *(renderData.GetVertexOutData(i1));
+		VertexOutData& v2 = *(renderData.GetVertexOutData(i2));
 
 		if (isDrawTextured)
 		{
 			auto triangles = Clipper::ClipTriangle(v0, v1, v2);
 			for (auto& triangle : triangles)
 			{
-				Projection p0 = triangle.v0.GetViewProjection(width, height);
-				Projection p1 = triangle.v1.GetViewProjection(width, height);
-				Projection p2 = triangle.v2.GetViewProjection(width, height);
+				Projection p0 = Projection::CalculateViewProjection(*triangle.v0.GetPosition(), width, height);
+				Projection p1 = Projection::CalculateViewProjection(*triangle.v1.GetPosition(), width, height);
+				Projection p2 = Projection::CalculateViewProjection(*triangle.v2.GetPosition(), width, height);
 				if (Orient2D(p0.x, p0.y, p1.x, p1.y, p2.x, p2.y) < 0.f) continue;
 
 				++triangleDrawCount;
@@ -293,6 +282,7 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform)
 				//DrawLine(p1.x, p2.x, p1.y, p2.y, Color::green);
 				//DrawLine(p2.x, p0.x, p2.y, p0.y, Color::green);
 
+				/*
 				RenderTriangleData<Vertex> triangleData;
 				triangleData.material = material;
 				triangleData.vertices = triangle;
@@ -300,9 +290,11 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform)
 				triangleData.projection.v1 = p1;
 				triangleData.projection.v2 = p2;
 				meshRef.triangles.push_back(triangleData);
+				*/
 			}
 		}
 
+		/*
 		if (isDrawWireFrame)
 		{
 			std::vector<Line<Vertex> > lines;
@@ -320,8 +312,10 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform)
 				DrawLine(p0.x, p1.x, p0.y, p1.y, Color::blue);
 			}
 		}
+		*/
 	}
 
+	/*
 	int triangleN = (int)meshRef.triangles.size();
 //#pragma omp parallel for private(i)
 	for (i = 0; i < triangleN; ++i)
@@ -341,6 +335,7 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform)
 			}
 		}
 	}
+	*/
 
 	//if (light)
 	//{
@@ -363,6 +358,7 @@ void Rasterizer::PrepareRender()
 
 void Rasterizer::Render()
 {
+	/*
 	int i = 0;
 	int size = 0;
 
@@ -423,22 +419,7 @@ void Rasterizer::Render()
 
 	printf("Pixel Draw Count %d\n", pixelDrawCount);
 	printf("Triangle Draw Count %d\n", triangleDrawCount);
-}
-
-void* Rasterizer::CreateVertexBuff(int count, u32 size)
-{
-	assert(count > 0);
-	assert(count <= RenderData::VERTEX_MAX_COUNT);
-	if (count <= 0) return nullptr;
-	if (count > RenderData::VERTEX_MAX_COUNT) return nullptr;
-
-	return renderData.CreateVertexBuff(count, size);
-}
-
-u16* Rasterizer::CreateIndexBuff(int count)
-{
-	assert(count > 0);
-	return renderData.CreateIndexBuff(count);
+	*/
 }
 
 }
