@@ -31,49 +31,6 @@ struct Projection
 	}
 };
 
-struct VertexBase
-{
-	u32 clipCode = 0x00;
-	Vector4 position = Vector4();
-	Projection projection = Projection();
-
-	virtual Projection GetViewProjection(u32 width, u32 height)
-	{
-		return Projection::CalculateViewProjection(position, width, height);
-	}
-
-	static VertexBase Lerp(const VertexBase& a, const VertexBase& b, float t)
-	{
-		assert(0.f <= t && t <= 1.f);
-		VertexBase out;
-		out.position = Vector4::Lerp(a.position, b.position, t);
-		out.clipCode = Clipper::CalculateClipCode(out.position);
-		return out;
-	}
-};
-
-struct Vertex : VertexBase
-{
-    Vector3 position;
-	Vector3 normal;
-	Vector3 tangent;
-	Vector3 bitangent;
-	Vector2 texcoord;
-
-	static Vertex Lerp(const Vertex& a, const Vertex& b, float t)
-	{
-		assert(0.f <= t && t <= 1.f);
-		Vertex out;
-		*((VertexBase*)&out) = VertexBase::Lerp(a, b, t);
-        out.position = Vector3::Lerp(a.position, b.position, t);
-		out.normal = Vector3::Lerp(a.normal, b.normal, t);
-		out.tangent = Vector3::Lerp(a.tangent, b.tangent, t);
-		out.bitangent = Vector3::Lerp(a.bitangent, b.bitangent, t);
-		out.texcoord = Vector2::Lerp(a.texcoord, b.texcoord, t);
-		return out;
-	}
-};
-
 template <typename VertexType>
 struct Line
 {

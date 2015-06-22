@@ -17,7 +17,8 @@ struct ShaderBase
 	RenderData* renderData;
 
 	VaryingDataDecl decl;
-	void* varyingData = nullptr;
+	VertexOutData* vertexOut = nullptr;
+	PixelInData* pixelIn = nullptr;
 
 	Matrix4x4 _MATRIX_MVP;
 	Matrix4x4 _MATRIX_MV;
@@ -34,17 +35,16 @@ struct ShaderBase
 template <typename VSInputType, typename VaryingDataType>
 struct Shader : ShaderBase
 {
-
 	void vsMain(const void* input) override
 	{
 		VSInputType* vertexInput = (VSInputType*)input;
-		*varyingData = vs(*vertexInput);
-		varyingData->clipCode = Clipper::CalculateClipCode(varyingData->position);
+		*((VaryingDataType*)vertexOut->data) = vs(*vertexInput);
+		vertexOut->clipCode = Clipper::CalculateClipCode(vertexOut->GetPosition());
 	}
 
 	Color psMain() override
 	{
-		return frag(*(VaryingDataType*)(varyingData));
+		return frag(*(VaryingDataType*)(pixelIn->data));
 	}
 
 	virtual VaryingDataType vert(const VSInputType& input)
@@ -61,7 +61,6 @@ struct Shader : ShaderBase
 };
 
 } // namespace shader
-
 } // namespace rasterizer
 
 #endif //! _RASTERIZER_SHADER_H_
