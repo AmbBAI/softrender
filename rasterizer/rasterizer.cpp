@@ -7,7 +7,7 @@ Canvas* Rasterizer::canvas = nullptr;
 CameraPtr Rasterizer::camera = nullptr;
 LightPtr Rasterizer::light = nullptr;
 shader::ShaderBase* Rasterizer::_shader = nullptr;
-rasterizer::Matrix4x4 Rasterizer::matrix;
+rasterizer::Matrix4x4 Rasterizer::transform;
 RenderState Rasterizer::renderState;
 RenderData Rasterizer::renderData;
 
@@ -423,6 +423,32 @@ void Rasterizer::Render()
 	printf("Pixel Draw Count %d\n", pixelDrawCount);
 	printf("Triangle Draw Count %d\n", triangleDrawCount);
 	*/
+}
+
+void Rasterizer::Submit()
+{
+	assert(canvas != nullptr);
+	assert(camera != nullptr);
+
+	u32 width = canvas->GetWidth();
+	u32 height = canvas->GetHeight();
+
+	_shader->_MATRIX_V = *camera->GetViewMatrix();
+	_shader->_MATRIX_P = *camera->GetProjectionMatrix();
+	_shader->_MATRIX_VP = _shader->_MATRIX_P.Multiply(_shader->_MATRIX_V);
+	_shader->_Object2World = transform;
+	_shader->_World2Object = transform.Inverse();
+	_shader->_MATRIX_MV = _shader->_MATRIX_V.Multiply(transform);
+	_shader->_MATRIX_MVP = _shader->_MATRIX_VP.Multiply(transform);
+
+	u32 vertexCount = renderData.GetVertexCount();
+	renderData.InitVertexOutData();
+	for (u32 i = 0; i < vertexCount; ++i)
+	{
+		_shader->vertexOut = &renderData.GetVertexOutData(i);
+		_shader->vsMain(renderData.GetVertexData(i));
+	}
+
 }
 
 }

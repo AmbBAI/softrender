@@ -3,6 +3,6 @@
 
 #include "rasterizer.h"
 
-rasterizer::MeshPtr CreatePlane(const rasterizer::MaterialPtr& mat);
+rasterizer::MeshPtr CreatePlane();
 
 #endif // !_OBJECT_UTILITIES_H_

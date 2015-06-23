@@ -16,7 +16,7 @@ struct ShaderBase
 {
 	RenderData* renderData;
 
-	VaryingDataDecl decl;
+	std::vector<VaryingDataDecl::VaryingDeclData> varyingDecl;
 	VertexOutData* vertexOut = nullptr;
 	PixelInData* pixelIn = nullptr;
 
@@ -38,7 +38,7 @@ struct Shader : ShaderBase
 	void vsMain(const void* input) override
 	{
 		VSInputType* vertexInput = (VSInputType*)input;
-		*((VaryingDataType*)vertexOut->data) = vs(*vertexInput);
+		*((VaryingDataType*)vertexOut->data) = vert(*vertexInput);
 		// TODO vertexOut->position =
 		vertexOut->clipCode = Clipper::CalculateClipCode(vertexOut->position);
 	}
@@ -51,7 +51,7 @@ struct Shader : ShaderBase
 	virtual VaryingDataType vert(const VSInputType& input)
 	{
 		VaryingDataType output;
-		output.position = Rasterizer::_MATRIX_MVP.Multiply(input.position);
+		output.position = _MATRIX_MVP.MultiplyPoint(input.position);
 		return output;
 	}
 

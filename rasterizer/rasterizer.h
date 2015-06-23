@@ -151,7 +151,7 @@ struct Rasterizer
 	static RenderState renderState;
 	static RenderData renderData;
 
-	static Matrix4x4 matrix;
+	static Matrix4x4 transform;
 	static Canvas* canvas;
 	static CameraPtr camera;
     static LightPtr light;
@@ -168,10 +168,9 @@ struct Rasterizer
     
 	static void SetCamera(CameraPtr camera);
 	static void SetMainLight(LightPtr light);
-	static void SetShader(shader::ShaderBase* _shader);
+	static void SetShader(shader::ShaderBase* _shader) { Rasterizer::_shader = _shader; }
 	static void SetTransform(const Matrix4x4& transform);
 	static void Submit();
-
 
 	static void DrawLine(int x0, int x1, int y0, int y1, const Color32& color);
 	static void DrawTriangle(Triangle<std::pair<Projection, VertexOutData> > triangle);

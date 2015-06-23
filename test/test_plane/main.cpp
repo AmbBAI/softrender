@@ -19,17 +19,42 @@ int main(int argc, char *argv[])
 struct Vertex
 {
 	Vector3 position;
-	Vector3 normal;
 	Vector2 texCoord;
+};
+
+struct VaryingData
+{
+	Vector4 position;
+	Vector2 texCoord;
+};
+
+struct PlaneShader : shader::Shader<Vertex, VaryingData>
+{
+	TexturePtr mainTex;
+
+	VaryingData vert(const Vertex& input) override
+	{
+		VaryingData output;
+		output.position = _MATRIX_MVP.MultiplyPoint(input.position);
+		output.texCoord = input.texCoord;
+		return output;
+	}
+
+	Color frag(const VaryingData& input) override
+	{
+		return mainTex->Sample(input.texCoord.x, input.texCoord.y);
+	}
 };
 
 void MainLoop()
 {
 	static bool isInitilized = false;
-	static std::vector<MeshPtr> mesh;
+	static MeshPtr mesh;
 	static Transform trans;
 	static std::vector<Vertex> vertices;
 	static std::vector<u16> indices;
+	static MaterialPtr mat;
+	static PlaneShader fx;
 	Canvas* canvas = app->GetCanvas();
 
 	if (!isInitilized)
@@ -42,19 +67,26 @@ void MainLoop()
 		Rasterizer::camera = CameraPtr(new Camera());
 		CameraController::InitCamera(Rasterizer::camera);
 
-		MaterialPtr mat = MaterialPtr(new Material());
-		mesh.push_back(CreatePlane(mat));
+		mat = MaterialPtr(new Material());
+		mat->diffuseTexture = Texture::LoadTexture("resources/teapot/default.png");
+		fx.mainTex = mat->diffuseTexture;
+		fx.varyingDecl = {
+			{ 0, VaryingDataDecl::VaryingDataDeclType_POSITION, VaryingDataDecl::VaryingDataDeclFormat_Vector4 },
+			{ 0, VaryingDataDecl::VaryingDataDeclType_TEXCOORD, VaryingDataDecl::VaryingDataDeclFormat_Vector2 }
+		};
+
+		mesh = CreatePlane();
 
 		vertices.clear();
 		indices.clear();
-
-		auto& m = mesh[0];
-		int vertexCount = m->GetVertexCount();
+		int vertexCount = mesh->GetVertexCount();
 		for (int i = 0; i < vertexCount; ++i)
 		{
-			vertices.emplace_back(Vertex{ m->vertices[i], m->normals[i], m->texcoords[i] });
+			vertices.emplace_back(Vertex{
+				mesh->vertices[i],
+				mesh->texcoords[i] });
 		}
-		for (auto idx : m->indices) indices.emplace_back((u16)idx);
+		for (auto idx : mesh->indices) indices.emplace_back((u16)idx);
     }
 
 	CameraController::UpdateCamera();
@@ -63,9 +95,11 @@ void MainLoop()
 
 	Rasterizer::PrepareRender();
 
-	Rasterizer::matrix = trans.GetMatrix();
+	Rasterizer::transform = trans.GetMatrix();
 	Rasterizer::renderData.AssignVertexBuffer(vertices);
 	Rasterizer::renderData.AssignIndexBuffer(indices);
+	Rasterizer::SetShader(&fx);
+	Rasterizer::Submit();
 
 	Rasterizer::Render();
 
