@@ -24,6 +24,7 @@ struct Mesh
 
 	void RecalculateNormals();
 	void CalculateTangents();
+	int GetVertexCount() { return (int)vertices.size(); }
 
 	std::vector<Vector3> vertices;
 	std::vector<u32> indices;

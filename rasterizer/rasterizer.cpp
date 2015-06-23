@@ -7,6 +7,7 @@ Canvas* Rasterizer::canvas = nullptr;
 CameraPtr Rasterizer::camera = nullptr;
 LightPtr Rasterizer::light = nullptr;
 shader::ShaderBase* Rasterizer::_shader = nullptr;
+rasterizer::Matrix4x4 Rasterizer::matrix;
 RenderState Rasterizer::renderState;
 RenderData Rasterizer::renderData;
 

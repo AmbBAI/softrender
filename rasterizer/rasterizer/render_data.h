@@ -76,18 +76,18 @@ public:
 	static const u32 VERTEX_MAX_COUNT;
 
 	template<typename VertexType>
-	bool AssignVertexBuffer(std::vector<VertexType> vertices)
+	bool AssignVertexBuffer(const std::vector<VertexType>& vertices)
 	{
 		int count = (int)vertices.size();
-		assert(count <= VERTEX_MAX_COUNT);
-		if (count > VERTEX_MAX_COUNT) return false;
+		assert(count <= (int)VERTEX_MAX_COUNT);
+		if (count > (int)VERTEX_MAX_COUNT) return false;
 		vertexBuffer.Assign(vertices);
 		return true;
 	}
 
 	u32 GetVertexCount() { return vertexCount; }
 
-	bool AssignIndexBuffer(std::vector<u16> indices)
+	bool AssignIndexBuffer(const std::vector<u16>& indices)
 	{
 		int count = (int)indices.size();
 		indexBuffer.Assign(indices);

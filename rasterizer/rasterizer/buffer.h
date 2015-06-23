@@ -19,7 +19,7 @@ public:
 	void Finalize();
 
 	template<typename BlockType>
-	bool Assign(std::vector<BlockType> datas);
+	bool Assign(const std::vector<BlockType>& datas);
 
 	bool Alloc(int blockCount);
 	bool Realloc(int blockCount);
@@ -46,8 +46,8 @@ public:
 	static Type* Value(const void* data, int offset);
 
 protected:
-	bool AllocPage(int page);
-	bool DeallocPage(int page);
+	bool AllocPage(int pageIdx);
+	bool DeallocPage(int pageIdx);
 
 private:
 	std::vector<u8*> data;
@@ -60,13 +60,13 @@ private:
 };
 
 template<typename Type>
-Type* rasterizer::Buffer::Value(const void* data, int offset)
+Type* Buffer::Value(const void* data, int offset)
 {
 	return (Type*)((u8*)data + offset);
 }
 
 template<typename BlockType>
-bool Buffer::Assign(std::vector<BlockType> datas)
+bool Buffer::Assign(const std::vector<BlockType>& datas)
 {
 	if (!Initialize(sizeof(BlockType))) return false;
 	int totalBlockCount = (int)datas.size();

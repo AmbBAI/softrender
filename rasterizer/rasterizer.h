@@ -151,6 +151,7 @@ struct Rasterizer
 	static RenderState renderState;
 	static RenderData renderData;
 
+	static Matrix4x4 matrix;
 	static Canvas* canvas;
 	static CameraPtr camera;
     static LightPtr light;
