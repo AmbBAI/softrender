@@ -2,22 +2,17 @@
 #define _RASTERIZER_SHADER_FUNCTION_H_
 
 #include "base/header.h"
+#include "base/color.h"
 #include "math/vector3.h"
 #include "math/vector4.h"
 #include "math/mathf.h"
+#include "shader.hpp"
 
 namespace rasterizer
 {
-namespace shader
-{
-	struct LightInput
-	{
-		Color ambient;
-		Color diffuse;
-		Color specular;
-		float shininess;
-	};
 
+class ShaderF
+{
 	static const Color LightingLambert(const LightInput& input, const Vector3& normal, const Vector3& lightDir, const Color& lightColor, float attenuation)
 	{
 		float nDotL = Mathf::Clamp01(normal.Dot(lightDir));
@@ -77,7 +72,7 @@ namespace shader
 		return output;
 	}
 
-} // namespace shader
+}
 
 } // namespace rasterizer
 

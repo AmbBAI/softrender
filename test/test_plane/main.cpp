@@ -10,7 +10,7 @@ void MainLoop();
 int main(int argc, char *argv[])
 {
 	app = Application::GetInstance();
-	app->CreateApplication("sponza", 800, 600);
+	app->CreateApplication("plane", 800, 600);
 	app->SetRunLoop(MainLoop);
 	app->RunLoop();
 	return 0;
@@ -28,7 +28,7 @@ struct VaryingData
 	Vector2 texCoord;
 };
 
-struct PlaneShader : shader::Shader<Vertex, VaryingData>
+struct PlaneShader : Shader<Vertex, VaryingData>
 {
 	TexturePtr mainTex;
 
@@ -53,8 +53,8 @@ void MainLoop()
 	static Transform trans;
 	static std::vector<Vertex> vertices;
 	static std::vector<u16> indices;
-	static MaterialPtr mat;
-	static PlaneShader fx;
+	static MaterialPtr material;
+	static PlaneShader shader;
 	Canvas* canvas = app->GetCanvas();
 
 	if (!isInitilized)
@@ -67,13 +67,14 @@ void MainLoop()
 		Rasterizer::camera = CameraPtr(new Camera());
 		CameraController::InitCamera(Rasterizer::camera);
 
-		mat = MaterialPtr(new Material());
-		mat->diffuseTexture = Texture::LoadTexture("resources/teapot/default.png");
-		fx.mainTex = mat->diffuseTexture;
-		fx.varyingDecl = {
-			{ 0, VaryingDataDecl::VaryingDataDeclType_POSITION, VaryingDataDecl::VaryingDataDeclFormat_Vector4 },
-			{ 0, VaryingDataDecl::VaryingDataDeclType_TEXCOORD, VaryingDataDecl::VaryingDataDeclFormat_Vector2 }
+		material = MaterialPtr(new Material());
+		material->diffuseTexture = Texture::LoadTexture("resources/teapot/default.png");
+		shader.mainTex = material->diffuseTexture;
+		shader.varyingDataDecl = {
+			{ 0, VaryingDataDecl::VaryingDataDeclUsage_POSITION, VaryingDataDecl::VaryingDataDeclFormat_Vector4 },
+			{ 16, VaryingDataDecl::VaryingDataDeclUsage_TEXCOORD, VaryingDataDecl::VaryingDataDeclFormat_Vector2 }
 		};
+		shader.varyingDataSize = sizeof(VaryingData);
 
 		mesh = CreatePlane();
 
@@ -82,9 +83,7 @@ void MainLoop()
 		int vertexCount = mesh->GetVertexCount();
 		for (int i = 0; i < vertexCount; ++i)
 		{
-			vertices.emplace_back(Vertex{
-				mesh->vertices[i],
-				mesh->texcoords[i] });
+			vertices.emplace_back(Vertex{ mesh->vertices[i], mesh->texcoords[i] });
 		}
 		for (auto idx : mesh->indices) indices.emplace_back((u16)idx);
     }
@@ -98,7 +97,7 @@ void MainLoop()
 	Rasterizer::transform = trans.GetMatrix();
 	Rasterizer::renderData.AssignVertexBuffer(vertices);
 	Rasterizer::renderData.AssignIndexBuffer(indices);
-	Rasterizer::SetShader(&fx);
+	Rasterizer::SetShader(&shader);
 	Rasterizer::Submit();
 
 	Rasterizer::Render();

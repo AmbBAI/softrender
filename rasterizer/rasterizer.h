@@ -150,13 +150,14 @@ struct Rasterizer
 {
 	static RenderState renderState;
 	static RenderData renderData;
+	static VaryingDataBuffer varyingDataBuffer;
 
 	static Matrix4x4 transform;
 	static Canvas* canvas;
 	static CameraPtr camera;
     static LightPtr light;
 	static MaterialPtr material;
-	static shader::ShaderBase* _shader;
+	static ShaderBase* shader;
 
 	static bool isDrawPoint;
 	static bool isDrawWireFrame;
@@ -168,7 +169,7 @@ struct Rasterizer
     
 	static void SetCamera(CameraPtr camera);
 	static void SetMainLight(LightPtr light);
-	static void SetShader(shader::ShaderBase* _shader) { Rasterizer::_shader = _shader; }
+	static void SetShader(ShaderBase* shader);
 	static void SetTransform(const Matrix4x4& transform);
 	static void Submit();
 

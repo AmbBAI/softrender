@@ -179,6 +179,7 @@ struct Clipper
 	{
 		return (w0 - f0) / ((w0 - f0) - (w1 - f1));
 	}
+
 };
 
 }

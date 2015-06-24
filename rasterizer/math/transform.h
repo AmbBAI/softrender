@@ -9,9 +9,9 @@ namespace rasterizer {
 
 struct Transform
 {
-    Vector3 position;
-    Vector3 rotation;
-    Vector3 scale;
+	Vector3 position = Vector3(0.f, 0.f, 0.f);
+	Vector3 rotation = Vector3(0.f, 0.f, 0.f);
+    Vector3 scale = Vector3(1.f,1.f,1.f);
     
     const Matrix4x4 GetMatrix() const;
 };

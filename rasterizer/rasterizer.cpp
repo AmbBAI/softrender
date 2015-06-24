@@ -6,10 +6,12 @@ namespace rasterizer
 Canvas* Rasterizer::canvas = nullptr;
 CameraPtr Rasterizer::camera = nullptr;
 LightPtr Rasterizer::light = nullptr;
-shader::ShaderBase* Rasterizer::_shader = nullptr;
+ShaderBase* Rasterizer::shader = nullptr;
 rasterizer::Matrix4x4 Rasterizer::transform;
 RenderState Rasterizer::renderState;
 RenderData Rasterizer::renderData;
+VaryingDataBuffer Rasterizer::varyingDataBuffer;
+
 
 bool Rasterizer::isDrawTextured = true;
 bool Rasterizer::isDrawWireFrame = false;
@@ -242,20 +244,20 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform)
 	u32 width = canvas->GetWidth();
 	u32 height = canvas->GetHeight();
 
-	_shader->_MATRIX_V = *camera->GetViewMatrix();
-	_shader->_MATRIX_P = *camera->GetProjectionMatrix();
-	_shader->_MATRIX_VP = _shader->_MATRIX_P.Multiply(_shader->_MATRIX_V);
-	_shader->_Object2World = transform;
-	_shader->_World2Object = transform.Inverse();
-	_shader->_MATRIX_MV = _shader->_MATRIX_V.Multiply(transform);
-	_shader->_MATRIX_MVP = _shader->_MATRIX_VP.Multiply(transform);
+	shader->_MATRIX_V = *camera->GetViewMatrix();
+	shader->_MATRIX_P = *camera->GetProjectionMatrix();
+	shader->_MATRIX_VP = shader->_MATRIX_P.Multiply(shader->_MATRIX_V);
+	shader->_Object2World = transform;
+	shader->_World2Object = transform.Inverse();
+	shader->_MATRIX_MV = shader->_MATRIX_V.Multiply(transform);
+	shader->_MATRIX_MVP = shader->_MATRIX_VP.Multiply(transform);
 
 	u32 vertexCount = renderData.GetVertexCount();
-	renderData.InitVertexOutData();
+	varyingDataBuffer.InitVerticesVaryingData(vertexCount);
 	for (u32 i = 0; i < vertexCount; ++i)
 	{
-		_shader->vertexOut = &renderData.GetVertexOutData(i);
-		_shader->vsMain(renderData.GetVertexData(i));
+		shader->vertexOut = &varyingDataBuffer.GetVertexVaryingData(i);
+		shader->vsMain(renderData.GetVertexData(i));
 	}
 
 	int faceN = (int)mesh.indices.size() / 3;
@@ -265,9 +267,9 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform)
 		int i1 = mesh.indices[i * 3 + 1];
 		int i2 = mesh.indices[i * 3 + 2];
 
-		VertexOutData& v0 = renderData.GetVertexOutData(i0);
-		VertexOutData& v1 = renderData.GetVertexOutData(i1);
-		VertexOutData& v2 = renderData.GetVertexOutData(i2);
+		VertexOutData& v0 = varyingDataBuffer.GetVertexVaryingData(i0);
+		VertexOutData& v1 = varyingDataBuffer.GetVertexVaryingData(i1);
+		VertexOutData& v2 = varyingDataBuffer.GetVertexVaryingData(i2);
 
 		if (isDrawTextured)
 		{
@@ -433,22 +435,39 @@ void Rasterizer::Submit()
 	u32 width = canvas->GetWidth();
 	u32 height = canvas->GetHeight();
 
-	_shader->_MATRIX_V = *camera->GetViewMatrix();
-	_shader->_MATRIX_P = *camera->GetProjectionMatrix();
-	_shader->_MATRIX_VP = _shader->_MATRIX_P.Multiply(_shader->_MATRIX_V);
-	_shader->_Object2World = transform;
-	_shader->_World2Object = transform.Inverse();
-	_shader->_MATRIX_MV = _shader->_MATRIX_V.Multiply(transform);
-	_shader->_MATRIX_MVP = _shader->_MATRIX_VP.Multiply(transform);
+	shader->_MATRIX_V = *camera->GetViewMatrix();
+	shader->_MATRIX_P = *camera->GetProjectionMatrix();
+	shader->_MATRIX_VP = shader->_MATRIX_P.Multiply(shader->_MATRIX_V);
+	shader->_Object2World = transform;
+	shader->_World2Object = transform.Inverse();
+	shader->_MATRIX_MV = shader->_MATRIX_V.Multiply(transform);
+	shader->_MATRIX_MVP = shader->_MATRIX_VP.Multiply(transform);
 
 	u32 vertexCount = renderData.GetVertexCount();
-	renderData.InitVertexOutData();
+	varyingDataBuffer.InitVerticesVaryingData(vertexCount);
 	for (u32 i = 0; i < vertexCount; ++i)
 	{
-		_shader->vertexOut = &renderData.GetVertexOutData(i);
-		_shader->vsMain(renderData.GetVertexData(i));
+		shader->vertexOut = &varyingDataBuffer.GetVertexVaryingData(i);
+		void* vertexData = renderData.GetVertexData(i);
+		shader->vsMain(vertexData);
 	}
 
+	for (u32 i = 0; i < vertexCount; ++i)
+	{
+		auto data = varyingDataBuffer.GetVertexVaryingData(i);
+		if (data.clipCode != 0) continue;
+
+		Projection proj = Projection::CalculateViewProjection(data.position, width, height);
+		canvas->SetPixel(proj.x, proj.y, Color::red);
+	}
+}
+
+void Rasterizer::SetShader(ShaderBase* shader)
+{
+	assert(shader != nullptr);
+	Rasterizer::shader = shader;
+
+	varyingDataBuffer.SetVaryingDataDecl(shader->varyingDataDecl, shader->varyingDataSize);
 }
 
 }

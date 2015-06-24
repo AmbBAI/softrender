@@ -24,6 +24,7 @@ bool Buffer::Initialize(int blockSize, bool isDynamic/* = false*/)
 	assert(pageSize > 0);
 	if (blockSize <= 0 || blockSize > pageSize) return false;
 
+	this->blockSize = blockSize;
 	blockPrePage = pageSize / blockSize;
 	assert(blockPrePage * blockSize <= PAGE_SIZE_MAX);
 

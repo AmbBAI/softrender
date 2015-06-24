@@ -5,18 +5,25 @@
 #include "math/vector3.h"
 #include "math/vector4.h"
 #include "math/mathf.h"
-#include "shaderf.hpp"
 
 namespace rasterizer
 {
-namespace shader
+
+struct LightInput
 {
+	Color ambient;
+	Color diffuse;
+	Color specular;
+	float shininess;
+};
 
 struct ShaderBase
 {
 	RenderData* renderData;
 
-	std::vector<VaryingDataDecl::VaryingDeclData> varyingDecl;
+	std::vector<VaryingDataDecl::Layout> varyingDataDecl;
+	int varyingDataSize;
+
 	VertexOutData* vertexOut = nullptr;
 	PixelInData* pixelIn = nullptr;
 
@@ -39,7 +46,8 @@ struct Shader : ShaderBase
 	{
 		VSInputType* vertexInput = (VSInputType*)input;
 		*((VaryingDataType*)vertexOut->data) = vert(*vertexInput);
-		// TODO vertexOut->position =
+		auto decl = vertexOut->varyingDataBuffer->GetVaryingDataDecl();
+		vertexOut->position = *Buffer::Value<Vector4>(vertexOut->data, decl.positionOffset);
 		vertexOut->clipCode = Clipper::CalculateClipCode(vertexOut->position);
 	}
 
@@ -67,7 +75,7 @@ struct Shader : ShaderBase
 	}
 
 	typedef Color(*LightFunc)(const LightInput& input, const Vector3& normal, const Vector3& lightDir, const Color& lightColor, const Vector3& viewDir, float attenuation);
-	static Color CalcLight(const LightInput& input, const LightPtr& light, LightFunc lightFunc, const Vector3& position, const Vector3& normal)
+	Color CalcLight(const LightInput& input, const LightPtr& light, LightFunc lightFunc, const Vector3& position, const Vector3& normal)
 	{
 		if (light && lightFunc)
 		{
@@ -109,7 +117,6 @@ struct Shader : ShaderBase
 	}
 };
 
-} // namespace shader
 } // namespace rasterizer
 
 #endif //! _RASTERIZER_SHADER_H_
