@@ -71,8 +71,8 @@ void MainLoop()
 		material->diffuseTexture = Texture::LoadTexture("resources/teapot/default.png");
 		shader.mainTex = material->diffuseTexture;
 		shader.varyingDataDecl = {
-			{ 0, VaryingDataDecl::VaryingDataDeclUsage_POSITION, VaryingDataDecl::VaryingDataDeclFormat_Vector4 },
-			{ 16, VaryingDataDecl::VaryingDataDeclUsage_TEXCOORD, VaryingDataDecl::VaryingDataDeclFormat_Vector2 }
+			{ 0, VaryingDataDeclUsage_POSITION, VaryingDataDeclFormat_Vector4 },
+			{ 16, VaryingDataDeclUsage_TEXCOORD, VaryingDataDeclFormat_Vector2 }
 		};
 		shader.varyingDataSize = sizeof(VaryingData);
 

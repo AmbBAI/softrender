@@ -21,11 +21,11 @@ struct ShaderBase
 {
 	RenderData* renderData;
 
-	std::vector<VaryingDataDecl::Layout> varyingDataDecl;
+	std::vector<VaryingDataLayout> varyingDataDecl;
 	int varyingDataSize;
 
-	VertexOutData* vertexOut = nullptr;
-	PixelInData* pixelIn = nullptr;
+	VertexVaryingData* vertexVaryingData = nullptr;
+	PixelVaryingData* pixelVaryingData = nullptr;
 
 	Matrix4x4 _MATRIX_MVP;
 	Matrix4x4 _MATRIX_MV;
@@ -45,15 +45,15 @@ struct Shader : ShaderBase
 	void vsMain(const void* input) override
 	{
 		VSInputType* vertexInput = (VSInputType*)input;
-		*((VaryingDataType*)vertexOut->data) = vert(*vertexInput);
-		auto decl = vertexOut->varyingDataBuffer->GetVaryingDataDecl();
-		vertexOut->position = *Buffer::Value<Vector4>(vertexOut->data, decl.positionOffset);
-		vertexOut->clipCode = Clipper::CalculateClipCode(vertexOut->position);
+		*((VaryingDataType*)vertexVaryingData->data) = vert(*vertexInput);
+		auto decl = vertexVaryingData->varyingDataBuffer->GetVaryingDataDecl();
+		vertexVaryingData->position = *Buffer::Value<Vector4>(vertexVaryingData->data, decl.positionOffset);
+		vertexVaryingData->clipCode = Clipper::CalculateClipCode(vertexVaryingData->position);
 	}
 
 	Color psMain() override
 	{
-		return frag(*(VaryingDataType*)(pixelIn->data));
+		return frag(*(VaryingDataType*)(pixelVaryingData->data));
 	}
 
 	virtual VaryingDataType vert(const VSInputType& input)

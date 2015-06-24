@@ -174,10 +174,8 @@ struct Rasterizer
 	static void Submit();
 
 	static void DrawLine(int x0, int x1, int y0, int y1, const Color32& color);
-	static void DrawTriangle(Triangle<std::pair<Projection, VertexOutData> > triangle);
+	static void DrawTriangle(Triangle<std::pair<Projection, VertexVaryingData> > triangle);
 	static void DrawMesh(const Mesh& mesh, const Matrix4x4& transform);
-
-	static int Orient2D(int x0, int y0, int x1, int y1, int x2, int y2);
 
 	static void PrepareRender();
 	static void Render();

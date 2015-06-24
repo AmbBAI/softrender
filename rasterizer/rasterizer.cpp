@@ -7,7 +7,7 @@ Canvas* Rasterizer::canvas = nullptr;
 CameraPtr Rasterizer::camera = nullptr;
 LightPtr Rasterizer::light = nullptr;
 ShaderBase* Rasterizer::shader = nullptr;
-rasterizer::Matrix4x4 Rasterizer::transform;
+Matrix4x4 Rasterizer::transform;
 RenderState Rasterizer::renderState;
 RenderData Rasterizer::renderData;
 VaryingDataBuffer Rasterizer::varyingDataBuffer;
@@ -57,12 +57,12 @@ void Rasterizer::DrawLine(int x0, int x1, int y0, int y1, const Color32& color)
 	}
 }
 
-int Rasterizer::Orient2D(int x0, int y0, int x1, int y1, int x2, int y2)
+int Orient2D(int x0, int y0, int x1, int y1, int x2, int y2)
 {
 	return (x1 - x0) * (y2 - y1) - (y1 - y0) * (x2 - x1);
 }
 
-void Rasterizer::DrawTriangle(Triangle<std::pair<Projection, VertexOutData> > triangle)
+void Rasterizer::DrawTriangle(Triangle<std::pair<Projection, VertexVaryingData> > triangle)
 {
 	const Projection& p0 = triangle.v0.first;
 	const Projection& p1 = triangle.v1.first;
@@ -256,7 +256,7 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform)
 	varyingDataBuffer.InitVerticesVaryingData(vertexCount);
 	for (u32 i = 0; i < vertexCount; ++i)
 	{
-		shader->vertexOut = &varyingDataBuffer.GetVertexVaryingData(i);
+		shader->vertexVaryingData = &varyingDataBuffer.GetVertexVaryingData(i);
 		shader->vsMain(renderData.GetVertexData(i));
 	}
 
@@ -267,9 +267,9 @@ void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform)
 		int i1 = mesh.indices[i * 3 + 1];
 		int i2 = mesh.indices[i * 3 + 2];
 
-		VertexOutData& v0 = varyingDataBuffer.GetVertexVaryingData(i0);
-		VertexOutData& v1 = varyingDataBuffer.GetVertexVaryingData(i1);
-		VertexOutData& v2 = varyingDataBuffer.GetVertexVaryingData(i2);
+		VertexVaryingData& v0 = varyingDataBuffer.GetVertexVaryingData(i0);
+		VertexVaryingData& v1 = varyingDataBuffer.GetVertexVaryingData(i1);
+		VertexVaryingData& v2 = varyingDataBuffer.GetVertexVaryingData(i2);
 
 		if (isDrawTextured)
 		{
@@ -447,11 +447,48 @@ void Rasterizer::Submit()
 	varyingDataBuffer.InitVerticesVaryingData(vertexCount);
 	for (u32 i = 0; i < vertexCount; ++i)
 	{
-		shader->vertexOut = &varyingDataBuffer.GetVertexVaryingData(i);
+		shader->vertexVaryingData = &varyingDataBuffer.GetVertexVaryingData(i);
 		void* vertexData = renderData.GetVertexData(i);
 		shader->vsMain(vertexData);
 	}
 
+	varyingDataBuffer.InitDynamicVaryingData();
+	varyingDataBuffer.InitPixelVaryingData();
+
+	int primitiveCount = renderData.GetPrimitiveCount();
+	for (int i = 0; i < primitiveCount; ++i)
+	{
+		Triangle<u16> triangleIdx;
+		if (!renderData.GetTrianglePrimitive(i, triangleIdx))
+		{
+			assert(false);
+			continue;
+		}
+
+		auto v0 = varyingDataBuffer.GetVertexVaryingData(triangleIdx.v0);
+		auto v1 = varyingDataBuffer.GetVertexVaryingData(triangleIdx.v1);
+		auto v2 = varyingDataBuffer.GetVertexVaryingData(triangleIdx.v2);
+
+		varyingDataBuffer.ResetDynamicVaryingData();
+		//auto triangles = Clipper::ClipTriangle(v0, v1, v2);
+
+		std::vector<Line<VertexVaryingData> > lines;
+		auto l1 = Clipper::ClipLine(v0, v1);
+		lines.insert(lines.end(), l1.begin(), l1.end());
+		auto l2 = Clipper::ClipLine(v0, v2);
+		lines.insert(lines.end(), l2.begin(), l2.end());
+		auto l3 = Clipper::ClipLine(v1, v2);
+		lines.insert(lines.end(), l3.begin(), l3.end());
+
+		for (auto& line : lines)
+		{
+			Projection p0 = Projection::CalculateViewProjection(line.v0.position, width, height);
+			Projection p1 = Projection::CalculateViewProjection(line.v1.position, width, height);
+			DrawLine(p0.x, p1.x, p0.y, p1.y, Color::blue);
+		}
+	}
+
+	/* draw point
 	for (u32 i = 0; i < vertexCount; ++i)
 	{
 		auto data = varyingDataBuffer.GetVertexVaryingData(i);
@@ -460,6 +497,7 @@ void Rasterizer::Submit()
 		Projection proj = Projection::CalculateViewProjection(data.position, width, height);
 		canvas->SetPixel(proj.x, proj.y, Color::red);
 	}
+	*/
 }
 
 void Rasterizer::SetShader(ShaderBase* shader)

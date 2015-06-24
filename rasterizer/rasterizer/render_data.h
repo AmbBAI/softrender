@@ -16,7 +16,7 @@ namespace rasterizer
 
 class RenderData;
 class VaryingDataBuffer;
-struct VertexOutData
+struct VertexVaryingData
 {
 	VaryingDataBuffer* varyingDataBuffer = nullptr;
 
@@ -25,45 +25,45 @@ struct VertexOutData
 	Vector4 position;
 	u32 clipCode = 0x00;
 
-	VertexOutData() = default;
-	VertexOutData(VaryingDataBuffer* _varyingDataBuffer) : varyingDataBuffer(_varyingDataBuffer) {}
-	static VertexOutData LinearInterp(const VertexOutData& a, const VertexOutData& b, float t);
+	VertexVaryingData() = default;
+	VertexVaryingData(VaryingDataBuffer* _varyingDataBuffer) : varyingDataBuffer(_varyingDataBuffer) {}
+	static VertexVaryingData LinearInterp(const VertexVaryingData& a, const VertexVaryingData& b, float t);
 };
 
-struct PixelInData
+struct PixelVaryingData
 {
-	RenderData* renderData;
-	VaryingDataBuffer* varyingDataBuffer;
+	VaryingDataBuffer* varyingDataBuffer = nullptr;
 	void* data = nullptr;
 
-	static PixelInData TriangleInterp(VertexOutData& v0, VertexOutData& v1, VertexOutData& v2, float x, float y, float z);
+	static PixelVaryingData TriangleInterp(VertexVaryingData& v0, VertexVaryingData& v1, VertexVaryingData& v2, float x, float y, float z);
+};
+
+enum VaryingDeclUsage
+{
+	VaryingDataDeclUsage_POSITION,
+	VaryingDataDeclUsage_NORMAL,
+	VaryingDataDeclUsage_COLOR,
+	VaryingDataDeclUsage_TEXCOORD,
+};
+
+enum VaryingDeclFormat
+{
+	VaryingDataDeclFormat_Float,
+	VaryingDataDeclFormat_Vector2,
+	VaryingDataDeclFormat_Vector3,
+	VaryingDataDeclFormat_Vector4,
+};
+
+struct VaryingDataLayout
+{
+	int offset;
+	VaryingDeclUsage usage;
+	VaryingDeclFormat format;
 };
 
 struct VaryingDataDecl
 {
-	enum VaryingDeclUsage
-	{
-		VaryingDataDeclUsage_POSITION,
-		VaryingDataDeclUsage_NORMAL,
-		VaryingDataDeclUsage_COLOR,
-		VaryingDataDeclUsage_TEXCOORD,
-	};
-
-	enum VaryingDeclFormat
-	{
-		VaryingDataDeclFormat_Float,
-		VaryingDataDeclFormat_Vector2,
-		VaryingDataDeclFormat_Vector3,
-		VaryingDataDeclFormat_Vector4,
-	};
-
-	struct Layout
-	{
-		int offset;
-		VaryingDeclUsage usage;
-		VaryingDeclFormat format;
-	};
-	std::vector<Layout> layout;
+	std::vector<VaryingDataLayout> layout;
 	int size;
 	int positionOffset = -1;
 	int texCoordOffset = -1;
@@ -72,13 +72,13 @@ struct VaryingDataDecl
 	{
 		switch (format)
 		{
-		case rasterizer::VaryingDataDecl::VaryingDataDeclFormat_Float:
+		case VaryingDataDeclFormat_Float:
 			return 4;
-		case rasterizer::VaryingDataDecl::VaryingDataDeclFormat_Vector2:
+		case VaryingDataDeclFormat_Vector2:
 			return 8;
-		case rasterizer::VaryingDataDecl::VaryingDataDeclFormat_Vector3:
+		case VaryingDataDeclFormat_Vector3:
 			return 12;
-		case rasterizer::VaryingDataDecl::VaryingDataDeclFormat_Vector4:
+		case VaryingDataDeclFormat_Vector4:
 			return 16;
 		default:
 			return 0;
@@ -92,6 +92,15 @@ struct VaryingDataDecl
 class RenderData
 {
 public:
+	enum PrimitiveType
+	{
+		PrimitiveType_Point,
+		PrimitiveType_Line,
+		PrimitiveType_LineStrip,
+		PrimitiveType_Triangle,
+		PrimitiveType_TriangleStrip,
+	};
+
 	static const u32 VERTEX_MAX_COUNT;
 
 	template<typename VertexType>
@@ -106,45 +115,109 @@ public:
 		return true;
 	}
 
-	u32 GetVertexCount() { return vertexCount; }
+	int GetVertexCount()
+	{
+		return vertexCount;
+	}
 
-	bool AssignIndexBuffer(const std::vector<u16>& indices)
+	template<typename VertexType = void>
+	VertexType* GetVertexData(int index)
+	{
+		return (VertexType*)vertexBuffer[index];
+	}
+
+	bool AssignIndexBuffer(const std::vector<u16>& indices, PrimitiveType type = PrimitiveType_Triangle)
 	{
 		int count = (int)indices.size();
 		indexBuffer.Assign(indices);
 		indexCount = count;
+		primitiveType = type;
 		return true;
 	}
-	u32 GetIndicesCount() { return indexCount; }
 
-	void* GetVertexData(u32 index){ return vertexBuffer[index]; }
+	int GetIndicesCount()
+	{
+		return indexCount;
+	}
+
+	int GetPrimitiveCount()
+	{
+		/* TODO
+		switch (primitiveType)
+		{
+		case PrimitiveType_Point:
+			break;
+		case PrimitiveType_Line:
+			break;
+		case PrimitiveType_LineStrip:
+			break;
+		case PrimitiveType_Triangle:
+			break;
+		case PrimitiveType_TriangleStrip:
+			break;
+		}
+		*/
+
+		return indexCount / 3;
+	}
+
+	// TODO GetPointPrimitive(int id, u16& point);
+	// TODO GetLinePrimitive(int id, Line<u16>& line);
+
+	bool GetTrianglePrimitive(int id, Triangle<u16>& triangle)
+	{
+		switch (primitiveType)
+		{
+		case PrimitiveType_Triangle:
+		{
+		   int offset = id * 3;
+		   if (offset + 3 > indexCount) return false;
+		   auto itor = indexBuffer.itor;
+		   itor.Seek(offset);
+		   triangle.v0 = *(u16*)itor.Get();
+		   triangle.v1 = *(u16*)itor.Next();
+		   triangle.v2 = *(u16*)itor.Next();
+		   return true;
+		}
+		case PrimitiveType_TriangleStrip:
+			// TODO
+			return true;
+		}
+		return false;
+	}
 
 private:
+	PrimitiveType primitiveType = PrimitiveType_Triangle;
+
 	Buffer vertexBuffer;
-	u32 vertexCount = 0;
-	u32 vertexSize = 0;
+	int vertexCount = 0;
+	int vertexSize = 0;
 
 	Buffer indexBuffer;
-	u32 indexCount = 0;
+	int indexCount = 0;
 };
 
 class VaryingDataBuffer
 {
 public:
 	void InitVerticesVaryingData(int vertexCount);
-	VertexOutData& GetVertexVaryingData(int index);
+	VertexVaryingData& GetVertexVaryingData(int index);
 	void InitDynamicVaryingData();
 	void* CreateDynamicVaryingData();
-	//VertexOutData* GetDyamicVaryingData(int index);
+	void ResetDynamicVaryingData();
+	void InitPixelVaryingData();
+	void* CreatePixelVaryingData();
+	void ResetPixelVaryingData();
 
-	bool SetVaryingDataDecl(std::vector<VaryingDataDecl::Layout> layout, int size);
+	bool SetVaryingDataDecl(std::vector<VaryingDataLayout> layout, int size);
 	const VaryingDataDecl& GetVaryingDataDecl() { return varyingDataDecl; }
 
 private:
 	VaryingDataDecl varyingDataDecl;
-	std::vector<VertexOutData> vertexOutData;
+	std::vector<VertexVaryingData> vertexVaryingData;
 	Buffer vertexVaryingDataBuffer;
-	std::vector<PixelInData> pixelVaryingData;
+	Buffer dynamicVaryingDataBuffer;
+	std::vector<PixelVaryingData> pixelVaryingData;
 	Buffer pixelVaryingDataBuffer;
 };
 

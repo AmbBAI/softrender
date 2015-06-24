@@ -9,32 +9,57 @@ void VaryingDataBuffer::InitVerticesVaryingData(int vertexCount)
 	vertexVaryingDataBuffer.Initialize(size, false);
 	vertexVaryingDataBuffer.Alloc(vertexCount);
 
-	vertexOutData.assign(vertexCount, VertexOutData(this));
+	vertexVaryingData.assign(vertexCount, VertexVaryingData(this));
 	for (int i = 0; i < vertexCount; ++i)
 	{
-		vertexOutData[i].data = vertexVaryingDataBuffer[i];
+		vertexVaryingData[i].data = vertexVaryingDataBuffer[i];
 	}
 }
 
-VertexOutData& VaryingDataBuffer::GetVertexVaryingData(int index)
+VertexVaryingData& VaryingDataBuffer::GetVertexVaryingData(int index)
 {
-	return vertexOutData[index];
+	return vertexVaryingData[index];
 }
 
 void VaryingDataBuffer::InitDynamicVaryingData()
 {
 	int size = varyingDataDecl.size;
-	pixelVaryingDataBuffer.Initialize(size, true);
+	dynamicVaryingDataBuffer.Initialize(size, true);
+	dynamicVaryingDataBuffer.Alloc(1);
 }
 
 void* VaryingDataBuffer::CreateDynamicVaryingData()
+{
+	auto val = dynamicVaryingDataBuffer.itor.Get();
+	dynamicVaryingDataBuffer.itor.Next();
+	return val;
+}
+
+void VaryingDataBuffer::ResetDynamicVaryingData()
+{
+	dynamicVaryingDataBuffer.itor.Seek(0);
+}
+
+void VaryingDataBuffer::InitPixelVaryingData()
+{
+	int size = varyingDataDecl.size;
+	pixelVaryingDataBuffer.Initialize(size, true);
+	pixelVaryingDataBuffer.Alloc(1);
+}
+
+void* VaryingDataBuffer::CreatePixelVaryingData()
 {
 	auto val = pixelVaryingDataBuffer.itor.Get();
 	pixelVaryingDataBuffer.itor.Next();
 	return val;
 }
 
-bool VaryingDataBuffer::SetVaryingDataDecl(std::vector<VaryingDataDecl::Layout> layout, int size)
+void VaryingDataBuffer::ResetPixelVaryingData()
+{
+	pixelVaryingDataBuffer.itor.Seek(0);
+}
+
+bool VaryingDataBuffer::SetVaryingDataDecl(std::vector<VaryingDataLayout> layout, int size)
 {
 	varyingDataDecl.layout = layout;
 	varyingDataDecl.size = size;
@@ -47,8 +72,8 @@ bool VaryingDataBuffer::SetVaryingDataDecl(std::vector<VaryingDataDecl::Layout> 
 			return false;
 		}
 
-		if (l.usage == VaryingDataDecl::VaryingDataDeclUsage_POSITION
-			&& l.format == VaryingDataDecl::VaryingDataDeclFormat_Vector4)
+		if (l.usage == VaryingDataDeclUsage_POSITION
+			&& l.format == VaryingDataDeclFormat_Vector4)
 		{
 			varyingDataDecl.positionOffset = l.offset;
 		}
@@ -57,14 +82,14 @@ bool VaryingDataBuffer::SetVaryingDataDecl(std::vector<VaryingDataDecl::Layout> 
 	return true;
 }
 
-VertexOutData VertexOutData::LinearInterp(const VertexOutData& a, const VertexOutData& b, float t)
+VertexVaryingData VertexVaryingData::LinearInterp(const VertexVaryingData& a, const VertexVaryingData& b, float t)
 {
 	assert(a.varyingDataBuffer != nullptr);
 	assert(a.varyingDataBuffer == b.varyingDataBuffer);
 
 	auto varyingDataBuffer = a.varyingDataBuffer;
 
-	VertexOutData output(varyingDataBuffer);
+	VertexVaryingData output(varyingDataBuffer);
 	auto decl = varyingDataBuffer->GetVaryingDataDecl();
 	output.data = varyingDataBuffer->CreateDynamicVaryingData();
 	decl.LinearInterp(output.data, a.data, b.data, t);
@@ -73,15 +98,15 @@ VertexOutData VertexOutData::LinearInterp(const VertexOutData& a, const VertexOu
 	return output;
 }
 
-PixelInData PixelInData::TriangleInterp(VertexOutData& v0, VertexOutData& v1, VertexOutData& v2, float x, float y, float z)
+PixelVaryingData PixelVaryingData::TriangleInterp(VertexVaryingData& v0, VertexVaryingData& v1, VertexVaryingData& v2, float x, float y, float z)
 {
 	assert(v0.varyingDataBuffer != nullptr);
 	assert(v0.varyingDataBuffer == v1.varyingDataBuffer && v0.varyingDataBuffer == v2.varyingDataBuffer);
 
 	auto varyingDataBuffer = v0.varyingDataBuffer;
-	PixelInData output;
+	PixelVaryingData output;
 	auto varyingDecl = varyingDataBuffer->GetVaryingDataDecl();
-	output.data = varyingDataBuffer->CreateDynamicVaryingData();
+	output.data = varyingDataBuffer->CreatePixelVaryingData();
 	varyingDecl.TriangleInterp(output.data, v0.data, v1.data, v2.data, x, y, z);
 	// TODO
 	return output;

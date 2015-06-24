@@ -31,25 +31,27 @@ struct Projection
 	}
 };
 
-template <typename VertexType>
+template <typename Type>
 struct Line
 {
-	VertexType v0;
-	VertexType v1;
+	Type v0;
+	Type v1;
 
 	Line() = default;
-	Line(const VertexType& _v0, const VertexType& _v1) : v0(_v0), v1(_v1) {}
+	Line(const Type& _v0, const Type& _v1)
+		: v0(_v0), v1(_v1) {}
 };
 
-template <typename VertexType>
+template <typename Type>
 struct Triangle
 {
-	VertexType v0;
-	VertexType v1;
-	VertexType v2;
+	Type v0;
+	Type v1;
+	Type v2;
 
 	Triangle() = default;
-	Triangle(const VertexType& _v0, const VertexType& _v1, const VertexType& _v2) : v0(_v0), v1(_v1), v2(_v2) {}
+	Triangle(const Type& _v0, const Type& _v1, const Type& _v2)
+		: v0(_v0), v1(_v1), v2(_v2) {}
 };
 
 }

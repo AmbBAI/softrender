@@ -2,7 +2,7 @@
 using namespace rasterizer;
 
 CameraPtr CameraController::camera = nullptr;
-Vector3 CameraController::position = Vector3(0.f, 0.f, 0.f);
+Vector3 CameraController::position = Vector3(0.f, 0.f, 5.f);
 Quaternion CameraController::rotation = Quaternion(0.f, 0.f, 0.f, 1.f);
 Vector3 CameraController::x = Vector3(1.f, 0.f, 0.f);
 Vector3 CameraController::y = Vector3(0.f, 1.f, 0.f);

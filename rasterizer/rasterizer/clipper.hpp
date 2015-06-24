@@ -10,8 +10,8 @@
 namespace rasterizer
 {
 
-template <typename VertexType> struct Line;
-template <typename VertexType> struct Triangle;
+template <typename Type> struct Line;
+template <typename Type> struct Triangle;
 struct Clipper
 {
 	struct Plane
@@ -42,16 +42,16 @@ struct Clipper
 		return clipCode;
 	}
 
-	template<typename VertexType>
-	static std::vector<Line<VertexType> > ClipLine(const VertexType& v0, const VertexType& v1)
+	template<typename Type>
+	static std::vector<Line<Type> > ClipLine(const Type& v0, const Type& v1)
 	{
-		std::vector<Line<VertexType> > lines;
+		std::vector<Line<Type> > lines;
 		if (0 != (v0.clipCode & v1.clipCode)) return lines;
 
-		lines.push_back(Line<VertexType>(v0, v1));
+		lines.emplace_back(v0, v1);
 		if (0 == (v0.clipCode | v1.clipCode)) return lines;
 
-		std::vector<Line<VertexType> > clippedLines;
+		std::vector<Line<Type> > clippedLines;
 		for (auto& p : viewFrustumPlanes)
 		{
 			clippedLines.clear();
@@ -64,16 +64,16 @@ struct Clipper
 		return lines;
 	}
 
-	template<typename VertexType>
-	static std::vector<Triangle<VertexType> > ClipTriangle(const VertexType& v0, const VertexType& v1, const VertexType& v2)
+	template<typename Type>
+	static std::vector<Triangle<Type> > ClipTriangle(const Type& v0, const Type& v1, const Type& v2)
 	{
-		std::vector<Triangle<VertexType> > triangles;
+		std::vector<Triangle<Type> > triangles;
 		if (0 != (v0.clipCode & v1.clipCode & v2.clipCode)) return triangles;
 
-		triangles.push_back(Triangle<VertexType>(v0, v1, v2));
+		triangles.emplace_back(v0, v1, v2);
 		if (0 == (v0.clipCode | v1.clipCode | v2.clipCode)) return triangles;
 
-		std::vector<Triangle<VertexType> > clippedTriangles;
+		std::vector<Triangle<Type> > clippedTriangles;
 		for (auto& p : viewFrustumPlanes)
 		//for (int i = 0; i < 2; ++i)
 		{
@@ -88,37 +88,37 @@ struct Clipper
 		return triangles;
 	}
 
-	template<typename VertexType>
-	static void ClipLineFromPlane(std::vector<Line<VertexType> >& clippedLines,
-		const VertexType& v0, const VertexType& v1, const Plane& plane)
+	template<typename Type>
+	static void ClipLineFromPlane(std::vector<Line<Type> >& clippedLines,
+		const Type& v0, const Type& v1, const Plane& plane)
 	{
 		if (v0.clipCode & v1.clipCode & plane.cullMask) return;
 		else if (0 == ((v0.clipCode | v1.clipCode) & plane.cullMask))
 		{
-			clippedLines.push_back(Line<VertexType>(v0, v1));
+			clippedLines.emplace_back(v0, v1);
 		}
 		else if ((~v0.clipCode) & v1.clipCode & plane.cullMask)
 		{
-			float t = plane.clippingFunc(v1.hc, v0.hc);
+			float t = plane.clippingFunc(v1.position, v0.position);
 			assert(0.f <= t && t <= 1.f);
-			clippedLines.push_back(Line<VertexType>(v0, VertexType::Lerp(v1, v0, t)));
+			clippedLines.emplace_back(v0, Type::LinearInterp(v1, v0, t));
 		}
 		else if (v0.clipCode & (~v1.clipCode) & plane.cullMask)
 		{
-			float t = plane.clippingFunc(v0.hc, v1.hc);
+			float t = plane.clippingFunc(v0.position, v1.position);
 			assert(0.f <= t && t <= 1.f);
-			clippedLines.push_back(Line<VertexType>(VertexType::Lerp(v0, v1, t), v1));
+			clippedLines.emplace_back(Type::LinearInterp(v0, v1, t), v1);
 		}
 	}
 
-	template<typename VertexType>
-	static void ClipTriangleFromPlane(std::vector<Triangle<VertexType> >& clippedTriangles,
-		const VertexType& v0, const VertexType& v1, const VertexType& v2, const Plane& plane)
+	template<typename Type>
+	static void ClipTriangleFromPlane(std::vector<Triangle<Type> >& clippedTriangles,
+		const Type& v0, const Type& v1, const Type& v2, const Plane& plane)
 	{
 		if (v0.clipCode & v1.clipCode & v2.clipCode & plane.cullMask) return;
 		else if (0 == ((v0.clipCode | v1.clipCode | v2.clipCode) & plane.cullMask))
 		{
-			clippedTriangles.push_back(Triangle<VertexType>(v0, v1, v2));
+			clippedTriangles.emplace_back(v0, v1, v2);
 		}
 		else if ((~v0.clipCode) & v1.clipCode & v2.clipCode & plane.cullMask)
 		{
@@ -146,33 +146,33 @@ struct Clipper
 		}
 	}
 
-	template<typename VertexType>
-	static void ClipTriangleWithOneVertexOut(std::vector<Triangle<VertexType> >& clippedTriangles,
-		const VertexType& v0, const VertexType& v1, const VertexType& v2, const Plane& plane)
+	template<typename Type>
+	static void ClipTriangleWithOneVertexOut(std::vector<Triangle<Type> >& clippedTriangles,
+		const Type& v0, const Type& v1, const Type& v2, const Plane& plane)
 	{
 		// v0 & v1 in, v2 out
 		float t1 = plane.clippingFunc(v2.position, v1.position);
 		float t0 = plane.clippingFunc(v2.position, v0.position);
 		assert(0.f <= t1 && t1 <= 1.f);
 		assert(0.f <= t0 && t0 <= 1.f);
-		VertexType tv0 = VertexType::LinearInterp(v2, v1, t1);
-		VertexType tv1 = VertexType::LinearInterp(v2, v0, t0);
-		clippedTriangles.push_back(Triangle<VertexType>(v0, v1, tv0));
-		clippedTriangles.push_back(Triangle<VertexType>(v0, tv0, tv1));
+		Type tv0 = Type::LinearInterp(v2, v1, t1);
+		Type tv1 = Type::LinearInterp(v2, v0, t0);
+		clippedTriangles.emplace_back(v0, v1, tv0);
+		clippedTriangles.emplace_back(v0, tv0, tv1);
 	}
 
-	template<typename VertexType>
-	static void ClipTriangleWithTwoVertexOut(std::vector<Triangle<VertexType> >& clippedTriangles,
-		const VertexType& v0, const VertexType& v1, const VertexType& v2, const Plane& plane)
+	template<typename Type>
+	static void ClipTriangleWithTwoVertexOut(std::vector<Triangle<Type> >& clippedTriangles,
+		const Type& v0, const Type& v1, const Type& v2, const Plane& plane)
 	{
 		// v0 in, v1, v2 out
 		float t1 = plane.clippingFunc(v1.position, v0.position);
 		float t2 = plane.clippingFunc(v2.position, v0.position);
 		assert(0.f <= t1 && t1 <= 1.f);
 		assert(0.f <= t2 && t2 <= 1.f);
-		VertexType tv0 = VertexType::LinearInterp(v1, v0, t1);
-		VertexType tv1 = VertexType::LinearInterp(v2, v0, t2);
-		clippedTriangles.push_back(Triangle<VertexType>(v0, tv0, tv1));
+		Type tv0 = Type::LinearInterp(v1, v0, t1);
+		Type tv1 = Type::LinearInterp(v2, v0, t2);
+		clippedTriangles.emplace_back(v0, tv0, tv1);
 	}
 
 	static float Clip(float f0, float w0, float f1, float w1)
