@@ -90,7 +90,7 @@ VertexVaryingData VertexVaryingData::LinearInterp(const VertexVaryingData& a, co
 	auto varyingDataBuffer = a.varyingDataBuffer;
 
 	VertexVaryingData output(varyingDataBuffer);
-	auto decl = varyingDataBuffer->GetVaryingDataDecl();
+	const VaryingDataDecl& decl = varyingDataBuffer->GetVaryingDataDecl();
 	output.data = varyingDataBuffer->CreateDynamicVaryingData();
 	decl.LinearInterp(output.data, a.data, b.data, t);
 	output.position = *Buffer::Value<Vector4>(output.data, decl.positionOffset);
@@ -104,8 +104,8 @@ PixelVaryingData PixelVaryingData::TriangleInterp(const VertexVaryingData& v0, c
 	assert(v0.varyingDataBuffer == v1.varyingDataBuffer && v0.varyingDataBuffer == v2.varyingDataBuffer);
 
 	auto varyingDataBuffer = v0.varyingDataBuffer;
-	PixelVaryingData output;
-	auto varyingDecl = varyingDataBuffer->GetVaryingDataDecl();
+	PixelVaryingData output(varyingDataBuffer);
+	const VaryingDataDecl& varyingDecl = varyingDataBuffer->GetVaryingDataDecl();
 	output.data = varyingDataBuffer->CreatePixelVaryingData();
 	varyingDecl.TriangleInterp(output.data, v0.data, v1.data, v2.data, x, y, z);
 	// TODO

@@ -64,7 +64,7 @@ int Orient2D(int x0, int y0, int x1, int y1, int x2, int y2)
 
 template<typename DrawDataType>
 void Rasterizer::RasterizerTriangle(
-	Triangle<Projection> projection, QuadRenderFunc<DrawDataType> renderFunc, const DrawDataType& renderData)
+	Triangle<Projection> projection, Render2x2Func<DrawDataType> renderFunc, const DrawDataType& renderData)
 {
 	const Projection& p0 = projection.v0;
 	const Projection& p1 = projection.v1;

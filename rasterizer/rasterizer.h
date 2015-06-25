@@ -184,7 +184,7 @@ struct Rasterizer
 	static int triangleDrawCount;
 
 	template<typename Type>
-	using QuadRenderFunc = std::function<void(const Type&, const Rasterizer2x2Info&)>;
+	using Render2x2Func = std::function<void(const Type&, const Rasterizer2x2Info&)>;
 
     static void Initialize();
     
@@ -196,9 +196,9 @@ struct Rasterizer
 
 	static void DrawLine(int x0, int x1, int y0, int y1, const Color32& color);
 	template<typename DrawDataType>
-	static void RasterizerTriangle(Triangle<Projection> projection, QuadRenderFunc<DrawDataType> renderFunc, const DrawDataType& drawParam);
+	static void RasterizerTriangle(Triangle<Projection> projection, Render2x2Func<DrawDataType> renderFunc, const DrawDataType& renderData);
 
-	static void Rasterizer2x2RenderFunc(const Triangle<VertexVaryingData>& data,  const Rasterizer2x2Info& quad);
+	static void Rasterizer2x2RenderFunc(const Triangle<VertexVaryingData>& data,  const Rasterizer2x2Info& info);
 
 	static void PrepareRender();
 	static void Render();

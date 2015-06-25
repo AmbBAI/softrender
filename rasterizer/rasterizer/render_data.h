@@ -35,6 +35,8 @@ struct PixelVaryingData
 	VaryingDataBuffer* varyingDataBuffer = nullptr;
 	void* data = nullptr;
 
+	PixelVaryingData() = default;
+	PixelVaryingData(VaryingDataBuffer* _varyingDataBuffer) : varyingDataBuffer(_varyingDataBuffer) {}
 	static PixelVaryingData TriangleInterp(const VertexVaryingData& v0, const VertexVaryingData& v1, const VertexVaryingData& v2, float x, float y, float z);
 };
 
