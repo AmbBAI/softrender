@@ -35,7 +35,7 @@ struct PixelVaryingData
 	VaryingDataBuffer* varyingDataBuffer = nullptr;
 	void* data = nullptr;
 
-	static PixelVaryingData TriangleInterp(VertexVaryingData& v0, VertexVaryingData& v1, VertexVaryingData& v2, float x, float y, float z);
+	static PixelVaryingData TriangleInterp(const VertexVaryingData& v0, const VertexVaryingData& v1, const VertexVaryingData& v2, float x, float y, float z);
 };
 
 enum VaryingDeclUsage

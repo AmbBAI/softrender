@@ -16,6 +16,7 @@
 #include <vector>
 #include <map>
 #include <tuple>
+#include <functional>
 #include <algorithm>
 
 #if _USE_OPENMP_

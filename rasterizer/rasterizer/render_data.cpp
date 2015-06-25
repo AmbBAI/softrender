@@ -98,7 +98,7 @@ VertexVaryingData VertexVaryingData::LinearInterp(const VertexVaryingData& a, co
 	return output;
 }
 
-PixelVaryingData PixelVaryingData::TriangleInterp(VertexVaryingData& v0, VertexVaryingData& v1, VertexVaryingData& v2, float x, float y, float z)
+PixelVaryingData PixelVaryingData::TriangleInterp(const VertexVaryingData& v0, const VertexVaryingData& v1, const VertexVaryingData& v2, float x, float y, float z)
 {
 	assert(v0.varyingDataBuffer != nullptr);
 	assert(v0.varyingDataBuffer == v1.varyingDataBuffer && v0.varyingDataBuffer == v2.varyingDataBuffer);

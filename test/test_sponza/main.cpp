@@ -32,6 +32,7 @@ void LoadSponzaMesh(std::vector<MeshPtr>& mesh, Transform& trans)
 
 void MainLoop()
 {
+	/*
 	static bool isInitilized = false;
 	static std::vector<MeshPtr> mesh;
 	static Transform trans;
@@ -77,4 +78,5 @@ void MainLoop()
 	Rasterizer::Render();
 
     canvas->Present();
+	*/
 }
