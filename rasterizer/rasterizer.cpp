@@ -62,11 +62,13 @@ int Orient2D(int x0, int y0, int x1, int y1, int x2, int y2)
 	return (x1 - x0) * (y2 - y1) - (y1 - y0) * (x2 - x1);
 }
 
-void Rasterizer::DrawTriangle(Triangle<std::pair<Projection, VertexVaryingData> > triangle)
+template<typename DrawDataType>
+void Rasterizer::RasterizerTriangle(
+	Triangle<Projection> projection, QuadRenderFunc<DrawDataType> renderFunc, const DrawDataType& renderData)
 {
-	const Projection& p0 = triangle.v0.first;
-	const Projection& p1 = triangle.v1.first;
-	const Projection& p2 = triangle.v2.first;
+	const Projection& p0 = projection.v0;
+	const Projection& p1 = projection.v1;
+	const Projection& p2 = projection.v2;
 
 	int minX = Mathf::Min(p0.x, p1.x, p2.x);
 	int minY = Mathf::Min(p0.y, p1.y, p2.y);
@@ -99,9 +101,7 @@ void Rasterizer::DrawTriangle(Triangle<std::pair<Projection, VertexVaryingData> 
 	if (dy12 < 0 || (dy12 == 0 && dx12 < 0)) startW1 += 1;
 	if (dy20 < 0 || (dy20 == 0 && dx20 < 0)) startW2 += 1;
 
-    static int quadX[4] = {0, 1, 0, 1};
-    static int quadY[4] = {0, 0, 1, 1};
-
+	Rasterizer2x2Info info;
 #if _MATH_SIMD_INTRINSIC_
 	static __m128 _mf_one = _mm_set1_ps(1.f);
 
@@ -112,16 +112,10 @@ void Rasterizer::DrawTriangle(Triangle<std::pair<Projection, VertexVaryingData> 
 	__m128 mf_p0_invW = _mm_load1_ps(&(p0.invW));
 	__m128 mf_p1_invW = _mm_load1_ps(&(p1.invW));
 	__m128 mf_p2_invW = _mm_load1_ps(&(p2.invW));
-
-	SIMD_ALIGN float f_x[4], f_y[4], f_z[4];
-	SIMD_ALIGN float f_depth[4];
 #else
     int i_w0_delta[4] = {0, dy01, -dx01, dy01 - dx01};
     int i_w1_delta[4] = {0, dy12, -dx12, dy12 - dx12};
     int i_w2_delta[4] = {0, dy20, -dx20, dy20 - dx20};
-    
-	float f_x[4], f_y[4], f_z[4];
-	float f_depth[4];
 #endif
 
 	for (int y = minY; y <= maxY; y+=2)
@@ -132,18 +126,18 @@ void Rasterizer::DrawTriangle(Triangle<std::pair<Projection, VertexVaryingData> 
 
 		for (int x = minX; x <= maxX; x+=2)
 		{
-            u8 maskCode = 0x00;
+            info.maskCode = 0x00;
 #if _MATH_SIMD_INTRINSIC_
 			__m128i mi_w0 = _mm_add_epi32(_mm_set1_epi32(w0), mi_w0_delta);
 			__m128i mi_w1 = _mm_add_epi32(_mm_set1_epi32(w1), mi_w1_delta);
 			__m128i mi_w2 = _mm_add_epi32(_mm_set1_epi32(w2), mi_w2_delta);
             
             __m128i mi_or_w = _mm_or_si128(_mm_or_si128(mi_w0, mi_w1), mi_w2);
-            if (_mm_extract_epi32(mi_or_w, 0) > 0) maskCode |= 0x1;
-            if (_mm_extract_epi32(mi_or_w, 1) > 0) maskCode |= 0x2;
-            if (_mm_extract_epi32(mi_or_w, 2) > 0) maskCode |= 0x4;
-            if (_mm_extract_epi32(mi_or_w, 3) > 0) maskCode |= 0x8;
-			if (maskCode != 0)
+			if (_mm_extract_epi32(mi_or_w, 0) > 0) info.maskCode |= 0x1;
+			if (_mm_extract_epi32(mi_or_w, 1) > 0) info.maskCode |= 0x2;
+			if (_mm_extract_epi32(mi_or_w, 2) > 0) info.maskCode |= 0x4;
+			if (_mm_extract_epi32(mi_or_w, 3) > 0) info.maskCode |= 0x8;
+			if (info.maskCode != 0)
 			{
 				__m128 mf_w0 = _mm_cvtepi32_ps(mi_w0);
 				__m128 mf_w1 = _mm_cvtepi32_ps(mi_w1);
@@ -154,12 +148,12 @@ void Rasterizer::DrawTriangle(Triangle<std::pair<Projection, VertexVaryingData> 
 				__m128 mf_tmp2 = _mm_mul_ps(mf_w0, mf_p2_invW);
 				//__m128 mf_invw = _mm_rcp_ps(_mm_add_ps(_mm_add_ps(mf_x, mf_y), mf_z));
 				__m128 mf_invSum = _mm_div_ps(_mf_one, _mm_add_ps(_mm_add_ps(mf_tmp0, mf_tmp1), mf_tmp2));
-				_mm_store_ps(f_x, _mm_mul_ps(mf_tmp0, mf_invSum));
-				_mm_store_ps(f_y, _mm_mul_ps(mf_tmp1, mf_invSum));
-				_mm_store_ps(f_z, _mm_mul_ps(mf_tmp2, mf_invSum));
+				_mm_store_ps(info.wx, _mm_mul_ps(mf_tmp0, mf_invSum));
+				_mm_store_ps(info.wy, _mm_mul_ps(mf_tmp1, mf_invSum));
+				_mm_store_ps(info.wz, _mm_mul_ps(mf_tmp2, mf_invSum));
 
 				__m128 mf_depth = _mm_mul_ps(_mm_add_ps(mf_w0, _mm_add_ps(mf_w1, mf_w2)), mf_invSum);
-				_mm_store_ps(f_depth, mf_depth);
+				_mm_store_ps(info.depth, mf_depth);
                 
                 for (int i = 0; i < 4; ++i)
                 {
@@ -170,10 +164,10 @@ void Rasterizer::DrawTriangle(Triangle<std::pair<Projection, VertexVaryingData> 
                 i_w0[i] = w0 + i_w0_delta[i];
                 i_w1[i] = w1 + i_w1_delta[i];
                 i_w2[i] = w2 + i_w2_delta[i];
-                if ((i_w0[i] | i_w1[i] | i_w2[i]) > 0) maskCode |= (1<<i);
+                if ((i_w0[i] | i_w1[i] | i_w2[i]) > 0) info.maskCode |= (1<<i);
             }
                 
-            if (maskCode != 0)
+			if (info.maskCode != 0)
             {
                 for (int i=0; i<4; ++i)
                 {
@@ -181,47 +175,22 @@ void Rasterizer::DrawTriangle(Triangle<std::pair<Projection, VertexVaryingData> 
 					float f_w1 = (float)i_w1[i];
 					float f_w2 = (float)i_w2[i];
 
-					f_x[i] = f_w1 * p0.invW;
-					f_y[i] = f_w2 * p1.invW;
-					f_z[i] = f_w0 * p2.invW;
-					float f_invSum = 1.f / (f_x[i] + f_y[i] + f_z[i]);
-					f_x[i] *= f_invSum;
-					f_y[i] *= f_invSum;
-					f_z[i] *= f_invSum;
+					info.wx[i] = f_w1 * p0.invW;
+					info.wy[i] = f_w2 * p1.invW;
+					info.wz[i] = f_w0 * p2.invW;
+					float f_invSum = 1.f / (info.wx[i] + info.wy[i] + info.wz[i]);
+					info.wx[i] *= f_invSum;
+					info.wy[i] *= f_invSum;
+					info.wz[i] *= f_invSum;
 
-					f_depth[i] = (f_w0 + f_w1 + f_w2) * f_invSum;
+					info.depth[i] = (f_w0 + f_w1 + f_w2) * f_invSum;
 #endif
-					f_depth[i] = camera->GetLinearDepth(f_depth[i]);
+					info.depth[i] = camera->GetLinearDepth(info.depth[i]);
 				}
 
-				//Vector2 ddx = TriInterp(v0.texcoord, v1.texcoord, v2.texcoord, f_x[1] - f_x[0], f_y[1] - f_y[0], f_z[1] - f_z[0]);
-				//Vector2 ddy = TriInterp(v0.texcoord, v1.texcoord, v2.texcoord, f_x[2] - f_x[0], f_y[2] - f_y[0], f_z[2] - f_z[0]);
-
-				for (int i = 0; i < 4; ++i)
-				{
-					if (maskCode & (1 << i))
-					{
-                        int cx = x + quadX[i];
-                        int cy = y + quadY[i];
-                        
-                        if (f_depth[i] > canvas->GetDepth(cx, cy)) continue;
-						if (renderState.zWrite) canvas->SetDepth(cx, cy, f_depth[i]);
-                        
-						//canvas->SetPixel(cx, cy, Color(f_depth[i], f_depth[i], f_depth[i], f_depth[i]));
-						
-						/*
-						pixelData.x = cx;
-						pixelData.y = cy;
-						pixelData.depth = f_depth[i];
-						pixelData.ddx = ddx;
-						pixelData.ddy = ddy;
-						pixelData.pixel = Pixel(v0, v1, v2, f_x[i], f_y[i], f_z[i]);
-
-						if (isTransparent) renderData.renderList[1].push_back(pixelData);
-						else renderData.renderList[0].push_back(pixelData);
-						*/
-					}
-				}
+				info.x = x;
+				info.y = y;
+				renderFunc(renderData, info);
 			}
 
 
@@ -234,125 +203,6 @@ void Rasterizer::DrawTriangle(Triangle<std::pair<Projection, VertexVaryingData> 
 		startW1 -= dx12 * 2;
 		startW2 -= dx20 * 2;
 	}
-}
-
-void Rasterizer::DrawMesh(const Mesh& mesh, const Matrix4x4& transform)
-{
-	assert(canvas != nullptr);
-	assert(camera != nullptr);
-
-	u32 width = canvas->GetWidth();
-	u32 height = canvas->GetHeight();
-
-	shader->_MATRIX_V = *camera->GetViewMatrix();
-	shader->_MATRIX_P = *camera->GetProjectionMatrix();
-	shader->_MATRIX_VP = shader->_MATRIX_P.Multiply(shader->_MATRIX_V);
-	shader->_Object2World = transform;
-	shader->_World2Object = transform.Inverse();
-	shader->_MATRIX_MV = shader->_MATRIX_V.Multiply(transform);
-	shader->_MATRIX_MVP = shader->_MATRIX_VP.Multiply(transform);
-
-	u32 vertexCount = renderData.GetVertexCount();
-	varyingDataBuffer.InitVerticesVaryingData(vertexCount);
-	for (u32 i = 0; i < vertexCount; ++i)
-	{
-		shader->vertexVaryingData = &varyingDataBuffer.GetVertexVaryingData(i);
-		shader->vsMain(renderData.GetVertexData(i));
-	}
-
-	int faceN = (int)mesh.indices.size() / 3;
-	for (int i = 0; i < faceN; ++i)
-	{
-		int i0 = mesh.indices[i * 3];
-		int i1 = mesh.indices[i * 3 + 1];
-		int i2 = mesh.indices[i * 3 + 2];
-
-		VertexVaryingData& v0 = varyingDataBuffer.GetVertexVaryingData(i0);
-		VertexVaryingData& v1 = varyingDataBuffer.GetVertexVaryingData(i1);
-		VertexVaryingData& v2 = varyingDataBuffer.GetVertexVaryingData(i2);
-
-		if (isDrawTextured)
-		{
-			auto triangles = Clipper::ClipTriangle(v0, v1, v2);
-			for (auto& triangle : triangles)
-			{
-				Projection p0 = Projection::CalculateViewProjection(triangle.v0.position, width, height);
-				Projection p1 = Projection::CalculateViewProjection(triangle.v1.position, width, height);
-				Projection p2 = Projection::CalculateViewProjection(triangle.v2.position, width, height);
-				if (Orient2D(p0.x, p0.y, p1.x, p1.y, p2.x, p2.y) < 0.f) continue;
-
-				++triangleDrawCount;
-
-				//DrawLine(p0.x, p1.x, p0.y, p1.y, Color::green);
-				//DrawLine(p1.x, p2.x, p1.y, p2.y, Color::green);
-				//DrawLine(p2.x, p0.x, p2.y, p0.y, Color::green);
-
-				/*
-				RenderTriangleData<Vertex> triangleData;
-				triangleData.material = material;
-				triangleData.vertices = triangle;
-				triangleData.projection.v0 = p0;
-				triangleData.projection.v1 = p1;
-				triangleData.projection.v2 = p2;
-				meshRef.triangles.push_back(triangleData);
-				*/
-			}
-		}
-
-		/*
-		if (isDrawWireFrame)
-		{
-			std::vector<Line<Vertex> > lines;
-			auto l1 = Clipper::ClipLine(v0, v1);
-			lines.insert(lines.end(), l1.begin(), l1.end());
-			auto l2 = Clipper::ClipLine(v0, v2);
-			lines.insert(lines.end(), l2.begin(), l2.end());
-			auto l3 = Clipper::ClipLine(v1, v2);
-			lines.insert(lines.end(), l3.begin(), l3.end());
-
-			for (auto& line : lines)
-			{
-				Projection p0 = line.v0.GetViewProjection(width, height);
-				Projection p1 = line.v1.GetViewProjection(width, height);
-				DrawLine(p0.x, p1.x, p0.y, p1.y, Color::blue);
-			}
-		}
-		*/
-	}
-
-	/*
-	int triangleN = (int)meshRef.triangles.size();
-//#pragma omp parallel for private(i)
-	for (i = 0; i < triangleN; ++i)
-	{
-		DrawTriangle(meshID, i);
-	}
-
-	if (isDrawPoint)
-	{
-		for (i = 0; i < vertexN; ++i)
-		{
-			Vertex& vertex = meshRef.vertices[i].vertex;
-			if (!vertex.clipCode)
-			{
-				Projection point = Projection::CalculateViewProjection(vertex.position, width, height);
-				canvas->SetPixel(point.x, point.y, Color::red);
-			}
-		}
-	}
-	*/
-
-	//if (light)
-	//{
-	//	Vector4 hc = renderData._MATRIX_VP.MultiplyPoint(light->position);
-	//	u32 clipCode = Clipper::CalculateClipCode(hc);
-	//	if (0 == clipCode)
-	//	{
-	//		Projection point = Projection::CalculateViewProjection(hc, width, height);
-	//		canvas->SetPixel(point.x, point.y, Color::green);
-	//	}
-	//}
-
 }
 
 void Rasterizer::PrepareRender()
@@ -470,8 +320,41 @@ void Rasterizer::Submit()
 		auto v2 = varyingDataBuffer.GetVertexVaryingData(triangleIdx.v2);
 
 		varyingDataBuffer.ResetDynamicVaryingData();
-		//auto triangles = Clipper::ClipTriangle(v0, v1, v2);
+		
+		auto triangles = Clipper::ClipTriangle(v0, v1, v2);
+		for (auto& triangle : triangles)
+		{
+			Triangle<Projection> projection;
+			projection.v0 = Projection::CalculateViewProjection(triangle.v0.position, width, height);
+			projection.v1 = Projection::CalculateViewProjection(triangle.v1.position, width, height);
+			projection.v2 = Projection::CalculateViewProjection(triangle.v2.position, width, height);
 
+			int ret = Orient2D(projection.v0.x, projection.v0.y, projection.v1.x, projection.v1.y, projection.v2.x, projection.v2.y);
+			switch (renderState.cull)
+			{
+			case RenderState::CullType_Front:
+				if (ret >= 0) continue;
+			case RenderState::CullType_Off:
+				if (ret == 0) continue;
+				if (ret < 0)
+				{
+					std::swap(projection.v1, projection.v2);
+					std::swap(triangle.v1, triangle.v2);
+				}
+				break;
+			case RenderState::CullType_Back:
+				if (ret <= 0) continue;
+				break;
+			default:
+				break;
+			}
+
+			varyingDataBuffer.ResetPixelVaryingData();
+			RasterizerTriangle<decltype(triangle)>(projection, Rasterizer2x2RenderFunc, triangle);
+		}
+		
+
+		/* draw wireframe
 		std::vector<Line<VertexVaryingData> > lines;
 		auto l1 = Clipper::ClipLine(v0, v1);
 		lines.insert(lines.end(), l1.begin(), l1.end());
@@ -486,6 +369,7 @@ void Rasterizer::Submit()
 			Projection p1 = Projection::CalculateViewProjection(line.v1.position, width, height);
 			DrawLine(p0.x, p1.x, p0.y, p1.y, Color::blue);
 		}
+		*/
 	}
 
 	/* draw point
@@ -506,6 +390,52 @@ void Rasterizer::SetShader(ShaderBase* shader)
 	Rasterizer::shader = shader;
 
 	varyingDataBuffer.SetVaryingDataDecl(shader->varyingDataDecl, shader->varyingDataSize);
+}
+
+void Rasterizer::Rasterizer2x2RenderFunc(const Triangle<VertexVaryingData>& data, const Rasterizer2x2Info& quad)
+{
+	static int quadX[4] = { 0, 1, 0, 1 };
+	static int quadY[4] = { 0, 0, 1, 1 };
+
+	for (int i = 0; i < 4; ++i)
+	{
+		if (!(quad.maskCode & (1 << i))) continue;
+
+		int x = quad.x + quadX[i];
+		int y = quad.y + quadY[i];
+
+		if (!renderState.ZTest(quad.depth[i], canvas->GetDepth(x, y))) continue;
+		if (renderState.zWrite) canvas->SetDepth(x, y, quad.depth[i]);
+
+		PixelVaryingData varyingData = PixelVaryingData::TriangleInterp(data.v0, data.v1, data.v2, quad.wx[i], quad.wy[i], quad.wz[i]);
+		shader->pixelVaryingData = &varyingData;
+		Color color = shader->psMain();
+		canvas->SetPixel(x, y, color);
+	}
+}
+
+bool RenderState::ZTest(float zPixel, float zInBuffer)
+{
+	switch (ztest)
+	{
+	case rasterizer::RenderState::ZTestType_Always:
+		return true;
+	case rasterizer::RenderState::ZTestType_Less:
+		return zPixel < zInBuffer;
+	case rasterizer::RenderState::ZTestType_Greater:
+		return zPixel > zInBuffer;
+	case rasterizer::RenderState::ZTestType_LEqual:
+		return zPixel <= zInBuffer;
+	case rasterizer::RenderState::ZTestType_GEqual:
+		return zPixel >= zInBuffer;
+	case rasterizer::RenderState::ZTestType_Equal:
+		return zPixel == zInBuffer;
+	case rasterizer::RenderState::ZTestType_NotEqual:
+		return zPixel != zInBuffer;
+	default:
+		break;
+	}
+	return false;
 }
 
 }

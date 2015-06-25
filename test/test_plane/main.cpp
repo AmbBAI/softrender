@@ -19,13 +19,15 @@ int main(int argc, char *argv[])
 struct Vertex
 {
 	Vector3 position;
-	Vector2 texCoord;
+	Vector4 color;
+	//Vector2 texCoord;
 };
 
 struct VaryingData
 {
 	Vector4 position;
-	Vector2 texCoord;
+	Vector4 color;
+	//Vector2 texCoord;
 };
 
 struct PlaneShader : Shader<Vertex, VaryingData>
@@ -36,13 +38,14 @@ struct PlaneShader : Shader<Vertex, VaryingData>
 	{
 		VaryingData output;
 		output.position = _MATRIX_MVP.MultiplyPoint(input.position);
-		output.texCoord = input.texCoord;
+		//output.texCoord = input.texCoord;
+		output.color = input.color;
 		return output;
 	}
 
 	Color frag(const VaryingData& input) override
 	{
-		return mainTex->Sample(input.texCoord.x, input.texCoord.y);
+		return Color(input.color);
 	}
 };
 
@@ -77,7 +80,7 @@ void MainLoop()
 		shader.mainTex = material->diffuseTexture;
 		shader.varyingDataDecl = {
 			{ 0, VaryingDataDeclUsage_POSITION, VaryingDataDeclFormat_Vector4 },
-			{ 16, VaryingDataDeclUsage_TEXCOORD, VaryingDataDeclFormat_Vector2 }
+			{ 16, VaryingDataDeclUsage_COLOR, VaryingDataDeclFormat_Vector4 }
 		};
 		shader.varyingDataSize = sizeof(VaryingData);
 
@@ -87,7 +90,7 @@ void MainLoop()
 		int vertexCount = mesh->GetVertexCount();
 		for (int i = 0; i < vertexCount; ++i)
 		{
-			vertices.emplace_back(Vertex{ mesh->vertices[i], mesh->texcoords[i] });
+			vertices.emplace_back(Vertex{ mesh->vertices[i], mesh->colors[i] });
 		}
 		for (auto idx : mesh->indices) indices.emplace_back((u16)idx);
     }

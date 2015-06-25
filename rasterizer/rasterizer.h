@@ -144,6 +144,24 @@ struct RenderState
 		CullType_Back,
 		CullType_Front,
 	} cull = CullType_Back;
+
+	bool ZTest(float zPixel, float zInBuffer);
+
+};
+
+struct RasterizerInfo
+{
+	int x, y;
+	float depth;
+	float wx, wy, wz;
+};
+
+struct Rasterizer2x2Info
+{
+	int x, y;
+	u8 maskCode;
+	float depth[4];
+	float wx[4], wy[4], wz[4];
 };
 
 struct Rasterizer
@@ -165,6 +183,9 @@ struct Rasterizer
 	static int pixelDrawCount;
 	static int triangleDrawCount;
 
+	template<typename Type>
+	using QuadRenderFunc = std::function<void(const Type&, const Rasterizer2x2Info&)>;
+
     static void Initialize();
     
 	static void SetCamera(CameraPtr camera);
@@ -174,8 +195,10 @@ struct Rasterizer
 	static void Submit();
 
 	static void DrawLine(int x0, int x1, int y0, int y1, const Color32& color);
-	static void DrawTriangle(Triangle<std::pair<Projection, VertexVaryingData> > triangle);
-	static void DrawMesh(const Mesh& mesh, const Matrix4x4& transform);
+	template<typename DrawDataType>
+	static void RasterizerTriangle(Triangle<Projection> projection, QuadRenderFunc<DrawDataType> renderFunc, const DrawDataType& drawParam);
+
+	static void Rasterizer2x2RenderFunc(const Triangle<VertexVaryingData>& data,  const Rasterizer2x2Info& quad);
 
 	static void PrepareRender();
 	static void Render();

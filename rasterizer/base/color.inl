@@ -94,6 +94,11 @@ Color::operator Color32() const
     return color;
 }
 
+Color::operator Vector4() const
+{
+	return Vector4(r, g, b, a);
+}
+
 Color32::operator Color() const
 {
 	Color color;

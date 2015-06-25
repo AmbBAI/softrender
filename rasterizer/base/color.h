@@ -4,6 +4,7 @@
 #include "header.h"
 #include "math/mathf.h"
 #include "math/vector3.h"
+#include "math/vector4.h"
 
 namespace rasterizer
 {
@@ -58,6 +59,9 @@ struct Color
     {}
 #endif
     
+	Color(const Vector4& rgba)
+		: Color(rgba.w, rgba.x, rgba.y, rgba.z) {}
+
 #if _MATH_SIMD_INTRINSIC_
     Color(__m128 _m)
         : m(_m)
@@ -73,6 +77,7 @@ struct Color
 	static inline const Color Lerp(const Color& a, const Color& b, const Color& c, const Color& d, float t1, float t2);
 
 	inline operator Color32() const;
+	inline operator Vector4() const;
 
 	static const Color white;
 	static const Color black;
