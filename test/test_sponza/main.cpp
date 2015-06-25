@@ -1,5 +1,5 @@
 #include "rasterizer.h"
-#include "camera_controller.h"
+#include "transform_controller.hpp"
 #include "object_utilities.h"
 using namespace rasterizer;
 
@@ -45,7 +45,7 @@ void MainLoop()
         Rasterizer::canvas = canvas;
 		//Rasterizer::camera = std::make_shared<Camera>();
 		Rasterizer::camera = CameraPtr(new Camera());
-		CameraController::InitCamera(Rasterizer::camera);
+		//CameraController::InitCamera(Rasterizer::camera);
 
 		//Rasterizer::light = std::make_shared<Light>();
 		Rasterizer::light = LightPtr(new Light());
@@ -61,7 +61,7 @@ void MainLoop()
         LoadSponzaMesh(mesh, trans);
     }
 
-	CameraController::UpdateCamera();
+	//CameraController::UpdateCamera();
 
 	canvas->Clear();
 

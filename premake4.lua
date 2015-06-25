@@ -61,6 +61,7 @@ solution "rasterizer"
     files {
       "test/common/**.h",
       "test/common/**.cpp",
+      "test/common/**.hpp",
     }
 
     configuration "windows"

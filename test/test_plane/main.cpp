@@ -1,5 +1,5 @@
 #include "rasterizer.h"
-#include "camera_controller.h"
+#include "transform_controller.hpp"
 #include "object_utilities.h"
 using namespace rasterizer;
 
@@ -49,8 +49,9 @@ struct PlaneShader : Shader<Vertex, VaryingData>
 void MainLoop()
 {
 	static bool isInitilized = false;
-	static MeshPtr mesh;
-	static Transform trans;
+	static Transform objectTrans;
+	static Transform cameraTrans;
+	static TransformController objectCtrl;
 	static std::vector<Vertex> vertices;
 	static std::vector<u16> indices;
 	static MaterialPtr material;
@@ -63,12 +64,16 @@ void MainLoop()
 
 		Rasterizer::Initialize();
         Rasterizer::canvas = canvas;
-		//Rasterizer::camera = std::make_shared<Camera>();
-		Rasterizer::camera = CameraPtr(new Camera());
-		CameraController::InitCamera(Rasterizer::camera);
+
+		auto camera = CameraPtr(new Camera());
+		camera->SetPerspective(90.f, 1.33333f, 0.3f, 2000.f);
+		cameraTrans.position = Vector3(0.f, 0.f, 5.f);
+		camera->SetLookAt(cameraTrans);
+		Rasterizer::camera = camera;
 
 		material = MaterialPtr(new Material());
 		material->diffuseTexture = Texture::LoadTexture("resources/teapot/default.png");
+		
 		shader.mainTex = material->diffuseTexture;
 		shader.varyingDataDecl = {
 			{ 0, VaryingDataDeclUsage_POSITION, VaryingDataDeclFormat_Vector4 },
@@ -76,8 +81,7 @@ void MainLoop()
 		};
 		shader.varyingDataSize = sizeof(VaryingData);
 
-		mesh = CreatePlane();
-
+		MeshPtr mesh = CreatePlane();
 		vertices.clear();
 		indices.clear();
 		int vertexCount = mesh->GetVertexCount();
@@ -88,13 +92,12 @@ void MainLoop()
 		for (auto idx : mesh->indices) indices.emplace_back((u16)idx);
     }
 
-	CameraController::UpdateCamera();
-
 	canvas->Clear();
 
 	Rasterizer::PrepareRender();
 
-	Rasterizer::transform = trans.GetMatrix();
+	objectCtrl.MouseRotate(objectTrans, false);
+	Rasterizer::transform = objectTrans.GetMatrix();
 	Rasterizer::renderData.AssignVertexBuffer(vertices);
 	Rasterizer::renderData.AssignIndexBuffer(indices);
 	Rasterizer::SetShader(&shader);
