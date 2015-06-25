@@ -160,8 +160,13 @@ struct Rasterizer2x2Info
 {
 	int x, y;
 	u8 maskCode;
+#if _MATH_SIMD_INTRINSIC_
+	SIMD_ALIGN float depth[4];
+	SIMD_ALIGN float wx[4], wy[4], wz[4];
+#else
 	float depth[4];
 	float wx[4], wy[4], wz[4];
+#endif
 };
 
 struct Rasterizer

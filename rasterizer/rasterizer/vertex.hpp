@@ -17,15 +17,15 @@ struct Projection
 	int y = 0;
 	float invW = 1.0f;
 
-	static Projection CalculateViewProjection(const Vector4& hc, u32 width, u32 height)
+	static Projection CalculateViewProjection(const Vector4& position, u32 width, u32 height)
 	{
-		float w = hc.w;
+		float w = position.w;
 		assert(w > 0.f);
 		float invW = 1.f / w;
 
 		Projection point;
-		point.x = Mathf::RoundToInt(((hc.x * invW) + 1.f) / 2.f * width);
-		point.y = Mathf::RoundToInt(((hc.y * invW) + 1.f) / 2.f * height);
+		point.x = Mathf::RoundToInt(((position.x * invW) + 1.f) / 2.f * width);
+		point.y = Mathf::RoundToInt(((position.y * invW) + 1.f) / 2.f * height);
 		point.invW = invW;
 		return point;
 	}

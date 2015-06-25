@@ -83,25 +83,30 @@ void Matrix4x4::AssignRotation(const Quaternion& quaternion)
 	float zz = quaternion.z * quaternion.z;
 	float zw = quaternion.z * quaternion.w;
 
-	m[0] = 1 - 2 * (yy + zz);
-	m[1] = 2 * (xy + zw);
-	m[2] = 2 * (xz - yw);
-	m[3] = 0;
+	float ww = quaternion.w * quaternion.w;
 
-	m[4] = 2 * (xy - zw);
-	m[5] = 1 - 2 * (xx + zz);
-	m[6] = 2 * (yz + xw);
-	m[7] = 0.0;
+	//m[0] = 1.f - 2.f * (yy + zz);
+	m[0] = ww + xx - yy - zz;
+	m[1] = 2.f * (xy + zw);
+	m[2] = 2.f * (xz - yw);
+	m[3] = 0.f;
 
-	m[8] = 2 * (xz + yw);
-	m[9] = 2 * (yz - xw);
-	m[10] = 1 - 2 * (xx + yy);
-	m[11] = 0.0;
+	m[4] = 2.f * (xy - zw);
+	//m[5] = 1.f - 2.f * (xx + zz);
+	m[5] = ww - xx + yy - zz;
+	m[6] = 2.f * (yz + xw);
+	m[7] = 0.f;
 
-	m[12] = 0.0;
-	m[13] = 0.0;
-	m[14] = 0.0;
-	m[15] = 1.0;
+	m[8] = 2.f * (xz + yw);
+	m[9] = 2.f * (yz - xw);
+	//m[10] = 1.f - 2.f * (xx + yy);
+	m[10] = ww - xx - yy + zz;
+	m[11] = 0.f;
+
+	m[12] = 0.f;
+	m[13] = 0.f;
+	m[14] = 0.f;
+	m[15] = 1.f;
 }
 //
 //void Matrix4x4::AssignRotationX(float radians)

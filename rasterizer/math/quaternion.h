@@ -8,21 +8,28 @@ namespace rasterizer
 {
 struct Quaternion
 {
-	float x = 0.f;
-	float y = 0.f;
-	float z = 0.f;
-	float w = 1.f;
+	union
+	{
+		struct
+		{
+			float x, y, z;
+		};
+		Vector3 xyz;
+	};
+	float w;
 
 	Quaternion() = default;
 	Quaternion(const Vector3& eulerAngle);
-	Quaternion(float _x, float _y, float _z, float _w);
+	Quaternion(const Vector3& _xyz, float _w) : xyz(_xyz), w(_w) {}
+	Quaternion(float _x, float _y, float _z, float _w) : x(_x), y(_y), z(_z), w(_w) {}
 
 	const Quaternion Inverse() const;
+	const Quaternion Conjugate() const;
 	const Quaternion Multiply(const Quaternion& q) const;
 	const Vector3 Rotate(const Vector3& v) const;
 
 	void SetEulerAngle(float _x, float _y, float _z);
-	void SetEulerAngle(const Vector3& euler_angle);
+	void SetEulerAngle(const Vector3& eulerAngle);
 	const Vector3 GetEulerAngle();
 
 	static const Quaternion identity;

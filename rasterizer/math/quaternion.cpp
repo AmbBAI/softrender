@@ -6,15 +6,6 @@ namespace rasterizer
 
 const Quaternion Quaternion::identity = Quaternion();
 
-Quaternion::Quaternion(float _x, float _y, float _z, float _w)
-	: x(_x)
-	, y(_y)
-	, z(_z)
-	, w(_w)
-{
-
-}
-
 Quaternion::Quaternion(const Vector3& eulerAngle)
 {
 	SetEulerAngle(eulerAngle.x, eulerAngle.y, eulerAngle.z);
@@ -22,15 +13,15 @@ Quaternion::Quaternion(const Vector3& eulerAngle)
 
 void Quaternion::SetEulerAngle(float _x, float _y, float _z)
 {
-	float radx = (_x * Mathf::deg2rad);
-	float rady = (_y * Mathf::deg2rad);
-	float radz = (_z * Mathf::deg2rad);
-	float cos_x_2 = Mathf::Cos(radx / 2.f);
-	float cos_y_2 = Mathf::Cos(rady / 2.f);
-	float cos_z_2 = Mathf::Cos(radz / 2.f);
-	float sin_x_2 = Mathf::Sin(radx / 2.f);
-	float sin_y_2 = Mathf::Sin(rady / 2.f);
-	float sin_z_2 = Mathf::Sin(radz / 2.f);
+	float rad_x_2 = _x / 2.f * Mathf::deg2rad;
+	float rad_y_2 = _y / 2.f * Mathf::deg2rad;
+	float rad_z_2 = _z / 2.f * Mathf::deg2rad;
+	float cos_x_2 = Mathf::Cos(rad_x_2);
+	float cos_y_2 = Mathf::Cos(rad_y_2);
+	float cos_z_2 = Mathf::Cos(rad_z_2);
+	float sin_x_2 = Mathf::Sin(rad_x_2);
+	float sin_y_2 = Mathf::Sin(rad_y_2);
+	float sin_z_2 = Mathf::Sin(rad_z_2);
 
 	x = sin_x_2 * cos_y_2 * cos_z_2 + cos_x_2 * sin_y_2 * sin_z_2;
 	y = cos_x_2 * sin_y_2 * cos_z_2 + sin_x_2 * cos_y_2 * sin_z_2;
@@ -56,23 +47,27 @@ const Vector3 Quaternion::GetEulerAngle()
 }
 
 const Quaternion Quaternion::Multiply(const Quaternion& q) const
-{
-	return Quaternion(
-		q.w * x + w * q.x + (y * q.z - z * q.y),
-		q.w * y + w * q.y + (z * q.x - x * q.z),
-		q.w * z + w * q.z + (x * q.y - y * q.x),
-		q.w * w - (x * q.x + y * q.y + z * q.z));
+{;
+	return Quaternion(q.xyz * w + xyz * q.w + xyz.Cross(q.xyz), w * q.w - xyz.Dot(q.xyz));
 }
 
 const Vector3 Quaternion::Rotate(const Vector3& v) const
 {
-	Quaternion vq = this->Multiply(Quaternion(v.x, v.y, v.z, 0)).Multiply(this->Inverse());
-	return Vector3(vq.x, vq.y, vq.z);
+	return v + xyz.Cross(xyz.Cross(v) + v * w) * 2.f;
 }
 
 const Quaternion Quaternion::Inverse() const
 {
-	return Quaternion(-x, -y, -z, w);
+	float invSqrtLen = 1.f / (x * x + y * y + z * z + w * w);
+	Quaternion ret = Conjugate();
+	ret.xyz *= invSqrtLen;
+	ret.w *= invSqrtLen;
+	return ret;
+}
+
+const Quaternion Quaternion::Conjugate() const
+{
+	return Quaternion(-xyz, w);
 }
 
 
