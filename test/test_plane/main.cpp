@@ -20,32 +20,50 @@ struct Vertex
 {
 	Vector3 position;
 	Vector4 color;
-	//Vector2 texCoord;
+	Vector2 texCoord;
 };
 
 struct VaryingData
 {
 	Vector4 position;
 	Vector4 color;
-	//Vector2 texCoord;
+	Vector2 texCoord;
+
+	static std::vector<VaryingDataLayout> GetLayout()
+	{
+		static std::vector<VaryingDataLayout> layout = {
+			{ 0, VaryingDataDeclUsage_POSITION, VaryingDataDeclFormat_Vector4 },
+			{ 16, VaryingDataDeclUsage_COLOR, VaryingDataDeclFormat_Vector4 },
+			{ 32, VaryingDataDeclUsage_TEXCOORD, VaryingDataDeclFormat_Vector2 }
+		};
+
+		return layout;
+	}
 };
 
 struct PlaneShader : Shader<Vertex, VaryingData>
 {
 	TexturePtr mainTex;
+	Vector2 ddx, ddy;
 
 	VaryingData vert(const Vertex& input) override
 	{
 		VaryingData output;
 		output.position = _MATRIX_MVP.MultiplyPoint(input.position);
-		//output.texCoord = input.texCoord;
+		output.texCoord = input.texCoord;
 		output.color = input.color;
 		return output;
 	}
 
+	void passQuad(const Quad<VaryingData*>& quad) override
+	{
+		ddx = quad[1]->texCoord - quad[0]->texCoord;
+		ddy = quad[2]->texCoord - quad[0]->texCoord;
+	}
+
 	Color frag(const VaryingData& input) override
 	{
-		return Color(input.color);
+		return Color::Lerp(input.color, Tex2D(mainTex, input.texCoord, ddx, ddy), 0.5f);
 	}
 };
 
@@ -69,20 +87,19 @@ void MainLoop()
         Rasterizer::canvas = canvas;
 
 		auto camera = CameraPtr(new Camera());
-		camera->SetPerspective(90.f, 1.33333f, 0.3f, 2000.f);
-		cameraTrans.position = Vector3(0.f, 0.f, 5.f);
+		camera->SetPerspective(60.f, 1.33333f, 0.3f, 2000.f);
+		cameraTrans.position = Vector3(0.f, 0.f, 2.f);
 		camera->SetLookAt(cameraTrans);
 		Rasterizer::camera = camera;
 
 		material = MaterialPtr(new Material());
 		material->diffuseTexture = Texture::LoadTexture("resources/teapot/default.png");
-		
+		material->diffuseTexture->GenerateMipmaps();
+
 		shader.mainTex = material->diffuseTexture;
-		shader.varyingDataDecl = {
-			{ 0, VaryingDataDeclUsage_POSITION, VaryingDataDeclFormat_Vector4 },
-			{ 16, VaryingDataDeclUsage_COLOR, VaryingDataDeclFormat_Vector4 }
-		};
+		shader.varyingDataDecl = VaryingData::GetLayout();
 		shader.varyingDataSize = sizeof(VaryingData);
+		assert(shader.varyingDataSize == 40);
 
 		MeshPtr mesh = CreatePlane();
 		vertices.clear();
@@ -90,7 +107,7 @@ void MainLoop()
 		int vertexCount = mesh->GetVertexCount();
 		for (int i = 0; i < vertexCount; ++i)
 		{
-			vertices.emplace_back(Vertex{ mesh->vertices[i], mesh->colors[i] });
+			vertices.emplace_back(Vertex{ mesh->vertices[i], mesh->colors[i], mesh->texcoords[i] });
 		}
 		for (auto idx : mesh->indices) indices.emplace_back((u16)idx);
     }

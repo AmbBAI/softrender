@@ -34,24 +34,103 @@ struct Projection
 template <typename Type>
 struct Line
 {
-	Type v0;
-	Type v1;
+	Type v0, v1;
 
 	Line() = default;
 	Line(const Type& _v0, const Type& _v1)
 		: v0(_v0), v1(_v1) {}
+
+	const Type& operator[](int index) const
+	{
+		switch (index)
+		{
+		case 0: return v0;
+		case 1: return v1;
+		default:
+			throw std::out_of_range("Line Out of Rnage");
+		}
+	}
+
+	Type& operator[](int index)
+	{
+		switch (index)
+		{
+		case 0: return v0;
+		case 1: return v1;
+		default:
+			throw std::out_of_range("Line Out of Rnage");
+		}
+	}
 };
 
 template <typename Type>
 struct Triangle
 {
-	Type v0;
-	Type v1;
-	Type v2;
+	Type v0, v1, v2;
 
 	Triangle() = default;
 	Triangle(const Type& _v0, const Type& _v1, const Type& _v2)
 		: v0(_v0), v1(_v1), v2(_v2) {}
+
+	const Type& operator[](int index) const
+	{
+		switch (index)
+		{
+		case 0: return v0;
+		case 1: return v1;
+		case 2: return v2;
+		default:
+			throw std::out_of_range("Triangle Out of Rnage");
+		}
+	}
+
+	Type& operator[](int index)
+	{
+		switch (index)
+		{
+		case 0: return v0;
+		case 1: return v1;
+		case 2: return v2;
+		default:
+			throw std::out_of_range("Triangle Out of Rnage");
+		}
+	}
+};
+
+template <typename Type>
+struct Quad
+{
+	Type v0, v1, v2, v3;
+
+	Quad() = default;
+	Quad(const Type& _v0, const Type& _v1, const Type& _v2, const Type& _v3)
+		: v0(_v0), v1(_v1), v2(_v2), v3(_v3) {}
+
+	const Type& operator[](int index) const
+	{
+		switch (index)
+		{
+		case 0: return v0;
+		case 1: return v1;
+		case 2: return v2;
+		case 3: return v3;
+		default:
+			throw std::out_of_range("Quad Out of Range");
+		}
+	}
+
+	Type& operator[](int index)
+	{
+		switch (index)
+		{
+		case 0: return v0;
+		case 1: return v1;
+		case 2: return v2;
+		case 3: return v3;
+		default:
+			throw std::out_of_range("Quad Out of Range");
+		}
+	}
 };
 
 }

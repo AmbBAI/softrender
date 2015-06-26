@@ -33,6 +33,8 @@ struct Vector2
     inline const Vector2 operator /(float f) const { return Divide(f); }
     
 	static inline const Vector2 Lerp(const Vector2& a, const Vector2& b, float t);
+	static inline const float Dot(const Vector2& a, const Vector2& b);
+	//static inline const Vector2 Cross(const Vector2& a, const Vector2& b);
 
 	static const Vector2 zero;
 	static const Vector2 one;

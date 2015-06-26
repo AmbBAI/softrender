@@ -299,7 +299,7 @@ void Rasterizer::Submit()
 	{
 		shader->vertexVaryingData = &varyingDataBuffer.GetVertexVaryingData(i);
 		void* vertexData = renderData.GetVertexData(i);
-		shader->vsMain(vertexData);
+		shader->_VSMain(vertexData);
 	}
 
 	varyingDataBuffer.InitDynamicVaryingData();
@@ -397,6 +397,13 @@ void Rasterizer::Rasterizer2x2RenderFunc(const Triangle<VertexVaryingData>& data
 	static int quadX[4] = { 0, 1, 0, 1 };
 	static int quadY[4] = { 0, 0, 1, 1 };
 
+	Quad<PixelVaryingData> pixelVaryingDataQuad;
+	for (int i = 0; i < 4; ++i)
+	{
+		pixelVaryingDataQuad[i] = PixelVaryingData::TriangleInterp(data.v0, data.v1, data.v2, quad.wx[i], quad.wy[i], quad.wz[i]);
+	}
+	shader->_PassQuad(pixelVaryingDataQuad);
+
 	for (int i = 0; i < 4; ++i)
 	{
 		if (!(quad.maskCode & (1 << i))) continue;
@@ -407,9 +414,8 @@ void Rasterizer::Rasterizer2x2RenderFunc(const Triangle<VertexVaryingData>& data
 		if (!renderState.ZTest(quad.depth[i], canvas->GetDepth(x, y))) continue;
 		if (renderState.zWrite) canvas->SetDepth(x, y, quad.depth[i]);
 
-		PixelVaryingData varyingData = PixelVaryingData::TriangleInterp(data.v0, data.v1, data.v2, quad.wx[i], quad.wy[i], quad.wz[i]);
-		shader->pixelVaryingData = &varyingData;
-		Color color = shader->psMain();
+		shader->pixelVaryingData = &pixelVaryingDataQuad[i];
+		Color color = shader->_PSMain();
 		canvas->SetPixel(x, y, color);
 	}
 }

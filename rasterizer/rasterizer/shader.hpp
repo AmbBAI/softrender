@@ -35,14 +35,53 @@ struct ShaderBase
 	Matrix4x4 _Object2World;
 	Matrix4x4 _World2Object;
 
-	virtual void vsMain(const void* input) = 0;
-	virtual Color psMain() = 0;
+	virtual void _VSMain(const void* input) = 0;
+	virtual Color _PSMain() = 0;
+	virtual void _PassQuad(const Quad<PixelVaryingData>& quadVaryingData) {}
+
+	template<typename Type>
+	static float CalcLod(const Type& ddx, const Type& ddy)
+	{
+		float delta = Mathf::Max(Type::Dot(ddx, ddx), Type::Dot(ddy, ddy));
+		return Mathf::Max(0.f, 0.5f * Mathf::Log2(delta));
+	}
+
+	static Color Tex2D(TexturePtr& tex, const Vector2& uv)
+	{
+		return Tex2D(tex, uv, 0.f);
+	}
+
+	static Color Tex2D(TexturePtr& tex, const Vector2& uv, float lod)
+	{
+		if (tex == nullptr) return Color::white;
+		return tex->Sample(uv.x, uv.y, lod);
+	}
+
+	static Color Tex2D(TexturePtr& tex, const Vector2& uv, const Vector2& ddx, const Vector2& ddy)
+	{
+		if (tex == nullptr) return Color::white;
+		float width = (float)tex->GetWidth();
+		float height = (float)tex->GetHeight();
+		float lod = CalcLod(ddx * width, ddy * height);
+		return Tex2D(tex, uv, lod);
+	}
+
+	static const Matrix4x4 GetTangentSpace(const Vector3& tangent, const Vector3& binormal, const Vector3& normal)
+	{
+		return Matrix4x4::TBN(tangent, binormal, normal);
+	}
+
+	static const Vector3 UnpackNormal(const Color& color, const Matrix4x4& tbn)
+	{
+		Vector3 normal = Vector3(color.r * 2.f - 1.f, color.g * 2.f - 1.f, color.b * 2.f - 1.f);
+		return tbn.MultiplyVector(normal).Normalize();
+	}
 };
 
 template <typename VSInputType, typename VaryingDataType>
 struct Shader : ShaderBase
 {
-	void vsMain(const void* input) override
+	void _VSMain(const void* input) override
 	{
 		VSInputType* vertexInput = (VSInputType*)input;
 		*((VaryingDataType*)vertexVaryingData->data) = vert(*vertexInput);
@@ -51,7 +90,17 @@ struct Shader : ShaderBase
 		vertexVaryingData->clipCode = Clipper::CalculateClipCode(vertexVaryingData->position);
 	}
 
-	Color psMain() override
+	void _PassQuad(const Quad<PixelVaryingData>& quadVaryingData) override
+	{
+		passQuad(Quad<VaryingDataType*> {
+				(VaryingDataType*)quadVaryingData[0].data,
+				(VaryingDataType*)quadVaryingData[1].data,
+				(VaryingDataType*)quadVaryingData[2].data,
+				(VaryingDataType*)quadVaryingData[3].data
+		});
+	}
+
+	Color _PSMain() override
 	{
 		return frag(*(VaryingDataType*)(pixelVaryingData->data));
 	}
@@ -61,6 +110,10 @@ struct Shader : ShaderBase
 		VaryingDataType output;
 		output.position = _MATRIX_MVP.MultiplyPoint(input.position);
 		return output;
+	}
+
+	virtual void passQuad(const Quad<VaryingDataType*>& quad)
+	{
 	}
 
 	virtual Color frag(const VaryingDataType& input)

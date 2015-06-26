@@ -51,6 +51,10 @@ const Vector3 Vector3::Lerp(const Vector3& a, const Vector3& b, float t)
 		Mathf::Lerp(a.z, b.z, t));
 }
 
+const float Vector3::Dot(const Vector3& a, const Vector3& b) { return a.Dot(b); }
+const Vector3 Vector3::Cross(const Vector3& a, const Vector3& b) { return a.Cross(b); }
+
+
 }
 
 #endif // !_MATH_VECTOR3_INLINE_
