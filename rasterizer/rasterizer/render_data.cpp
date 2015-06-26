@@ -72,7 +72,7 @@ bool VaryingDataBuffer::SetVaryingDataDecl(std::vector<VaryingDataLayout> layout
 			return false;
 		}
 
-		if (l.usage == VaryingDataDeclUsage_POSITION
+		if (l.usage == VaryingDataDeclUsage_SVPOSITION
 			&& l.format == VaryingDataDeclFormat_Vector4)
 		{
 			varyingDataDecl.positionOffset = l.offset;
@@ -152,6 +152,7 @@ void VaryingDataDecl::TriangleInterp(void* output, const void* a, const void* b,
 {
 	for (auto l : layout)
 	{
+		if (l.usage == VaryingDataDeclUsage_SVPOSITION) continue;
 		switch (l.format)
 		{
 		case VaryingDataDeclFormat_Float:

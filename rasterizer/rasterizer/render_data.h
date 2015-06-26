@@ -42,6 +42,7 @@ struct PixelVaryingData
 
 enum VaryingDeclUsage
 {
+	VaryingDataDeclUsage_SVPOSITION,
 	VaryingDataDeclUsage_POSITION,
 	VaryingDataDeclUsage_NORMAL,
 	VaryingDataDeclUsage_COLOR,

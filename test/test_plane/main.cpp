@@ -26,15 +26,15 @@ struct Vertex
 struct VaryingData
 {
 	Vector4 position;
-	Vector4 color;
+	//Vector4 color;
 	Vector2 texCoord;
 
 	static std::vector<VaryingDataLayout> GetLayout()
 	{
 		static std::vector<VaryingDataLayout> layout = {
-			{ 0, VaryingDataDeclUsage_POSITION, VaryingDataDeclFormat_Vector4 },
-			{ 16, VaryingDataDeclUsage_COLOR, VaryingDataDeclFormat_Vector4 },
-			{ 32, VaryingDataDeclUsage_TEXCOORD, VaryingDataDeclFormat_Vector2 }
+			{ 0, VaryingDataDeclUsage_SVPOSITION, VaryingDataDeclFormat_Vector4 },
+			//{ 16, VaryingDataDeclUsage_COLOR, VaryingDataDeclFormat_Vector4 },
+			{ 16, VaryingDataDeclUsage_TEXCOORD, VaryingDataDeclFormat_Vector2 }
 		};
 
 		return layout;
@@ -51,7 +51,7 @@ struct PlaneShader : Shader<Vertex, VaryingData>
 		VaryingData output;
 		output.position = _MATRIX_MVP.MultiplyPoint(input.position);
 		output.texCoord = input.texCoord;
-		output.color = input.color;
+		//output.color = input.color;
 		return output;
 	}
 
@@ -63,7 +63,7 @@ struct PlaneShader : Shader<Vertex, VaryingData>
 
 	Color frag(const VaryingData& input) override
 	{
-		return Color::Lerp(input.color, Tex2D(mainTex, input.texCoord, ddx, ddy), 0.5f);
+		return Tex2D(mainTex, input.texCoord, ddx, ddy);
 	}
 };
 
@@ -99,7 +99,7 @@ void MainLoop()
 		shader.mainTex = material->diffuseTexture;
 		shader.varyingDataDecl = VaryingData::GetLayout();
 		shader.varyingDataSize = sizeof(VaryingData);
-		assert(shader.varyingDataSize == 40);
+		assert(shader.varyingDataSize == 24);
 
 		MeshPtr mesh = CreatePlane();
 		vertices.clear();
