@@ -35,11 +35,19 @@ public:
 		int index = 0;
 
 	public:
-		//void* operator->() const;
+		void Seek(int index) { this->index = index; }
+		void* Get() const
+		{
+			assert(buffer != nullptr);
+			return (*buffer)[index];
+		}
 
-		void Seek(int index);
-		void* Get() const;
-		void* Next();
+		void* Next()
+		{
+			++index;
+			return Get();
+		}
+
 	} itor;
 
 	template<typename Type>

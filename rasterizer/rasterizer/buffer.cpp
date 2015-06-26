@@ -115,25 +115,13 @@ void* Buffer::operator[](int idx)
 	if (idx < 0) return nullptr;
 	if (!isDynamicBuffer && idx >= allocatedBlockCount) return nullptr;
 
-	int page = idx / blockPrePage;
-	int blockOffset = (idx % blockPrePage) * blockSize;
+	int page = 0;
+	int blockOffset = 0;
+	while (idx > blockPrePage) {
+		idx -= blockPrePage;
+		++page;
+	}
+	blockOffset = idx;
 	if (!AllocPage(page)) return nullptr;
-	return (void*)(data[page] + blockOffset);
-}
-
-void Buffer::Iterator::Seek(int index)
-{
-	this->index = index;
-}
-
-void* Buffer::Iterator::Get() const
-{
-	assert(buffer != nullptr);
-	return (*buffer)[index];
-}
-
-void* Buffer::Iterator::Next()
-{
-	++index;
-	return Get();
+	return (void*)(data[page] + blockOffset * blockSize);
 }
