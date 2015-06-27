@@ -19,22 +19,27 @@ int main(int argc, char *argv[])
 struct Vertex
 {
 	Vector3 position;
-	Vector4 color;
 	Vector2 texCoord;
+	Vector3 normal;
+	Vector4 tangent;
 };
 
 struct VaryingData
 {
 	Vector4 position;
-	//Vector4 color;
 	Vector2 texCoord;
+	Vector3 normal;
+	Vector3 tangent;
+	Vector3 bitangent;
 
 	static std::vector<VaryingDataLayout> GetLayout()
 	{
 		static std::vector<VaryingDataLayout> layout = {
 			{ 0, VaryingDataDeclUsage_SVPOSITION, VaryingDataDeclFormat_Vector4 },
-			//{ 16, VaryingDataDeclUsage_COLOR, VaryingDataDeclFormat_Vector4 },
-			{ 16, VaryingDataDeclUsage_TEXCOORD, VaryingDataDeclFormat_Vector2 }
+			{ 16, VaryingDataDeclUsage_TEXCOORD, VaryingDataDeclFormat_Vector2 },
+			{ 24, VaryingDataDeclUsage_TEXCOORD, VaryingDataDeclFormat_Vector3 },
+			{ 36, VaryingDataDeclUsage_TEXCOORD, VaryingDataDeclFormat_Vector3 },
+			{ 48, VaryingDataDeclUsage_TEXCOORD, VaryingDataDeclFormat_Vector3 }
 		};
 
 		return layout;
@@ -43,7 +48,10 @@ struct VaryingData
 
 struct PlaneShader : Shader<Vertex, VaryingData>
 {
+	Vector3 lightDir = Vector3(1.f, 1.f, 1.f).Normalize();
+
 	TexturePtr mainTex;
+	TexturePtr normalTex;
 	Vector2 ddx, ddy;
 
 	VaryingData vert(const Vertex& input) override
@@ -51,7 +59,9 @@ struct PlaneShader : Shader<Vertex, VaryingData>
 		VaryingData output;
 		output.position = _MATRIX_MVP.MultiplyPoint(input.position);
 		output.texCoord = input.texCoord;
-		//output.color = input.color;
+		output.normal = _Object2World.MultiplyVector(input.normal);
+		output.tangent = _Object2World.MultiplyVector(input.tangent.xyz);
+		output.bitangent = output.normal.Cross(output.tangent) * input.tangent.w;
 		return output;
 	}
 
@@ -63,7 +73,13 @@ struct PlaneShader : Shader<Vertex, VaryingData>
 
 	Color frag(const VaryingData& input) override
 	{
-		return Tex2D(mainTex, input.texCoord, ddx, ddy);
+		Color color = Tex2D(mainTex, input.texCoord, ddx, ddy);
+
+		Matrix4x4 tbn = GetTangentSpace(input.tangent, input.bitangent, input.normal);
+		Vector3 normal = UnpackNormal(Tex2D(normalTex, input.texCoord, ddx, ddy), tbn);
+		
+		color.rgb *= Mathf::Max(0.f, lightDir.Dot(normal));
+		return color;
 	}
 };
 
@@ -95,19 +111,23 @@ void MainLoop()
 		material = MaterialPtr(new Material());
 		material->diffuseTexture = Texture::LoadTexture("resources/teapot/default.png");
 		material->diffuseTexture->GenerateMipmaps();
+		material->normalTexture = Texture::LoadTexture("resources/crytek-sponza/textures/background_bump.png");
+		material->normalTexture->ConvertBumpToNormal();
 
 		shader.mainTex = material->diffuseTexture;
+		shader.normalTex = material->normalTexture;
 		shader.varyingDataDecl = VaryingData::GetLayout();
 		shader.varyingDataSize = sizeof(VaryingData);
-		assert(shader.varyingDataSize == 24);
+		assert(shader.varyingDataSize == 60);
 
 		MeshPtr mesh = CreatePlane();
+		mesh->CalculateTangents();
 		vertices.clear();
 		indices.clear();
 		int vertexCount = mesh->GetVertexCount();
 		for (int i = 0; i < vertexCount; ++i)
 		{
-			vertices.emplace_back(Vertex{ mesh->vertices[i], mesh->colors[i], mesh->texcoords[i] });
+			vertices.emplace_back(Vertex{ mesh->vertices[i], mesh->texcoords[i], mesh->normals[i], mesh->tangents[i] });
 		}
 		for (auto idx : mesh->indices) indices.emplace_back((u16)idx);
     }
