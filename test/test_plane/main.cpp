@@ -111,7 +111,7 @@ void MainLoop()
 		material = MaterialPtr(new Material());
 		material->diffuseTexture = Texture::LoadTexture("resources/teapot/default.png");
 		material->diffuseTexture->GenerateMipmaps();
-		material->normalTexture = Texture::LoadTexture("resources/crytek-sponza/textures/background_bump.png");
+		material->normalTexture = Texture::LoadTexture("resources/crytek-sponza/textures/spnza_bricks_a_bump.png");
 		material->normalTexture->ConvertBumpToNormal();
 
 		shader.mainTex = material->diffuseTexture;
