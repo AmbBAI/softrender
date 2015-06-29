@@ -11,7 +11,7 @@
 namespace rasterizer
 {
 
-class ShaderF
+struct ShaderF
 {
 	static const Color LightingLambert(const LightInput& input, const Vector3& normal, const Vector3& lightDir, const Color& lightColor, float attenuation)
 	{
@@ -72,7 +72,7 @@ class ShaderF
 		return output;
 	}
 
-}
+};
 
 } // namespace rasterizer
 

@@ -34,6 +34,8 @@ struct ShaderBase
 	Matrix4x4 _MATRIX_VP;
 	Matrix4x4 _Object2World;
 	Matrix4x4 _World2Object;
+	Vector3 _WorldSpaceCameraPos;
+	Vector3 _lightPosition;
 
 	virtual void _VSMain(const void* input) = 0;
 	virtual Color _PSMain() = 0;
@@ -121,10 +123,9 @@ struct Shader : ShaderBase
 		return Color::white;
 	}
 
-	Vector3 cameraPosition;
 	Vector3 GetViewDir(const Vector3 position)
 	{
-		return (cameraPosition - position).Normalize();
+		return (_WorldSpaceCameraPos - position).Normalize();
 	}
 
 	typedef Color(*LightFunc)(const LightInput& input, const Vector3& normal, const Vector3& lightDir, const Color& lightColor, const Vector3& viewDir, float attenuation);

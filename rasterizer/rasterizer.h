@@ -17,6 +17,7 @@
 #include "rasterizer/vertex.hpp"
 #include "rasterizer/light.hpp"
 #include "rasterizer/shader.hpp"
+#include "rasterizer/shaderf.hpp"
 
 namespace rasterizer
 {

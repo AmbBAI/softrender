@@ -293,6 +293,8 @@ void Rasterizer::Submit()
 	shader->_MATRIX_MV = shader->_MATRIX_V.Multiply(transform);
 	shader->_MATRIX_MVP = shader->_MATRIX_VP.Multiply(transform);
 
+	shader->_WorldSpaceCameraPos = camera->GetPosition();
+
 	u32 vertexCount = renderData.GetVertexCount();
 	varyingDataBuffer.InitVerticesVaryingData(vertexCount);
 	for (u32 i = 0; i < vertexCount; ++i)
