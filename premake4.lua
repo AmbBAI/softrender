@@ -47,6 +47,7 @@ solution "rasterizer"
   createTestProject("hello")
   createTestProject("image")
   createTestProject("plane")
+  createTestProject("light");
   createTestProject("sponza")
 
   project "common"

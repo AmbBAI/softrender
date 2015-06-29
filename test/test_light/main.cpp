@@ -10,7 +10,7 @@ void MainLoop();
 int main(int argc, char *argv[])
 {
 	app = Application::GetInstance();
-	app->CreateApplication("plane", 800, 600);
+	app->CreateApplication("light", 800, 600);
 	app->SetRunLoop(MainLoop);
 	app->RunLoop();
 	return 0;
@@ -73,13 +73,16 @@ struct PlaneShader : Shader<Vertex, VaryingData>
 
 	Color frag(const VaryingData& input) override
 	{
-		Color color = Tex2D(mainTex, input.texCoord, ddx, ddy);
+		//Color color = Tex2D(mainTex, input.texCoord, ddx, ddy);
 
 		Matrix4x4 tbn = GetTangentSpace(input.tangent, input.bitangent, input.normal);
 		Vector3 normal = UnpackNormal(Tex2D(normalTex, input.texCoord, ddx, ddy), tbn);
 		
-		color.rgb *= Mathf::Max(0.f, lightDir.Dot(normal));
+		Color color;
+		color.rgb = ColorRGB((normal.x + 1.f) / 2.f, (normal.y + 1.f) / 2.f, (normal.z + 1.f) / 2.f);
 		return color;
+		//color.rgb *= Mathf::Max(0.f, lightDir.Dot(normal));
+		//return color;
 	}
 };
 
@@ -120,16 +123,30 @@ void MainLoop()
 		shader.varyingDataSize = sizeof(VaryingData);
 		assert(shader.varyingDataSize == 60);
 
-		MeshPtr mesh = CreatePlane();
-		mesh->CalculateTangents();
+		//objectTrans.scale = Vector3(0.01f, 0.01f, 0.01f);
+
+		std::vector<MeshPtr> meshes;
+		Mesh::LoadMesh(meshes, "resources/cube/cube.obj");
+		//Mesh::LoadMesh(meshes, "resources/teapot/teapot.obj");
+
 		vertices.clear();
 		indices.clear();
-		int vertexCount = mesh->GetVertexCount();
-		for (int i = 0; i < vertexCount; ++i)
+		for (int meshID = 0; meshID < (int)meshes.size(); ++meshID)
 		{
-			vertices.emplace_back(Vertex{ mesh->vertices[i], mesh->texcoords[i], mesh->normals[i], mesh->tangents[i] });
+			auto& mesh = meshes[meshID];
+			mesh->RecalculateNormals();
+			int meshOffset = (int)vertices.size();
+			int vertexCount = mesh->GetVertexCount();
+			int indexCount = mesh->indices.size();
+			for (int i = 0; i < vertexCount; ++i)
+			{
+				vertices.emplace_back(Vertex{ mesh->vertices[i], mesh->texcoords[i], mesh->normals[i], mesh->tangents[i] });
+			}
+			for (int i = 0; i < indexCount; ++i)
+			{
+				indices.emplace_back(mesh->indices[i] + meshOffset);
+			}
 		}
-		for (auto idx : mesh->indices) indices.emplace_back((u16)idx);
     }
 
 	canvas->Clear();

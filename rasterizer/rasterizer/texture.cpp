@@ -193,7 +193,7 @@ void Texture::ConvertBumpToNormal(float strength/* = 10.f*/)
 			float px2 = bump[y * width + x2];
 			float py1 = bump[y1 * width + x];
 			float py2 = bump[y2 * width + x];
-            Vector3 normal = Vector3(px2 - px1, py1 - py2, 1.f / strength).Normalize();
+            Vector3 normal = Vector3(px1 - px2, py1 - py2, 1.f / strength).Normalize();
 
 			Color color;
 			color.r = (normal.x + 1.0f) / 2.0f;
