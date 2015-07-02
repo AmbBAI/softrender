@@ -19,12 +19,14 @@ struct LightInput
 
 struct ShaderBase
 {
-	LightPtr light;
 	std::vector<VaryingDataLayout> varyingDataDecl;
 	int varyingDataSize;
 
 	VertexVaryingData* vertexVaryingData = nullptr;
 	PixelVaryingData* pixelVaryingData = nullptr;
+
+	LightPtr light;
+	bool isClipped;
 
 	//uniform
 	Matrix4x4 _MATRIX_MVP;
@@ -91,6 +93,11 @@ struct ShaderBase
 	{
 		Vector3 normal = Vector3(color.r * 2.f - 1.f, color.g * 2.f - 1.f, color.b * 2.f - 1.f);
 		return tbn.MultiplyVector(normal).Normalize();
+	}
+
+	bool Clip(float x)
+	{
+		return isClipped = (x < 0.f);
 	}
 
 	bool InitLightArgs(const Vector3& worldPos, Vector3& lightDir, ColorRGB& lightColor, float& lightAtten)

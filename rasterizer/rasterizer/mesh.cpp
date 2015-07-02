@@ -52,7 +52,7 @@ void Mesh::LoadMesh(std::vector<MeshPtr>& meshes, const std::vector<tinyobj::sha
 
 		int matID = -1;
 		int startIndex = 0;
-		int indexCount = 0;
+		int primitiveCount = 0;
 		FOREACH(s.mesh.material_ids, i)
         {
 			int id = s.mesh.material_ids[i];
@@ -61,20 +61,20 @@ void Mesh::LoadMesh(std::vector<MeshPtr>& meshes, const std::vector<tinyobj::sha
 			{
 				if (matID != -1) 
 				{
-					mesh->materials.emplace_back(materials[matID], startIndex, indexCount);
+					mesh->materials.emplace_back(materials[matID], startIndex, primitiveCount);
 				}
 				matID = id;
 				startIndex = i;
-				indexCount = 1;
+				primitiveCount = 1;
 			}
 			else
 			{
-				indexCount += 1;
+				primitiveCount += 1;
 			}
         }
 		if (matID != -1)
 		{
-			mesh->materials.emplace_back(materials[matID], startIndex, indexCount);
+			mesh->materials.emplace_back(materials[matID], startIndex, primitiveCount);
 		}
             
         meshes.push_back(mesh);

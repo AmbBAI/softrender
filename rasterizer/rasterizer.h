@@ -24,6 +24,24 @@ namespace rasterizer
 
 struct RenderState
 {
+	bool alphaBlend = false;
+	enum BlendFactor
+	{
+		BlendFactor_One,
+		BlendFactor_Zero,
+		BlendFactor_SrcColor,
+		BlendFactor_SrcAlpha,
+		BlendFactor_DstColor,
+		BlendFactor_DstAlpha,
+		BlendFactor_OneMinusSrcColor,
+		BlendFactor_OneMinusSrcAlpha,
+		BlendFactor_OneMinusDstColor,
+		BlendFactor_OneMinusDstAlpha
+	};
+	BlendFactor srcFactor = BlendFactor_SrcAlpha;
+	BlendFactor dstFactor = BlendFactor_OneMinusSrcAlpha;
+	const Color Blend(const Color& src, const Color& dst) const;
+
 	enum ZTestType
 	{
 		ZTestType_Always = 0,
@@ -33,7 +51,8 @@ struct RenderState
 		ZTestType_GEqual,
 		ZTestType_Equal,
 		ZTestType_NotEqual
-	} ztest = ZTestType_LEqual;
+	};
+	ZTestType zTest = ZTestType_LEqual;
 	bool zWrite = true;
 
 	enum CullType
@@ -42,9 +61,7 @@ struct RenderState
 		CullType_Back,
 		CullType_Front,
 	} cull = CullType_Back;
-
-	bool ZTest(float zPixel, float zInBuffer);
-
+	bool ZTest(float zPixel, float zInBuffer) const;
 };
 
 struct RasterizerInfo
@@ -95,7 +112,7 @@ struct Rasterizer
 	static void SetMainLight(LightPtr light);
 	static void SetShader(ShaderBase* shader);
 	static void SetTransform(const Matrix4x4& transform);
-	static void Submit();
+	static void Submit(int startIndex = 0, int primitiveCount = 0);
 
 	static void DrawLine(int x0, int x1, int y0, int y1, const Color32& color);
 	template<typename DrawDataType>

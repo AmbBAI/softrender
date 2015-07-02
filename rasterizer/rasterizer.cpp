@@ -205,7 +205,7 @@ void Rasterizer::RasterizerTriangle(
 	}
 }
 
-void Rasterizer::Submit()
+void Rasterizer::Submit(int startIndex/* = 0*/, int primitiveCount/* = 0*/)
 {
 	assert(canvas != nullptr);
 	assert(camera != nullptr);
@@ -238,8 +238,8 @@ void Rasterizer::Submit()
 	varyingDataBuffer.InitDynamicVaryingData();
 	varyingDataBuffer.InitPixelVaryingData();
 
-	int primitiveCount = renderData.GetPrimitiveCount();
-	for (int i = 0; i < primitiveCount; ++i)
+	if (primitiveCount <= 0) primitiveCount = renderData.GetPrimitiveCount() - startIndex;
+	for (int i = startIndex; i < primitiveCount; ++i)
 	{
 		Triangle<u16> triangleIdx;
 		if (!renderData.GetTrianglePrimitive(i, triangleIdx))
@@ -345,31 +345,35 @@ void Rasterizer::Rasterizer2x2RenderFunc(const Triangle<VertexVaryingData>& data
 		int y = quad.y + quadY[i];
 
 		if (!renderState.ZTest(quad.depth[i], canvas->GetDepth(x, y))) continue;
-		if (renderState.zWrite) canvas->SetDepth(x, y, quad.depth[i]);
 
 		shader->pixelVaryingData = &pixelVaryingDataQuad[i];
+		shader->isClipped = false;
 		Color color = shader->_PSMain();
-		canvas->SetPixel(x, y, color);
+		if (!shader->isClipped)
+		{
+			canvas->SetPixel(x, y, color);
+			if (renderState.zWrite) canvas->SetDepth(x, y, quad.depth[i]);
+		}
 	}
 }
 
-bool RenderState::ZTest(float zPixel, float zInBuffer)
+bool RenderState::ZTest(float zPixel, float zInBuffer) const
 {
-	switch (ztest)
+	switch (zTest)
 	{
-	case rasterizer::RenderState::ZTestType_Always:
+	case RenderState::ZTestType_Always:
 		return true;
-	case rasterizer::RenderState::ZTestType_Less:
+	case RenderState::ZTestType_Less:
 		return zPixel < zInBuffer;
-	case rasterizer::RenderState::ZTestType_Greater:
+	case RenderState::ZTestType_Greater:
 		return zPixel > zInBuffer;
-	case rasterizer::RenderState::ZTestType_LEqual:
+	case RenderState::ZTestType_LEqual:
 		return zPixel <= zInBuffer;
-	case rasterizer::RenderState::ZTestType_GEqual:
+	case RenderState::ZTestType_GEqual:
 		return zPixel >= zInBuffer;
-	case rasterizer::RenderState::ZTestType_Equal:
+	case RenderState::ZTestType_Equal:
 		return zPixel == zInBuffer;
-	case rasterizer::RenderState::ZTestType_NotEqual:
+	case RenderState::ZTestType_NotEqual:
 		return zPixel != zInBuffer;
 	default:
 		break;
