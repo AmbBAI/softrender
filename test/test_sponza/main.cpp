@@ -26,8 +26,8 @@ struct MeshWrapper
 
 void LoadSponzaMesh(std::vector<MeshPtr>& mesh, Transform& trans)
 {
-	//Mesh::LoadMesh(mesh, "resources/crytek-sponza/sponza.obj");
-	Mesh::LoadMesh(mesh, "resources/teapot/teapot.obj");
+	Mesh::LoadMesh(mesh, "resources/crytek-sponza/sponza.obj");
+	//Mesh::LoadMesh(mesh, "resources/teapot/teapot.obj");
 	trans.position = Vector3(0, 0, 0);
 	trans.rotation = Vector3(0, 0, 0);
 	trans.scale = Vector3(1, 1, 1);
@@ -102,12 +102,12 @@ struct ShaderStand : Shader<Vertex, VaryingData>
 		Color fragColor = Color::white;
 		if (mainTex != nullptr) fragColor = Tex2D(mainTex, input.texCoord, ddx, ddy);
 
-		Matrix4x4 tbn = TangentSpaceRotation(input.tangent, input.bitangent, input.normal);
 		Vector3 normal = input.normal;
-		if (normalTex != nullptr) normal = UnpackNormal(Tex2D(normalTex, input.texCoord, ddx, ddy), tbn);
-
-		float spec = 1.f;
-		if (specularTex != nullptr) spec = Tex2D(specularTex, input.texCoord).r;
+		if (normalTex != nullptr)
+		{
+			Matrix4x4 tbn = TangentSpaceRotation(input.tangent, input.bitangent, input.normal);
+			normal = UnpackNormal(Tex2D(normalTex, input.texCoord, ddx, ddy), tbn);
+		}
 
 		Vector3 lightDir;
 		ColorRGB lightColor;
@@ -116,14 +116,23 @@ struct ShaderStand : Shader<Vertex, VaryingData>
 		{
 			LightInput lightInput;
 			lightInput.ambient = fragColor;
-			lightInput.ambient.rgb *= 0.1f;
+			lightInput.ambient.rgb *= 0.2f;
 			lightInput.diffuse = fragColor;
-			lightInput.diffuse.rgb *= 0.9f;
-			lightInput.specular = Color::white;
-			lightInput.shininess = shininess * spec;
+			//lightInput.diffuse.rgb *= 0.9f;
 
-			Vector3 viewDir = (_WorldSpaceCameraPos - input.worldPos).Normalize();
-			fragColor.rgb = ShaderF::LightingBlinnPhong(lightInput, normal, lightDir, lightColor, viewDir, lightAtten);
+			if (specularTex != nullptr)
+			{
+				Color specColor = Tex2D(specularTex, input.texCoord);
+				lightInput.specular = specColor;
+				lightInput.shininess = shininess;
+
+				Vector3 viewDir = (_WorldSpaceCameraPos - input.worldPos).Normalize();
+				fragColor.rgb = ShaderF::LightingPhong(lightInput, normal, lightDir, lightColor, viewDir, lightAtten);
+			}
+			else
+			{
+				fragColor.rgb = ShaderF::LightingLambert(lightInput, normal, lightDir, lightColor, lightAtten);
+			}
 		}
 		return fragColor;
 	}
@@ -135,9 +144,11 @@ struct ShaderWithAlphaTest : ShaderStand
 
 	Color frag(const VaryingData& input) override
 	{
-		float alpha = 1.f;
-		if (alphaMaskTex != nullptr) Tex2D(alphaMaskTex, input.texCoord).r;
-		if (Clip(alpha - 0.2f)) return Color::white;
+		if (alphaMaskTex != nullptr)
+		{
+			float alpha = Tex2D(alphaMaskTex, input.texCoord).r;
+			if (Clip(alpha - 0.2f)) return Color::white;
+		}
 
 		return ShaderStand::frag(input);
 	}
@@ -166,16 +177,16 @@ void MainLoop()
 		camera->SetLookAt(cameraTrans);
 		Rasterizer::camera = camera;
 
-		//Rasterizer::light = std::make_shared<Light>();
-		Rasterizer::light = LightPtr(new Light());
-		Rasterizer::light->type = Light::LightType_Directional;
-		Rasterizer::light->position = Vector3(0, 300, 0);
-		Rasterizer::light->direction = Vector3(-1.f, -1.f, -1.f).Normalize();
-		Rasterizer::light->range = 1000.f;
-		Rasterizer::light->atten0 = 2.f;
-		Rasterizer::light->atten1 = 2.f;
-		Rasterizer::light->atten2 = 1.f;
-		Rasterizer::light->Initilize();
+		LightPtr light = LightPtr(new Light());
+		light->type = Light::LightType_Directional;
+		light->position = Vector3(0, 300, 0);
+		light->direction = Vector3(-1.f, -1.f, -1.f).Normalize();
+		light->range = 1000.f;
+		light->atten0 = 2.f;
+		light->atten1 = 2.f;
+		light->atten2 = 1.f;
+		light->Initilize();
+		Rasterizer::light = light;
 
 		shader.varyingDataDecl = VaryingData::GetLayout();
 		shader.varyingDataSize = sizeof(VaryingData);
@@ -187,7 +198,7 @@ void MainLoop()
 		for (auto mesh : meshes)
 		{
 			MeshWrapper<Vertex> meshWapper;
-			for (int i = 0; i < mesh->vertices.size(); ++i)
+			for (int i = 0; i < (int)mesh->vertices.size(); ++i)
 			{
 				Vertex vertex = {
 					mesh->vertices[i],
@@ -198,7 +209,7 @@ void MainLoop()
 				meshWapper.vertices.push_back(vertex);
 			}
 
-			for (int i = 0; i < mesh->indices.size(); ++i)
+			for (int i = 0; i < (int)mesh->indices.size(); ++i)
 			{
 				meshWapper.indices.push_back(mesh->indices[i]);
 			}
