@@ -15,9 +15,12 @@ struct ColorRGB
 
 	ColorRGB() = default;
 	ColorRGB(float _r, float _g, float _b)
-		: r(Mathf::Clamp01(_r))
-		, g(Mathf::Clamp01(_g))
-		, b(Mathf::Clamp01(_b)) {}
+		: r(_r), g(_g), b(_b) {}
+		//: r(Mathf::Clamp01(_r))
+		//, g(Mathf::Clamp01(_g))
+		//, b(Mathf::Clamp01(_b)) {}
+	ColorRGB(const Vector3& rgb)
+		: ColorRGB(rgb.x, rgb.y, rgb.z) {}
 
 	inline const ColorRGB operator +(const ColorRGB& color) const;
 	inline const ColorRGB operator +=(const ColorRGB& color);
@@ -25,6 +28,8 @@ struct ColorRGB
 	inline const ColorRGB operator *(const ColorRGB& color) const;
 	inline const ColorRGB operator *=(float f);
 	inline const ColorRGB operator *=(const ColorRGB& color);
+
+	inline operator Vector3() const;
 };
 
 struct Color32;

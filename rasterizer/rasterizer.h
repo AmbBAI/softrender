@@ -22,109 +22,6 @@
 namespace rasterizer
 {
 
-/*
-struct Pixel
-{
-    Vector3 position;
-	Vector2 texcoord;
-	Vector3 normal;
-	Vector3 tangent;
-	Vector3 bitangent;
-
-    Pixel() = default;
-	Pixel(
-		const Vertex& v0,
-		const Vertex& v1,
-		const Vertex& v2,
-		float x, float y, float z)
-	{
-        position = TriInterp(v0.position, v1.position, v2.position, x, y, z);
-		texcoord = TriInterp(v0.texcoord, v1.texcoord, v2.texcoord, x, y, z);
-		normal = TriInterp(v0.normal, v1.normal, v2.normal, x, y, z);
-		tangent = TriInterp(v0.tangent, v1.tangent, v2.tangent, x, y, z);
-		bitangent = TriInterp(v0.bitangent, v1.bitangent, v2.bitangent, x, y, z);
-	}
-};
-
-struct PS : shader::Shader<Vertex, VertexOutData>
-{
-	Vector2 ddx, ddy;
-
-	const float calcLOD(u32 width, u32 height) const
-	{
-		Vector2 dx = ddx * (float)width;
-		Vector2 dy = ddy * (float)height;
-		float d = Mathf::Max(dx.Dot(dx), dy.Dot(dy));
-		return 0.5f * Mathf::Log2(d);
-	}
-
-	const float clacTexLod(TexturePtr tex) const
-	{
-		u32 width = tex->GetWidth();
-		u32 height = tex->GetHeight();
-		return calcLOD(width, height);
-	}
-
-	const Color psMain() override
-	{
-		shader::LightInput lightInput;
-		lightInput.ambient = material->ambient;
-		lightInput.diffuse = material->diffuse;
-		lightInput.specular = material->specular;
-		lightInput.shininess = material->shininess;
-
-		if (material && material->diffuseTexture)
-		{
-
-			float lod = clacTexLod(material->diffuseTexture);
-			Color texColor = material->diffuseTexture->Sample(input.texcoord.x, input.texcoord.y, lod);
-			lightInput.ambient = lightInput.ambient.Modulate(texColor);
-			lightInput.diffuse = lightInput.diffuse.Modulate(texColor);
-		}
-
-		Vector3 normal = input.normal;
-		if (material && material->normalTexture)
-		{
-			Vector3 tangent = input.tangent;
-			Vector3 bitangent = input.bitangent;
-			Matrix4x4 tbn = Matrix4x4::TBN(tangent, bitangent, normal);
-
-			float lod = clacTexLod(material->normalTexture);
-			Color normalColor = material->normalTexture->Sample(input.texcoord.x, input.texcoord.y, lod);
-			normal = Vector3(normalColor.r * 2 - 1, normalColor.g * 2 - 1, normalColor.b * 2 - 1);
-
-			normal = tbn.MultiplyVector(normal).Normalize();
-		}
-
-		if (material && material->specularTexture)
-		{
-			lightInput.specular = material->specularTexture->Sample(input.texcoord.x, input.texcoord.y);
-		}
-
-		Color output;
-		//output.r = (normal.x + 1.f) * 0.5f;
-		//output.g = (normal.y + 1.f) * 0.5f;
-		//output.b = (normal.z + 1.f) * 0.5f;
-
-		shader::CalcLight(lightInput, Rasterizer::light, shader::LightingBlinnPhong, input.position, normal);
-
-		if (material && material->isTransparent)
-		{
-			output.a = material->alpha;
-
-			if (material->alphaMaskTexture)
-			{
-				Color alpha = material->alphaMaskTexture->Sample(input.texcoord.x, input.texcoord.y);
-				output.a = output.a * (1.f - alpha.b);
-			}
-		}
-		else output.a = 1.f;
-
-		return output;
-	}
-};
-*/
-
 struct RenderState
 {
 	enum ZTestType
@@ -205,9 +102,6 @@ struct Rasterizer
 	static void RasterizerTriangle(Triangle<Projection> projection, Render2x2Func<DrawDataType> renderFunc, const DrawDataType& renderData);
 
 	static void Rasterizer2x2RenderFunc(const Triangle<VertexVaryingData>& data,  const Rasterizer2x2Info& info);
-
-	static void PrepareRender();
-	static void Render();
 };
 
 }

@@ -30,8 +30,8 @@ struct Light
     float atten1 = 0.f;
     float atten2 = 1.f;
     float falloff = 1.f;
-    float theta = 60.f;
-    float phi = 30.f;
+    float theta = 30.f;
+    float phi = 45.f;
     
     float cosHalfTheta;
     float cosHalfPhi;
@@ -48,7 +48,7 @@ struct Light
 
 	float CalcAttenuation(float distance) const
 	{
-		return 1.f / (atten0 + atten1 * distance + atten2 * distance * distance);
+		return range / (atten0 + atten1 * distance + atten2 * distance * distance);
 	}
 
 	float CalcSpotlightFactor(const Vector3& lightDir) const

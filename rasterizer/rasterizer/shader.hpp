@@ -19,14 +19,14 @@ struct LightInput
 
 struct ShaderBase
 {
-	RenderData* renderData;
-
+	LightPtr light;
 	std::vector<VaryingDataLayout> varyingDataDecl;
 	int varyingDataSize;
 
 	VertexVaryingData* vertexVaryingData = nullptr;
 	PixelVaryingData* pixelVaryingData = nullptr;
 
+	//uniform
 	Matrix4x4 _MATRIX_MVP;
 	Matrix4x4 _MATRIX_MV;
 	Matrix4x4 _MATRIX_V;
@@ -34,8 +34,22 @@ struct ShaderBase
 	Matrix4x4 _MATRIX_VP;
 	Matrix4x4 _Object2World;
 	Matrix4x4 _World2Object;
+
+	// uniform camera
 	Vector3 _WorldSpaceCameraPos;
-	Vector3 _lightPosition;
+	Vector4 _ScreenParams;
+	Vector3 _ZBufferParams;
+
+	// light
+	Vector3 _LightDir;
+	Vector3 _LightColor;
+	float _LightAtten;
+
+	// uniform time
+	//Vector4 _Time;
+	//Vector4 _SinTime;
+	//Vector4 _CosTime;
+	//Vector4 _DeltaTime;
 
 	virtual void _VSMain(const void* input) = 0;
 	virtual Color _PSMain() = 0;
@@ -68,7 +82,7 @@ struct ShaderBase
 		return Tex2D(tex, uv, lod);
 	}
 
-	static const Matrix4x4 GetTangentSpace(const Vector3& tangent, const Vector3& binormal, const Vector3& normal)
+	static const Matrix4x4 TangentSpaceRotation(const Vector3& tangent, const Vector3& binormal, const Vector3& normal)
 	{
 		return Matrix4x4::TBN(tangent, binormal, normal);
 	}
@@ -77,6 +91,38 @@ struct ShaderBase
 	{
 		Vector3 normal = Vector3(color.r * 2.f - 1.f, color.g * 2.f - 1.f, color.b * 2.f - 1.f);
 		return tbn.MultiplyVector(normal).Normalize();
+	}
+
+	bool InitLightArgs(const Vector3& worldPos, Vector3& lightDir, ColorRGB& lightColor, float& lightAtten)
+	{
+		if (light == nullptr) return false;
+
+		lightDir = (light->direction.Negate()).Normalize();
+		lightAtten = 1.f;
+		float intensity = light->intensity;
+		switch (light->type) {
+		case Light::LightType_Directional:
+			break;
+		case Light::LightType_Point:
+			{
+				lightDir = light->position - worldPos;
+				float distance = lightDir.Length();
+				lightDir /= distance;
+				lightAtten = light->CalcAttenuation(distance);
+			}
+			break;
+		case Light::LightType_Spot:
+			{
+				lightDir = light->position - worldPos;
+				float distance = lightDir.Length();
+				lightDir /= distance;
+				lightAtten = light->CalcAttenuation(distance);
+				intensity *= light->CalcSpotlightFactor(lightDir);
+			}
+			break;
+		}
+		lightColor = light->color.rgb * intensity;
+		return true;
 	}
 };
 
@@ -121,53 +167,6 @@ struct Shader : ShaderBase
 	virtual Color frag(const VaryingDataType& input)
 	{
 		return Color::white;
-	}
-
-	Vector3 GetViewDir(const Vector3 position)
-	{
-		return (_WorldSpaceCameraPos - position).Normalize();
-	}
-
-	typedef Color(*LightFunc)(const LightInput& input, const Vector3& normal, const Vector3& lightDir, const Color& lightColor, const Vector3& viewDir, float attenuation);
-	Color CalcLight(const LightInput& input, const LightPtr& light, LightFunc lightFunc, const Vector3& position, const Vector3& normal)
-	{
-		if (light && lightFunc)
-		{
-			Vector3 lightDir = light->direction.Negate();
-			float attenuation = 1.f;
-			float intensity = light->intensity;
-			switch (light->type) {
-			case Light::LightType_Directional:
-				break;
-			case Light::LightType_Point:
-			{
-				lightDir = light->position - position;
-				float distance = lightDir.Length();
-				lightDir /= distance;
-				attenuation = light->range * light->CalcAttenuation(distance);
-			}
-			break;
-			case Light::LightType_Spot:
-			{
-				lightDir = light->position - position;
-				float distance = lightDir.Length();
-				lightDir /= distance;
-				attenuation = light->range * light->CalcAttenuation(distance);
-				intensity = intensity * light->CalcSpotlightFactor(lightDir);
-			}
-			break;
-			}
-			Color lightColor = light->color;
-			lightColor.rgb = lightColor.rgb * intensity;
-			Vector3 viewDir = GetViewDir(position);
-			return lightFunc(input, normal, lightDir, lightColor, viewDir, attenuation);
-		}
-		else
-		{
-			Color out = input.diffuse;
-			out.rgb += input.ambient.rgb;
-			return out;
-		}
 	}
 };
 

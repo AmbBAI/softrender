@@ -13,6 +13,10 @@ const ColorRGB ColorRGB::operator *(const ColorRGB& v) const { return ColorRGB(r
 const ColorRGB ColorRGB::operator *= (float f) { return (*this) = (*this) * f; }
 const ColorRGB ColorRGB::operator *= (const ColorRGB& v) { return (*this) = (*this) * v; }
 
+ColorRGB::operator Vector3() const
+{
+	return Vector3(r, g, b);
+}
 
 const Color Color::Add(const Color& c) const
 {

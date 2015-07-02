@@ -205,78 +205,6 @@ void Rasterizer::RasterizerTriangle(
 	}
 }
 
-void Rasterizer::PrepareRender()
-{
-	pixelDrawCount = 0;
-	triangleDrawCount = 0;
-}
-
-void Rasterizer::Render()
-{
-	/*
-	int i = 0;
-	int size = 0;
-
-	size = (int)renderData.renderList[0].size();
-//#pragma omp parallel for private(i)
-	for (i = 0; i < size; ++i)
-	{
-		auto& pixel = renderData.renderList[0][i];
-		if (pixel.depth <= canvas->GetDepth(pixel.x, pixel.y))
-		{
-			const auto& meshRef = renderData.meshes[pixel.meshIndex];
-			const auto& triangleRef = meshRef.triangles[pixel.triangleIndex];
-
-			PS ps;
-			ps.material = triangleRef.material;
-			ps.light = meshRef.light;
-			ps.camera = meshRef.camera;
-			ps.ddx = pixel.ddx;
-			ps.ddy = pixel.ddy;
-
-			Color color = ps.psMain(pixel.pixel);
-			canvas->SetPixel(pixel.x, pixel.y, color);
-			++pixelDrawCount;
-		}
-	}
-    
-    // transparent
-	auto& renderList = renderData.renderList[1];
-	std::vector<u32> indices(renderList.size(), 0);
-	for (u32 i = 0; i < indices.size(); ++i) indices[i] = i;
-	std::sort(indices.begin(), indices.end(), [&renderList](const u32& a, const u32& b)
-	{
-		return renderList[a].depth > renderList[b].depth;
-	});
-
-	size = (int)indices.size();
-	for (i = 0; i < size; ++i)
-	{
-		u32 blockID = indices[i];
-		auto& pixel = renderList[blockID];
-		if (pixel.depth < canvas->GetDepth(pixel.x, pixel.y))
-		{
-			const auto& meshRef = renderData.meshes[pixel.meshIndex];
-			const auto& triangleRef = meshRef.triangles[pixel.triangleIndex];
-
-			PS ps;
-			ps.material = triangleRef.material;
-			ps.light = meshRef.light;
-			ps.camera = meshRef.camera;
-			ps.ddx = pixel.ddx;
-			ps.ddy = pixel.ddy;
-			Color color = ps.psMain(pixel.pixel);
-			Color oc = canvas->GetPixel(pixel.x, pixel.y);
-			color = Color::Lerp(color, oc, color.a);
-			canvas->SetPixel(pixel.x, pixel.y, color);
-		}
-	}
-
-	printf("Pixel Draw Count %d\n", pixelDrawCount);
-	printf("Triangle Draw Count %d\n", triangleDrawCount);
-	*/
-}
-
 void Rasterizer::Submit()
 {
 	assert(canvas != nullptr);
@@ -294,6 +222,9 @@ void Rasterizer::Submit()
 	shader->_MATRIX_MVP = shader->_MATRIX_VP.Multiply(transform);
 
 	shader->_WorldSpaceCameraPos = camera->GetPosition();
+	shader->_ScreenParams = Vector4((float)width, (float)height, 1.f + 1.f / (float)width, 1.f + 1.f / (float)height);
+
+	shader->light = light;
 
 	u32 vertexCount = renderData.GetVertexCount();
 	varyingDataBuffer.InitVerticesVaryingData(vertexCount);

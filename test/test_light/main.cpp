@@ -26,7 +26,7 @@ struct VaryingData
 {
 	Vector4 position;
 	Vector3 normal;
-	Vector3 wpos;
+	Vector3 worldPos;
 
 	static std::vector<VaryingDataLayout> GetLayout()
 	{
@@ -54,22 +54,38 @@ struct TestShader : Shader<Vertex, VaryingData>
 	{
 		VaryingData output;
 		output.position = _MATRIX_MVP.MultiplyPoint(input.position);
-		output.normal = _Object2World.MultiplyVector(input.normal);
-		output.wpos = _Object2World.MultiplyPoint3x4(input.position);
+		output.normal = _Object2World.MultiplyVector(input.normal).Normalize();
+		output.worldPos = _Object2World.MultiplyPoint3x4(input.position);
 		return output;
 	}
 
 	Color frag(const VaryingData& input) override
 	{
 		LightInput lightInput;
-		lightInput.ambient = Color(1.f, 0.2f, 0.2f, 0.2f);
+		lightInput.ambient = Color(1.f, 0.18f, 0.04f, 0.18f);
 		lightInput.diffuse = Color(1.f, 0.9f, 0.2f, 0.9f);
 		lightInput.specular = Color::white;
 		lightInput.shininess = 10.f;
 
-		Vector3 viewDir = (_WorldSpaceCameraPos - input.wpos).Normalize();
+		Color fragColor;
 
-		return ShaderF::LightingBlinnPhong(lightInput, input.normal, lightDir, Color::white, viewDir, 1.f);
+		Vector3 lightDir;
+		ColorRGB lightColor;
+		float lightAtten;
+		if (InitLightArgs(input.worldPos, lightDir, lightColor, lightAtten))
+		{
+			Vector3 viewDir = (_WorldSpaceCameraPos - input.worldPos).Normalize();
+			fragColor.rgb = ShaderF::LightingPhong(lightInput, input.normal, lightDir, lightColor, viewDir, 1.f);
+		}
+		else
+		{
+			fragColor = Color(1.f, 0.f, 1.f, 1.f);
+			fragColor.rgb += lightInput.ambient.rgb;
+			fragColor.rgb += lightInput.diffuse.rgb;
+		}
+
+		//fragColor.rgb = (input.normal + Vector3::one) / 2.f;
+		return fragColor;
 	}
 };
 
@@ -99,6 +115,19 @@ void MainLoop()
 		camera->SetLookAt(cameraTrans);
 		Rasterizer::camera = camera;
 
+		auto light = LightPtr(new Light());
+		light->type = Light::LightType_Point;
+		light->position = Vector3(0.f, 0.5f, 0.f);
+		light->range = 1.f;
+		light->atten0 = 0.1f;
+		light->atten1 = 5.0f;
+		light->atten2 = 2.0f;
+		light->theta = 30.f;
+		light->phi = 45.f;
+		light->direction = Vector3(0.f, -1.f, 0.f).Normalize();
+		light->Initilize();
+		Rasterizer::light = light;
+
 		material = MaterialPtr(new Material());
 		material->diffuseTexture = Texture::LoadTexture("resources/cube/default.png");
 		material->diffuseTexture->GenerateMipmaps();
@@ -106,8 +135,9 @@ void MainLoop()
 		shader.Init();
 
 		std::vector<MeshPtr> meshes;
-		Mesh::LoadMesh(meshes, "resources/knot.obj");
-		//Mesh::LoadMesh(meshes, "resources/teapot/teapot.obj");
+		//Mesh::LoadMesh(meshes, "resources/knot.obj");
+		meshes.push_back(CreatePlane());
+		objectTrans.position.y = -0.5f;
 
 		vertices.clear();
 		indices.clear();
@@ -130,16 +160,12 @@ void MainLoop()
 
 	canvas->Clear();
 
-	Rasterizer::PrepareRender();
-
 	objectCtrl.MouseRotate(objectTrans, false);
 	Rasterizer::transform = objectTrans.GetMatrix();
 	Rasterizer::renderData.AssignVertexBuffer(vertices);
 	Rasterizer::renderData.AssignIndexBuffer(indices);
 	Rasterizer::SetShader(&shader);
 	Rasterizer::Submit();
-
-	Rasterizer::Render();
 
     canvas->Present();
 }

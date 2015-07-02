@@ -75,7 +75,7 @@ struct PlaneShader : Shader<Vertex, VaryingData>
 	{
 		Color color = Tex2D(mainTex, input.texCoord, ddx, ddy);
 
-		Matrix4x4 tbn = GetTangentSpace(input.tangent, input.bitangent, input.normal);
+		Matrix4x4 tbn = TangentSpaceRotation(input.tangent, input.bitangent, input.normal);
 		Vector3 normal = UnpackNormal(Tex2D(normalTex, input.texCoord, ddx, ddy), tbn);
 		
 		color.rgb *= Mathf::Max(0.f, lightDir.Dot(normal));
@@ -134,16 +134,12 @@ void MainLoop()
 
 	canvas->Clear();
 
-	Rasterizer::PrepareRender();
-
 	objectCtrl.MouseRotate(objectTrans, false);
 	Rasterizer::transform = objectTrans.GetMatrix();
 	Rasterizer::renderData.AssignVertexBuffer(vertices);
 	Rasterizer::renderData.AssignIndexBuffer(indices);
 	Rasterizer::SetShader(&shader);
 	Rasterizer::Submit();
-
-	Rasterizer::Render();
 
     canvas->Present();
 }
