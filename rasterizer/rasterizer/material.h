@@ -15,6 +15,7 @@ typedef std::shared_ptr<Material> MaterialPtr;
 
 struct Material
 {
+	std::string name;
     Color ambient = Color::black;
 	Color diffuse = Color::white;
 	Color specular = Color::white;

@@ -39,6 +39,8 @@ void Mesh::LoadMesh(std::vector<MeshPtr>& meshes, const std::vector<tinyobj::sha
         
         //MeshPtr mesh = std::make_shared<Mesh>();
 		MeshPtr mesh = MeshPtr(new Mesh());
+		mesh->name = s.name;
+
 		FOREACH_STEP(_p, i, 3) mesh->vertices.emplace_back(_p[i], _p[i + 1], _p[i + 2]);
 		FOREACH_STEP(_i, i, 1) mesh->indices.emplace_back(_i[i]);
 		FOREACH_STEP(_n, i, 3) mesh->normals.emplace_back(_n[i], _n[i + 1], _n[i + 2]);
@@ -56,7 +58,7 @@ void Mesh::LoadMesh(std::vector<MeshPtr>& meshes, const std::vector<tinyobj::sha
 		FOREACH(s.mesh.material_ids, i)
         {
 			int id = s.mesh.material_ids[i];
-            if (id < 0 || id >= (int) materials.size()) continue;
+			assert(id != -1);
 			if (matID != id)
 			{
 				if (matID != -1) 
@@ -76,7 +78,7 @@ void Mesh::LoadMesh(std::vector<MeshPtr>& meshes, const std::vector<tinyobj::sha
 		{
 			mesh->materials.emplace_back(materials[matID], startIndex, primitiveCount);
 		}
-            
+        
         meshes.push_back(mesh);
     }
 }

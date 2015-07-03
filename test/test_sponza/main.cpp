@@ -19,6 +19,7 @@ int main(int argc, char *argv[])
 template<typename Type>
 struct MeshWrapper
 {
+	std::string name;
 	std::vector<Type> vertices;
 	std::vector<u16> indices;
 	std::vector<std::tuple<MaterialPtr, int, int> > materials;
@@ -172,8 +173,9 @@ void MainLoop()
         Rasterizer::canvas = canvas;
 
 		auto camera = CameraPtr(new Camera());
-		camera->SetPerspective(60.f, 1.33333f, 0.3f, 2000.f);
-		cameraTrans.position = Vector3(0.f, 0.f, 2.f);
+		camera->SetPerspective(60.f, 1.33333f, 0.3f, 4000.f);
+		cameraTrans.position = Vector3(800.f, 400.f, 0.f);
+		cameraTrans.rotation = Quaternion(Vector3(0.f, 90.f, 0.f));
 		camera->SetLookAt(cameraTrans);
 		Rasterizer::camera = camera;
 
@@ -198,6 +200,8 @@ void MainLoop()
 		for (auto mesh : meshes)
 		{
 			MeshWrapper<Vertex> meshWapper;
+			meshWapper.name = mesh->name;
+
 			for (int i = 0; i < (int)mesh->vertices.size(); ++i)
 			{
 				Vertex vertex = {
@@ -215,6 +219,7 @@ void MainLoop()
 			}
 
 			meshWapper.materials = mesh->materials;
+
 			meshData.push_back(meshWapper);
 		}
 
@@ -248,6 +253,8 @@ void MainLoop()
 
 			Rasterizer::Submit(startIndex, primitiveCount);
 		}
+
+
 	}
 
     canvas->Present();

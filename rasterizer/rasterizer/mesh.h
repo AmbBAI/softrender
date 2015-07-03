@@ -26,6 +26,7 @@ struct Mesh
 	void CalculateTangents();
 	int GetVertexCount() { return (int)vertices.size(); }
 
+	std::string name;
 	std::vector<Vector3> vertices;
 	std::vector<u32> indices;
 	std::vector<Color> colors;

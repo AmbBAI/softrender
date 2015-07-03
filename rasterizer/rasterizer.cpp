@@ -239,10 +239,11 @@ void Rasterizer::Submit(int startIndex/* = 0*/, int primitiveCount/* = 0*/)
 	varyingDataBuffer.InitPixelVaryingData();
 
 	if (primitiveCount <= 0) primitiveCount = renderData.GetPrimitiveCount() - startIndex;
-	for (int i = startIndex; i < primitiveCount; ++i)
+	for (int i = 0; i < primitiveCount; ++i)
 	{
+		int primitiveIndex = i + startIndex;
 		Triangle<u16> triangleIdx;
-		if (!renderData.GetTrianglePrimitive(i, triangleIdx))
+		if (!renderData.GetTrianglePrimitive(primitiveIndex, triangleIdx))
 		{
 			assert(false);
 			continue;
@@ -285,9 +286,9 @@ void Rasterizer::Submit(int startIndex/* = 0*/, int primitiveCount/* = 0*/)
 			varyingDataBuffer.ResetPixelVaryingData();
 			RasterizerTriangle<decltype(triangle)>(projection, Rasterizer2x2RenderFunc, triangle);
 		}
-		
 
-		/* draw wireframe
+
+		/* // draw wireframe
 		std::vector<Line<VertexVaryingData> > lines;
 		auto l1 = Clipper::ClipLine(v0, v1);
 		lines.insert(lines.end(), l1.begin(), l1.end());
