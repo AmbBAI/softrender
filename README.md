@@ -7,7 +7,7 @@ Make solution file with [premake](http://premake.github.io/)
 `premake5 vs2013` for Windows VS2013  
 Copy `FreeImage.dll` and `glew32.dll` to your workspace
   
-`./premake4 xcode3` for MacOSX XCode  
+`./premake5 xcode4` for MacOSX XCode  
   
 [Resources Download](http://graphics.cs.williams.edu/data/meshes.xml)
   
