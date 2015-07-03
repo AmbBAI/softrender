@@ -117,7 +117,7 @@ void* Buffer::operator[](int idx)
 
 	int page = 0;
 	int blockOffset = 0;
-	while (idx > blockPrePage) {
+	while (idx >= blockPrePage) {
 		idx -= blockPrePage;
 		++page;
 	}
