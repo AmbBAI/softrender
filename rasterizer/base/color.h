@@ -4,6 +4,7 @@
 #include "header.h"
 #include "math/mathf.h"
 #include "math/vector3.h"
+#include "math/vector4.h"
 
 namespace rasterizer
 {
@@ -14,9 +15,12 @@ struct ColorRGB
 
 	ColorRGB() = default;
 	ColorRGB(float _r, float _g, float _b)
-		: r(Mathf::Clamp01(_r))
-		, g(Mathf::Clamp01(_g))
-		, b(Mathf::Clamp01(_b)) {}
+		: r(_r), g(_g), b(_b) {}
+		//: r(Mathf::Clamp01(_r))
+		//, g(Mathf::Clamp01(_g))
+		//, b(Mathf::Clamp01(_b)) {}
+	ColorRGB(const Vector3& rgb)
+		: ColorRGB(rgb.x, rgb.y, rgb.z) {}
 
 	inline const ColorRGB operator +(const ColorRGB& color) const;
 	inline const ColorRGB operator +=(const ColorRGB& color);
@@ -24,6 +28,8 @@ struct ColorRGB
 	inline const ColorRGB operator *(const ColorRGB& color) const;
 	inline const ColorRGB operator *=(float f);
 	inline const ColorRGB operator *=(const ColorRGB& color);
+
+	inline operator Vector3() const;
 };
 
 struct Color32;
@@ -58,6 +64,9 @@ struct Color
     {}
 #endif
     
+	Color(const Vector4& rgba)
+		: Color(rgba.w, rgba.x, rgba.y, rgba.z) {}
+
 #if _MATH_SIMD_INTRINSIC_
     Color(__m128 _m)
         : m(_m)
@@ -73,6 +82,7 @@ struct Color
 	static inline const Color Lerp(const Color& a, const Color& b, const Color& c, const Color& d, float t1, float t2);
 
 	inline operator Color32() const;
+	inline operator Vector4() const;
 
 	static const Color white;
 	static const Color black;

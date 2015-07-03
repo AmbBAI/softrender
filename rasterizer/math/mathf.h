@@ -31,6 +31,17 @@ public:
 	static inline int RoundToInt(float f);
 
 	static inline float Lerp(float a, float b, float t);
+	template<typename Type>
+	static Type LinearInterp(const Type& v0, const Type& v1, float t)
+	{
+		return v0 * (1.f - t) + v1 * t;
+	}
+
+	template<typename Type>
+	static Type TriangleInterp(const Type& v0, const Type& v1, const Type& v2, float x, float y, float z)
+	{
+		return v0 * x + v1 * y + v2 * z;
+	}
 
 	template<class T>
 	static inline T Clamp(T value, T min, T max);

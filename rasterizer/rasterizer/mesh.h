@@ -24,13 +24,16 @@ struct Mesh
 
 	void RecalculateNormals();
 	void CalculateTangents();
+	int GetVertexCount() { return (int)vertices.size(); }
 
+	std::string name;
 	std::vector<Vector3> vertices;
 	std::vector<u32> indices;
+	std::vector<Color> colors;
 	std::vector<Vector3> normals;
 	std::vector<Vector4> tangents;
 	std::vector<Vector2> texcoords;
-	std::vector<MaterialPtr> materials;
+	std::vector<std::tuple<MaterialPtr, int, int> > materials;
 };
 
 }

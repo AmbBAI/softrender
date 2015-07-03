@@ -3,6 +3,7 @@
 
 #include "base/header.h"
 #include "math/vector3.h"
+#include "math/transform.h"
 #include "math/matrix4x4.h"
 
 namespace rasterizer
@@ -15,6 +16,7 @@ struct Camera
 {
 public:
 	void SetLookAt(const Vector3& eye, const Vector3& target, const Vector3& up);
+	void SetLookAt(const Transform& trans);
 	const Matrix4x4* GetViewMatrix() const;
 
 	bool SetPerspective(float fov, float aspect, float zNear, float zFar);

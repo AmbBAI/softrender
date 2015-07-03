@@ -11,84 +11,172 @@ namespace rasterizer
 
 struct LightInput
 {
-    Color ambient;
-    Color diffuse;
-    Color specular;
+	Color ambient;
+	Color diffuse;
+	Color specular;
 	float shininess;
 };
 
-   
-template<typename VertexType>
-struct VertexShader
+struct ShaderBase
 {
-	virtual void vsMain(VertexType& out) = 0;
+	std::vector<VaryingDataLayout> varyingDataDecl;
+	int varyingDataSize;
+
+	VertexVaryingData* vertexVaryingData = nullptr;
+	PixelVaryingData* pixelVaryingData = nullptr;
+
+	LightPtr light;
+	bool isClipped;
+
+	//uniform
+	Matrix4x4 _MATRIX_MVP;
+	Matrix4x4 _MATRIX_MV;
+	Matrix4x4 _MATRIX_V;
+	Matrix4x4 _MATRIX_P;
+	Matrix4x4 _MATRIX_VP;
+	Matrix4x4 _Object2World;
+	Matrix4x4 _World2Object;
+
+	// uniform camera
+	Vector3 _WorldSpaceCameraPos;
+	Vector4 _ScreenParams;
+	Vector3 _ZBufferParams;
+
+	// light
+	Vector3 _LightDir;
+	Vector3 _LightColor;
+	float _LightAtten;
+
+	// uniform time
+	//Vector4 _Time;
+	//Vector4 _SinTime;
+	//Vector4 _CosTime;
+	//Vector4 _DeltaTime;
+
+	virtual void _VSMain(const void* input) = 0;
+	virtual Color _PSMain() = 0;
+	virtual void _PassQuad(const Quad<PixelVaryingData>& quadVaryingData) {}
+
+	template<typename Type>
+	static float CalcLod(const Type& ddx, const Type& ddy)
+	{
+		float delta = Mathf::Max(Type::Dot(ddx, ddx), Type::Dot(ddy, ddy));
+		return Mathf::Max(0.f, 0.5f * Mathf::Log2(delta));
+	}
+
+	static Color Tex2D(TexturePtr& tex, const Vector2& uv)
+	{
+		return Tex2D(tex, uv, 0.f);
+	}
+
+	static Color Tex2D(TexturePtr& tex, const Vector2& uv, float lod)
+	{
+		if (tex == nullptr) return Color::white;
+		return tex->Sample(uv.x, uv.y, lod);
+	}
+
+	static Color Tex2D(TexturePtr& tex, const Vector2& uv, const Vector2& ddx, const Vector2& ddy)
+	{
+		if (tex == nullptr) return Color::white;
+		float width = (float)tex->GetWidth();
+		float height = (float)tex->GetHeight();
+		float lod = CalcLod(ddx * width, ddy * height);
+		return Tex2D(tex, uv, lod);
+	}
+
+	static const Matrix4x4 TangentSpaceRotation(const Vector3& tangent, const Vector3& binormal, const Vector3& normal)
+	{
+		return Matrix4x4::TBN(tangent, binormal, normal);
+	}
+
+	static const Vector3 UnpackNormal(const Color& color, const Matrix4x4& tbn)
+	{
+		Vector3 normal = Vector3(color.r * 2.f - 1.f, color.g * 2.f - 1.f, color.b * 2.f - 1.f);
+		return tbn.MultiplyVector(normal).Normalize();
+	}
+
+	bool Clip(float x)
+	{
+		return isClipped = (x < 0.f);
+	}
+
+	bool InitLightArgs(const Vector3& worldPos, Vector3& lightDir, ColorRGB& lightColor, float& lightAtten)
+	{
+		if (light == nullptr) return false;
+
+		lightDir = (light->direction.Negate()).Normalize();
+		lightAtten = 1.f;
+		float intensity = light->intensity;
+		switch (light->type) {
+		case Light::LightType_Directional:
+			break;
+		case Light::LightType_Point:
+			{
+				lightDir = light->position - worldPos;
+				float distance = lightDir.Length();
+				lightDir /= distance;
+				lightAtten = light->CalcAttenuation(distance);
+			}
+			break;
+		case Light::LightType_Spot:
+			{
+				lightDir = light->position - worldPos;
+				float distance = lightDir.Length();
+				lightDir /= distance;
+				lightAtten = light->CalcAttenuation(distance);
+				intensity *= light->CalcSpotlightFactor(lightDir);
+			}
+			break;
+		}
+		lightColor = light->color.rgb * intensity;
+		return true;
+	}
 };
 
-template<typename PSInputType>
-struct PixelShader
+template <typename VSInputType, typename VaryingDataType>
+struct Shader : ShaderBase
 {
-	virtual const Color psMain(const PSInputType& input) = 0;
-
-	const Color LightingLambert(const LightInput& input, const Vector3& normal, const Vector3& lightDir, const Color& lightColor, float attenuation)
+	void _VSMain(const void* input) override
 	{
-		float nDotL = Mathf::Clamp01(normal.Dot(lightDir));
-		Color output;
-		output.rgb = input.ambient.rgb + input.diffuse.rgb * lightColor.rgb * (nDotL * attenuation * 2.f);
-		output.a = input.diffuse.a;
+		VSInputType* vertexInput = (VSInputType*)input;
+		*((VaryingDataType*)vertexVaryingData->data) = vert(*vertexInput);
+		auto decl = vertexVaryingData->varyingDataBuffer->GetVaryingDataDecl();
+		vertexVaryingData->position = *Buffer::Value<Vector4>(vertexVaryingData->data, decl.positionOffset);
+		vertexVaryingData->clipCode = Clipper::CalculateClipCode(vertexVaryingData->position);
+	}
+
+	void _PassQuad(const Quad<PixelVaryingData>& quadVaryingData) override
+	{
+		passQuad(Quad<VaryingDataType*> {
+				(VaryingDataType*)quadVaryingData[0].data,
+				(VaryingDataType*)quadVaryingData[1].data,
+				(VaryingDataType*)quadVaryingData[2].data,
+				(VaryingDataType*)quadVaryingData[3].data
+		});
+	}
+
+	Color _PSMain() override
+	{
+		return frag(*(VaryingDataType*)(pixelVaryingData->data));
+	}
+
+	virtual VaryingDataType vert(const VSInputType& input)
+	{
+		VaryingDataType output;
+		output.position = _MATRIX_MVP.MultiplyPoint(input.position);
 		return output;
 	}
 
-	const Color LightingHalfLambert(const LightInput& input, const Vector3& normal, const Vector3& lightDir, const Color& lightColor, float attenuation)
+	virtual void passQuad(const Quad<VaryingDataType*>& quad)
 	{
-		float nDotL = Mathf::Clamp01(normal.Dot(lightDir));
-		nDotL = nDotL * 0.8f + 0.2f;
-		Color output;
-		output.rgb = input.ambient.rgb + input.diffuse.rgb * lightColor.rgb * (nDotL * attenuation * 2.f);
-		output.a = input.diffuse.a;
-		return output;
 	}
 
-	const Color LightingBlinnPhong(const LightInput& input, const Vector3& normal, const Vector3& lightDir, const Color& lightColor, const Vector3& viewDir, float attenuation)
+	virtual Color frag(const VaryingDataType& input)
 	{
-		float lambertian = Mathf::Clamp01(normal.Dot(lightDir));
-		float specular = 0.f;
-
-		if (lambertian > 0.f)
-		{
-			Vector3 halfDir = (lightDir + viewDir).Normalize();
-			float specAngle = Mathf::Max(halfDir.Dot(normal), 0.f);
-			specular = Mathf::Pow(specAngle, input.shininess * 4.f);
-		}
-
-		Color output = Color::white;
-		output.rgb = input.ambient.rgb
-			+ (input.diffuse.rgb * lightColor.rgb * lambertian
-			+ input.specular.rgb * lightColor.rgb * specular) * attenuation;
-		output.a = input.diffuse.a;
-		return output;
-	}
-
-	const Color LightingPhong(const LightInput& input, const Vector3& normal, const Vector3& lightDir, const Color& lightColor, const Vector3& viewDir, float attenuation)
-	{
-		float lambertian = Mathf::Clamp01(normal.Dot(lightDir));
-		float specular = 0.f;
-
-		if (lambertian > 0.f)
-		{
-			Vector3 reflectDir = (normal * normal.Dot(lightDir) * 2.f - lightDir).Normalize();
-			float specAngle = Mathf::Max(reflectDir.Dot(viewDir), 0.f);
-			specular = Mathf::Pow(specAngle, input.shininess);
-		}
-
-		Color output;
-		output.rgb = input.ambient.rgb
-			+ (input.diffuse.rgb * lightColor.rgb * lambertian
-			+ input.specular.rgb * lightColor.rgb * specular) * attenuation;
-		output.a = input.diffuse.a;
-		return output;
+		return Color::white;
 	}
 };
 
-}
+} // namespace rasterizer
 
-#endif //! _RASTERIZER_SHADER_Hv_
+#endif //! _RASTERIZER_SHADER_H_

@@ -37,33 +37,48 @@ void Mesh::LoadMesh(std::vector<MeshPtr>& meshes, const std::vector<tinyobj::sha
         auto& _i = s.mesh.indices;
         auto& _tc = s.mesh.texcoords;
         
-        MeshPtr mesh(new Mesh());
-        for (int i = 0; i + 2 < (int)_p.size(); i += 3)
-        {
-            mesh->vertices.push_back(Vector3(_p[i], _p[i + 1], _p[i + 2]));
-        }
-        mesh->indices.assign(_i.begin(), _i.end());
-        for (int i = 0; i + 2 < (int)_n.size(); i += 3)
-        {
-            mesh->normals.push_back(Vector3(_n[i], _n[i + 1], _n[i + 2]));
-        }
-        for (int i = 0; i + 1 < (int)_tc.size(); i += 2)
-        {
-            mesh->texcoords.push_back(Vector2(_tc[i], _tc[i + 1]));
-        }
+        //MeshPtr mesh = std::make_shared<Mesh>();
+		MeshPtr mesh = MeshPtr(new Mesh());
+		mesh->name = s.name;
+
+		FOREACH_STEP(_p, i, 3) mesh->vertices.emplace_back(_p[i], _p[i + 1], _p[i + 2]);
+		FOREACH_STEP(_i, i, 1) mesh->indices.emplace_back(_i[i]);
+		FOREACH_STEP(_n, i, 3) mesh->normals.emplace_back(_n[i], _n[i + 1], _n[i + 2]);
+		FOREACH_STEP(_tc, i, 2) mesh->texcoords.emplace_back(_tc[i], _tc[i + 1]);
             
         if (mesh->normals.size() == mesh->vertices.size()
             && mesh->texcoords.size() == mesh->vertices.size())
         {
             mesh->CalculateTangents();
         }
-            
-        for (auto id : s.mesh.material_ids)
+
+		int matID = -1;
+		int startIndex = 0;
+		int primitiveCount = 0;
+		FOREACH(s.mesh.material_ids, i)
         {
-            if (id < 0 || id >= (int) materials.size()) continue;
-            mesh->materials.push_back(materials[id]);
+			int id = s.mesh.material_ids[i];
+			assert(id != -1);
+			if (matID != id)
+			{
+				if (matID != -1) 
+				{
+					mesh->materials.emplace_back(materials[matID], startIndex, primitiveCount);
+				}
+				matID = id;
+				startIndex = i;
+				primitiveCount = 1;
+			}
+			else
+			{
+				primitiveCount += 1;
+			}
         }
-            
+		if (matID != -1)
+		{
+			mesh->materials.emplace_back(materials[matID], startIndex, primitiveCount);
+		}
+        
         meshes.push_back(mesh);
     }
 }

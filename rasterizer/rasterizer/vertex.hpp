@@ -17,81 +17,120 @@ struct Projection
 	int y = 0;
 	float invW = 1.0f;
 
-	static Projection CalculateViewProjection(const Vector4& hc, u32 width, u32 height)
+	static Projection CalculateViewProjection(const Vector4& position, u32 width, u32 height)
 	{
-		float w = hc.w;
+		float w = position.w;
 		assert(w > 0.f);
 		float invW = 1.f / w;
 
 		Projection point;
-		point.x = Mathf::RoundToInt(((hc.x * invW) + 1.f) / 2.f * width);
-		point.y = Mathf::RoundToInt(((hc.y * invW) + 1.f) / 2.f * height);
+		point.x = Mathf::RoundToInt(((position.x * invW) + 1.f) / 2.f * width);
+		point.y = Mathf::RoundToInt(((position.y * invW) + 1.f) / 2.f * height);
 		point.invW = invW;
 		return point;
 	}
 };
 
-struct VertexBase
-{
-	u32 clipCode = 0x00;
-	Vector4 hc = Vector4();
-
-	virtual Projection GetViewProjection(u32 width, u32 height)
-	{
-		return Projection::CalculateViewProjection(hc, width, height);
-	}
-
-	static VertexBase Lerp(const VertexBase& a, const VertexBase& b, float t)
-	{
-		assert(0.f <= t && t <= 1.f);
-		VertexBase out;
-		out.hc = Vector4::Lerp(a.hc, b.hc, t);
-		out.clipCode = Clipper::CalculateClipCode(out.hc);
-		return out;
-	}
-};
-
-struct Vertex : VertexBase
-{
-    Vector3 position;
-	Vector3 normal;
-	Vector3 tangent;
-	Vector3 bitangent;
-	Vector2 texcoord;
-
-	static Vertex Lerp(const Vertex& a, const Vertex& b, float t)
-	{
-		assert(0.f <= t && t <= 1.f);
-		Vertex out;
-		*((VertexBase*)&out) = VertexBase::Lerp(a, b, t);
-        out.position = Vector3::Lerp(a.position, b.position, t);
-		out.normal = Vector3::Lerp(a.normal, b.normal, t);
-		out.tangent = Vector3::Lerp(a.tangent, b.tangent, t);
-		out.bitangent = Vector3::Lerp(a.bitangent, b.bitangent, t);
-		out.texcoord = Vector2::Lerp(a.texcoord, b.texcoord, t);
-		return out;
-	}
-};
-
-template <typename VertexType>
+template <typename Type>
 struct Line
 {
-	VertexType v0;
-	VertexType v1;
+	Type v0, v1;
 
 	Line() = default;
-	Line(const VertexType& _v0, const VertexType& _v1) : v0(_v0), v1(_v1) {}
+	Line(const Type& _v0, const Type& _v1)
+		: v0(_v0), v1(_v1) {}
+
+	const Type& operator[](int index) const
+	{
+		switch (index)
+		{
+		case 0: return v0;
+		case 1: return v1;
+		default:
+			throw std::out_of_range("Line Out of Rnage");
+		}
+	}
+
+	Type& operator[](int index)
+	{
+		switch (index)
+		{
+		case 0: return v0;
+		case 1: return v1;
+		default:
+			throw std::out_of_range("Line Out of Rnage");
+		}
+	}
 };
 
-template <typename VertexType>
+template <typename Type>
 struct Triangle
 {
-	VertexType v0;
-	VertexType v1;
-	VertexType v2;
+	Type v0, v1, v2;
 
 	Triangle() = default;
-	Triangle(const VertexType& _v0, const VertexType& _v1, const VertexType& _v2) : v0(_v0), v1(_v1), v2(_v2) {}
+	Triangle(const Type& _v0, const Type& _v1, const Type& _v2)
+		: v0(_v0), v1(_v1), v2(_v2) {}
+
+	const Type& operator[](int index) const
+	{
+		switch (index)
+		{
+		case 0: return v0;
+		case 1: return v1;
+		case 2: return v2;
+		default:
+			throw std::out_of_range("Triangle Out of Rnage");
+		}
+	}
+
+	Type& operator[](int index)
+	{
+		switch (index)
+		{
+		case 0: return v0;
+		case 1: return v1;
+		case 2: return v2;
+		default:
+			throw std::out_of_range("Triangle Out of Rnage");
+		}
+	}
+};
+
+template <typename Type>
+struct Quad
+{
+	Type v0, v1, v2, v3;
+
+	Quad() = default;
+	Quad(const Type& _v0, const Type& _v1, const Type& _v2, const Type& _v3)
+		: v0(_v0), v1(_v1), v2(_v2), v3(_v3) {}
+
+	const Type& operator[](int index) const
+	{
+		switch (index)
+		{
+		case 0: return v0;
+		case 1: return v1;
+		case 2: return v2;
+		case 3: return v3;
+		default:
+			throw std::out_of_range("Quad Out of Range");
+		}
+	}
+
+	Type& operator[](int index)
+	{
+		switch (index)
+		{
+		case 0: return v0;
+		case 1: return v1;
+		case 2: return v2;
+		case 3: return v3;
+		default:
+			throw std::out_of_range("Quad Out of Range");
+		}
+	}
 };
 
 }

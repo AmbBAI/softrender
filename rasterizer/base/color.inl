@@ -13,6 +13,10 @@ const ColorRGB ColorRGB::operator *(const ColorRGB& v) const { return ColorRGB(r
 const ColorRGB ColorRGB::operator *= (float f) { return (*this) = (*this) * f; }
 const ColorRGB ColorRGB::operator *= (const ColorRGB& v) { return (*this) = (*this) * v; }
 
+ColorRGB::operator Vector3() const
+{
+	return Vector3(r, g, b);
+}
 
 const Color Color::Add(const Color& c) const
 {
@@ -92,6 +96,11 @@ Color::operator Color32() const
 	color.b = (u8)(Mathf::Clamp01(b) * 255);
 #endif
     return color;
+}
+
+Color::operator Vector4() const
+{
+	return Vector4(r, g, b, a);
 }
 
 Color32::operator Color() const

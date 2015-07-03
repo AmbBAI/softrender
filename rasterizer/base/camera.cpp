@@ -12,6 +12,13 @@ void Camera::SetLookAt(const Vector3& eye, const Vector3& target, const Vector3&
 	viewMatrix = Matrix4x4::LookAt(eye, target, up);
 }
 
+void Camera::SetLookAt(const Transform& trans)
+{
+	rasterizer::Vector3 x, y, z;
+	trans.GetAxis(x, y, z);
+	SetLookAt(trans.position, trans.position + z, y);
+}
+
 const Matrix4x4* Camera::GetViewMatrix() const
 {
 	return &viewMatrix;

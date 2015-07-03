@@ -22,6 +22,9 @@ const Vector2 Vector2::Lerp(const Vector2& a, const Vector2& b, float t)
 	return Vector2(Mathf::Lerp(a.x, b.x, t), Mathf::Lerp(a.y, b.y, t));
 }
 
+const float Vector2::Dot(const Vector2& a, const Vector2& b) { return a.Dot(b); }
+//const Vector2 Vector2::Cross(const Vector2& a, const Vector2& b) { return a.Cross(b); }
+
 }
 
 #endif // !_MATH_VECTOR2_INLINE_
