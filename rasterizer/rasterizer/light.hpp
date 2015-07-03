@@ -58,7 +58,7 @@ struct Light
 		return factor;
 	}
 	
-#if _MATH_SIMD_INTRINSIC_ && defined(_MSC_VER)
+#if _NOCRASH_ && defined(_MSC_VER)
 	MEMALIGN_NEW_OPERATOR_OVERRIDE(16)
 	MEMALIGN_DELETE_OPERATOR_OVERRIDE
 #endif

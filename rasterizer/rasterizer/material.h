@@ -33,7 +33,7 @@ struct Material
 
     static void LoadMaterial(std::vector<MaterialPtr>& materials, const std::vector<tinyobj::material_t>& objMaterials, const char* fileDir);
     
-#if _MATH_SIMD_INTRINSIC_ && defined(_MSC_VER)
+#if _NOCRASH_ && defined(_MSC_VER)
 	MEMALIGN_NEW_OPERATOR_OVERRIDE(16)
 	MEMALIGN_DELETE_OPERATOR_OVERRIDE
 #endif

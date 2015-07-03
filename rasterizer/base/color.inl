@@ -25,7 +25,7 @@ const Color Color::Add(const Color& c) const
 
 const Color Color::Multiply(float s) const
 {
-#if _MATH_SIMD_INTRINSIC_
+#if _NOCRASH_
     return Color(_mm_mul_ps(m, _mm_set1_ps(s)));
 #else
 	return Color(a * s, r * s, g * s, b * s);
@@ -34,7 +34,7 @@ const Color Color::Multiply(float s) const
 
 const Color Color::Modulate(const Color& c) const
 {
-#if _MATH_SIMD_INTRINSIC_
+#if _NOCRASH_
     return Color(_mm_mul_ps(m, c.m));
 #else
 	return Color(a * c.a, r * c.r, g * c.g, b * c.b);
@@ -44,7 +44,7 @@ const Color Color::Modulate(const Color& c) const
 const Color Color::Lerp(const Color& a, const Color& b, float t)
 {
 	Color color;
-#if _MATH_SIMD_INTRINSIC_
+#if _NOCRASH_
 	static __m128 _ps1 = _mm_set1_ps(1.f);
 	__m128 t2 = _mm_set1_ps(t);
 	__m128 t1 = _mm_sub_ps(_ps1, t2);
@@ -61,7 +61,7 @@ const Color Color::Lerp(const Color& a, const Color& b, float t)
 
 const Color Color::Lerp(const Color& a, const Color& b, const Color& c, const Color& d, float t1, float t2)
 {
-#if _MATH_SIMD_INTRINSIC_
+#if _NOCRASH_
 	static __m128 _ps1 = _mm_set1_ps(1.f);
 	__m128 mt1 = _mm_set1_ps(t1);
 	__m128 mt2 = _mm_set1_ps(t2);
@@ -81,7 +81,7 @@ const Color Color::Lerp(const Color& a, const Color& b, const Color& c, const Co
 Color::operator Color32() const
 {
     Color32 color;
-#if _MATH_SIMD_INTRINSIC_
+#if _NOCRASH_
     static __m128 _ps255 = _mm_set1_ps(255.f);
     __m128 tmp = _mm_min_ps(_mm_set1_ps(1.f), _mm_max_ps(_mm_set1_ps(0.f), m));
     __m128i im = _mm_cvtps_epi32(_mm_mul_ps(tmp, _ps255));
@@ -106,7 +106,7 @@ Color::operator Vector4() const
 Color32::operator Color() const
 {
 	Color color;
-#if _MATH_SIMD_INTRINSIC_
+#if _NOCRASH_
     static __m128 _ps1div255 = _mm_set1_ps(1.f / 255.f);
 	__m128 m = _mm_cvtepi32_ps(_mm_cvtepu8_epi32(_mm_set1_epi32(rgba)));
     color.m = _mm_mul_ps(m, _ps1div255);

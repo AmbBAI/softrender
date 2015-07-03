@@ -46,14 +46,14 @@ struct Color
             };
             float a;
 		};
-#if _MATH_SIMD_INTRINSIC_
+#if _NOCRASH_
 		__m128 m;
 #endif
 	};
 	
 	Color() = default;
 	Color(float _a, float _r, float _g, float _b)
-#if _MATH_SIMD_INTRINSIC_
+#if _NOCRASH_
     : Color(_mm_setr_ps(_r, _g, _b, _a))
     {}
 #else
@@ -67,7 +67,7 @@ struct Color
 	Color(const Vector4& rgba)
 		: Color(rgba.w, rgba.x, rgba.y, rgba.z) {}
 
-#if _MATH_SIMD_INTRINSIC_
+#if _NOCRASH_
     Color(__m128 _m)
         : m(_m)
     {

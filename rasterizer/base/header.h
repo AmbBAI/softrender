@@ -28,7 +28,7 @@
 #if defined(_MSC_VER)
 #define SIMD_ALIGN __declspec(align(16))
 #define MEMALIGN_NEW_OPERATOR_OVERRIDE(align) \
-	void* operator new(size_t size) override { \
+	void* operator new(size_t size) { \
 		/*puts("override new");*/\
 		if (size == 0) size = 1; \
 		void* p = nullptr; \
@@ -40,7 +40,7 @@
 		return p; \
 	}
 #define MEMALIGN_DELETE_OPERATOR_OVERRIDE \
-	void operator delete(void* ptr) override { \
+	void operator delete(void* ptr) { \
 		/*puts("override delete");*/\
 		if (ptr) ::_aligned_free(ptr); \
 	}
