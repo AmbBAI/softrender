@@ -30,18 +30,31 @@ public:
 	static inline float Round(float f);
 	static inline int RoundToInt(float f);
 
-	static inline float Lerp(float a, float b, float t);
 	template<typename Type>
-	static Type LinearInterp(const Type& v0, const Type& v1, float t)
+	static inline const Type LinearInterp(const Type& a, const Type& b, float t)
 	{
-		return v0 * (1.f - t) + v1 * t;
+		return Type::LinearInterp(a, b, t);
+	}
+
+	template<> static inline const float LinearInterp<float>(const float& a, const float& b, float t)
+	{
+		return a * (1 - t) + b * t;
 	}
 
 	template<typename Type>
-	static Type TriangleInterp(const Type& v0, const Type& v1, const Type& v2, float x, float y, float z)
+	static inline const Type TriangleInterp(const Type& a, const Type& b, const Type& c, float t0, float t1, float t2)
 	{
-		return v0 * x + v1 * y + v2 * z;
+		return Type::TriangleInterp(a, b, c, t0, t1, t2);
 	}
+
+	template<> static inline const float TriangleInterp<float>(const float& a, const float& b, const float& c, float t0, float t1, float t2)
+	{
+		return a * t0 + b * t1 + c * t2;
+	}
+
+	static inline float Lerp(float a, float b, float t);
+	static inline float BLerp(float a, float b, float c, float d, float t0, float t1);
+	static inline float Terp(float a, float b, float c, float x, float y, float z);
 
 	template<class T>
 	static inline T Clamp(T value, T min, T max);

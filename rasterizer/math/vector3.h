@@ -41,9 +41,11 @@ struct Vector3
     inline const Vector3 operator *= (float f);
     inline const Vector3 operator /= (float f);
 
-	static inline const Vector3 Lerp(const Vector3& a, const Vector3& b, float t);
 	static inline const float Dot(const Vector3& a, const Vector3& b);
 	static inline const Vector3 Cross(const Vector3& a, const Vector3& b);
+
+	static inline const Vector3 LinearInterp(const Vector3& a, const Vector3& b, float t);
+	static inline const Vector3 TriangleInterp(const Vector3& a, const Vector3& b, const Vector3& c, float t0, float t1, float t2);
 
 	static const Vector3 zero;
 	static const Vector3 one;

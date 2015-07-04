@@ -292,6 +292,17 @@ float Mathf::Lerp(float a, float b, float t)
 	return a * (1.f - t) + b * t;
 }
 
+float Mathf::BLerp(float a, float b, float c, float d, float t0, float t1)
+{
+	return (a * (1 - t0) + b * t0) * (1 - t1) + (c * (1 - t0) + d * t0) * t1;
+}
+
+float Mathf::Terp(float a, float b, float c, float x, float y, float z)
+{
+	return a * x + b * y + c * z;
+}
+
+
 } // namespace rasterizer
 
 #endif // !_MATH_INLINE_

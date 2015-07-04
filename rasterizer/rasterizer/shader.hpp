@@ -104,7 +104,7 @@ struct ShaderBase
 	{
 		if (light == nullptr) return false;
 
-		lightDir = (light->direction.Negate()).Normalize();
+		lightDir = (-light->direction).Normalize();
 		lightAtten = 1.f;
 		float intensity = light->intensity;
 		switch (light->type) {

@@ -21,20 +21,18 @@ struct Vector2
 	inline float SqrLength() const;
 	inline const Vector2 Normalize() const;
 	inline const Vector2 Negate() const;
-	inline const Vector2 Add(const Vector2& v) const;
-	inline const Vector2 Subtract(const Vector2& v) const;
-	inline const Vector2 Multiply(float f) const;
-	inline const Vector2 Divide(float f) const;
 	inline float Dot(const Vector2& v) const;
 
-    inline const Vector2 operator +(const Vector2& v) const { return Add(v); }
-    inline const Vector2 operator -(const Vector2& v) const { return Subtract(v); }
-    inline const Vector2 operator *(float f) const { return Multiply(f); }
-    inline const Vector2 operator /(float f) const { return Divide(f); }
-    
-	static inline const Vector2 Lerp(const Vector2& a, const Vector2& b, float t);
+	inline const Vector2 operator +(const Vector2& v) const { return Vector2(x + v.x, y + v.y); }
+	inline const Vector2 operator -(const Vector2& v) const { return Vector2(x - v.x, y - v.y); }
+	inline const Vector2 operator *(float f) const { return Vector2(x * f, y * f); }
+	inline const Vector2 operator /(float f) const { return this->operator*(1.f / f); }
+
 	static inline const float Dot(const Vector2& a, const Vector2& b);
 	//static inline const Vector2 Cross(const Vector2& a, const Vector2& b);
+
+	static inline const Vector2 LinearInterp(const Vector2& a, const Vector2& b, float t);
+	static inline const Vector2 TriangleInterp(const Vector2& a, const Vector2& b, const Vector2& c, float t0, float t1, float t2);
 
 	static const Vector2 zero;
 	static const Vector2 one;
