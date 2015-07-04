@@ -26,13 +26,23 @@ const Vector4 Vector4::operator *= (float f) { x *= f; y *= f, z *= f; w *= f; r
 const Vector4 Vector4::operator /= (float f) { return (*this) *= (1.f / f); }
 
 
-const Vector4 Vector4::Lerp(const Vector4& a, const Vector4& b, float t)
+
+const Vector4 Vector4::LinearInterp(const Vector4& a, const Vector4& b, float t)
 {
 	return Vector4(
 		Mathf::Lerp(a.x, b.x, t),
 		Mathf::Lerp(a.y, b.y, t),
 		Mathf::Lerp(a.z, b.z, t),
 		Mathf::Lerp(a.w, b.w, t));
+}
+
+const Vector4 Vector4::TriangleInterp(const Vector4& a, const Vector4& b, const Vector4& c, float t0, float t1, float t2)
+{
+	return Vector4(
+		Mathf::Terp(a.x, b.x, c.x, t0, t1, t2),
+		Mathf::Terp(a.y, b.y, c.y, t0, t1, t2),
+		Mathf::Terp(a.z, b.z, c.z, t0, t1, t2),
+		Mathf::Terp(a.w, b.w, c.w, t0, t1, t2));
 }
 
 }

@@ -51,7 +51,9 @@ struct Vector4
 	inline const Vector4 operator *= (float f);
 	inline const Vector4 operator /= (float f);
 
-	static inline const Vector4 Lerp(const Vector4& a, const Vector4& b, float t);
+	static inline const Vector4 LinearInterp(const Vector4& a, const Vector4& b, float t);
+	static inline const Vector4 TriangleInterp(const Vector4& a, const Vector4& b, const Vector4& c, float t0, float t1, float t2);
+
 };
 
 } // namespace rasterizer
