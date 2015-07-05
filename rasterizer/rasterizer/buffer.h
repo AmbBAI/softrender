@@ -36,16 +36,12 @@ public:
 
 	public:
 		void Seek(int index) { this->index = index; }
-		void* Get() const
+		void* Get()
 		{
 			assert(buffer != nullptr);
-			return (*buffer)[index];
-		}
-
-		void* Next()
-		{
-			++index;
-			return Get();
+			void* ret = (*buffer)[index];
+			index += 1;
+			return ret;
 		}
 
 	} itor;

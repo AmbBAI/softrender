@@ -30,9 +30,7 @@ void VaryingDataBuffer::InitDynamicVaryingData()
 
 void* VaryingDataBuffer::CreateDynamicVaryingData()
 {
-	auto val = dynamicVaryingDataBuffer.itor.Get();
-	dynamicVaryingDataBuffer.itor.Next();
-	return val;
+	return dynamicVaryingDataBuffer.itor.Get();
 }
 
 void VaryingDataBuffer::ResetDynamicVaryingData()
@@ -49,9 +47,7 @@ void VaryingDataBuffer::InitPixelVaryingData()
 
 void* VaryingDataBuffer::CreatePixelVaryingData()
 {
-	auto val = pixelVaryingDataBuffer.itor.Get();
-	pixelVaryingDataBuffer.itor.Next();
-	return val;
+	return pixelVaryingDataBuffer.itor.Get();
 }
 
 void VaryingDataBuffer::ResetPixelVaryingData()

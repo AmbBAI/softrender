@@ -178,8 +178,8 @@ public:
 		   auto itor = indexBuffer.itor;
 		   itor.Seek(offset);
 		   triangle.v0 = *(u16*)itor.Get();
-		   triangle.v1 = *(u16*)itor.Next();
-		   triangle.v2 = *(u16*)itor.Next();
+		   triangle.v1 = *(u16*)itor.Get();
+		   triangle.v2 = *(u16*)itor.Get();
 		   return true;
 		}
 		case PrimitiveType_TriangleStrip:
