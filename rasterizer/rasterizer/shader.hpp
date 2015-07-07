@@ -94,6 +94,11 @@ struct ShaderBase
 		Vector3 normal = Vector3(color.r * 2.f - 1.f, color.g * 2.f - 1.f, color.b * 2.f - 1.f);
 		return tbn.MultiplyVector(normal).Normalize();
 	}
+	
+	static const Vector3 Reflect(const Vector3& inDir, const Vector3& normal)
+	{
+		return inDir - normal * (normal.Dot(inDir) * 2.f);
+	}
 
 	bool Clip(float x)
 	{

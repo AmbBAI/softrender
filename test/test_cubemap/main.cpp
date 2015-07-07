@@ -10,7 +10,7 @@ void MainLoop();
 int main(int argc, char *argv[])
 {
 	app = Application::GetInstance();
-	app->CreateApplication("plane", 800, 600);
+	app->CreateApplication("cubemap", 800, 600);
 	app->SetRunLoop(MainLoop);
 	app->RunLoop();
 	return 0;
@@ -21,7 +21,6 @@ struct Vertex
 	Vector3 position;
 	Vector2 texcoord;
 	Vector3 normal;
-	Vector4 tangent;
 };
 
 struct VaryingData
@@ -29,8 +28,7 @@ struct VaryingData
 	Vector4 position;
 	Vector2 texcoord;
 	Vector3 normal;
-	Vector3 tangent;
-	Vector3 bitangent;
+	Vector3 worldPos;
 
 	static std::vector<VaryingDataLayout> GetLayout()
 	{
@@ -38,8 +36,7 @@ struct VaryingData
 			{ 0, VaryingDataDeclUsage_SVPOSITION, VaryingDataDeclFormat_Vector4 },
 			{ 16, VaryingDataDeclUsage_TEXCOORD, VaryingDataDeclFormat_Vector2 },
 			{ 24, VaryingDataDeclUsage_TEXCOORD, VaryingDataDeclFormat_Vector3 },
-			{ 36, VaryingDataDeclUsage_TEXCOORD, VaryingDataDeclFormat_Vector3 },
-			{ 48, VaryingDataDeclUsage_TEXCOORD, VaryingDataDeclFormat_Vector3 }
+			{ 36, VaryingDataDeclUsage_TEXCOORD, VaryingDataDeclFormat_Vector3 }
 		};
 
 		return layout;
@@ -51,7 +48,7 @@ struct PlaneShader : Shader<Vertex, VaryingData>
 	Vector3 lightDir = Vector3(1.f, 1.f, 1.f).Normalize();
 
 	TexturePtr mainTex;
-	TexturePtr normalTex;
+	TextureCUBEPtr cubeMap;
 	Vector2 ddx, ddy;
 
 	VaryingData vert(const Vertex& input) override
@@ -60,8 +57,7 @@ struct PlaneShader : Shader<Vertex, VaryingData>
 		output.position = _MATRIX_MVP.MultiplyPoint(input.position);
 		output.texcoord = input.texcoord;
 		output.normal = _Object2World.MultiplyVector(input.normal);
-		output.tangent = _Object2World.MultiplyVector(input.tangent.xyz);
-		output.bitangent = output.normal.Cross(output.tangent) * input.tangent.w;
+		output.worldPos = _Object2World.MultiplyPoint3x4(input.position);
 		return output;
 	}
 
@@ -74,11 +70,13 @@ struct PlaneShader : Shader<Vertex, VaryingData>
 	Color frag(const VaryingData& input) override
 	{
 		Color color = Tex2D(mainTex, input.texcoord, ddx, ddy);
+		float ndotl = Mathf::Max(0.f, input.normal.Dot(lightDir));
 
-		Matrix4x4 tbn = TangentSpaceRotation(input.tangent, input.bitangent, input.normal);
-		Vector3 normal = UnpackNormal(Tex2D(normalTex, input.texcoord, ddx, ddy), tbn);
-		
-		color.rgb *= Mathf::Max(0.f, lightDir.Dot(normal));
+		Vector3 viewDir = (_WorldSpaceCameraPos - input.worldPos).Normalize();
+		Vector3 reflectDir = Reflect(-viewDir, input.normal).Normalize();
+		Color reflectCol = cubeMap->Sample(reflectDir);
+
+		color.rgb = color.rgb * ndotl + reflectCol.rgb * 0.2f;
 		return color;
 	}
 };
@@ -88,7 +86,7 @@ void MainLoop()
 	static bool isInitilized = false;
 	static Transform objectTrans;
 	static Transform cameraTrans;
-	static TransformController objectCtrl;
+	static TransformController transCtrl;
 	static std::vector<Vertex> vertices;
 	static std::vector<u16> indices;
 	static MaterialPtr material;
@@ -109,33 +107,46 @@ void MainLoop()
 		Rasterizer::camera = camera;
 
 		material = MaterialPtr(new Material());
-		material->diffuseTexture = Texture::LoadTexture("resources/crytek-sponza/textures/spnza_bricks_a_diff.tga");
+		material->diffuseTexture = Texture::LoadTexture("resources/teapot/default.png");
 		material->diffuseTexture->GenerateMipmaps();
-		material->normalTexture = Texture::LoadTexture("resources/crytek-sponza/textures/spnza_bricks_a_bump.png");
-		material->normalTexture->ConvertBumpToNormal(8.f);
 
 		shader.mainTex = material->diffuseTexture;
-		shader.normalTex = material->normalTexture;
+		shader.cubeMap = TextureCUBEPtr(new TextureCUBE());
+		for (int i = 0; i < 6; ++i)
+		{
+			char path[32];
+			sprintf(path, "resources/cubemap/%d.png", i);
+			shader.cubeMap->cubeMap[i] = Texture::LoadTexture(path);
+			shader.cubeMap->cubeMap[i]->xAddressMode = Texture::AddressMode_Clamp;
+			shader.cubeMap->cubeMap[i]->yAddressMode = Texture::AddressMode_Clamp;
+		}
 		shader.varyingDataDecl = VaryingData::GetLayout();
 		shader.varyingDataSize = sizeof(VaryingData);
-		assert(shader.varyingDataSize == 60);
+		assert(shader.varyingDataSize == 48);
 
-		MeshPtr mesh = CreatePlane();
-		mesh->CalculateTangents();
+		std::vector<MeshPtr> meshes;
+		Mesh::LoadMesh(meshes, "resources/cubemap/sphere.obj");
+		MeshPtr mesh = meshes[0];
 		vertices.clear();
 		indices.clear();
 		int vertexCount = mesh->GetVertexCount();
 		for (int i = 0; i < vertexCount; ++i)
 		{
-			vertices.emplace_back(Vertex{ mesh->vertices[i], mesh->texcoords[i], mesh->normals[i], mesh->tangents[i] });
+			vertices.emplace_back(Vertex{ mesh->vertices[i], mesh->texcoords[i], mesh->normals[i] });
 		}
 		for (auto idx : mesh->indices) indices.emplace_back((u16)idx);
+
+		Rasterizer::transform = objectTrans.GetMatrix();
     }
+
+	if (transCtrl.MouseRotate(cameraTrans)
+		|| transCtrl.KeyMove(cameraTrans, 1.f))
+	{
+		Rasterizer::camera->SetLookAt(cameraTrans);
+	}
 
 	canvas->Clear();
 
-	objectCtrl.MouseRotate(objectTrans, false);
-	Rasterizer::transform = objectTrans.GetMatrix();
 	Rasterizer::renderData.AssignVertexBuffer(vertices);
 	Rasterizer::renderData.AssignIndexBuffer(indices);
 	Rasterizer::SetShader(&shader);

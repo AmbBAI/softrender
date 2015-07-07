@@ -43,7 +43,7 @@ void LoadSponzaMesh(std::vector<MeshPtr>& mesh, Transform& trans)
 struct Vertex
 {
 	Vector3 position;
-	Vector2 texCoord;
+	Vector2 texcoord;
 	Vector3 normal;
 	Vector4 tangent;
 };
@@ -51,7 +51,7 @@ struct Vertex
 struct VaryingData
 {
 	Vector4 position;
-	Vector2 texCoord;
+	Vector2 texcoord;
 	Vector3 normal;
 	Vector3 tangent;
 	Vector3 bitangent;
@@ -84,7 +84,7 @@ struct ShaderStand : Shader<Vertex, VaryingData>
 	{
 		VaryingData output;
 		output.position = _MATRIX_MVP.MultiplyPoint(input.position);
-		output.texCoord = input.texCoord;
+		output.texcoord = input.texcoord;
 		output.normal = _Object2World.MultiplyVector(input.normal);
 		output.tangent = _Object2World.MultiplyVector(input.tangent.xyz);
 		output.bitangent = output.normal.Cross(output.tangent) * input.tangent.w;
@@ -94,20 +94,20 @@ struct ShaderStand : Shader<Vertex, VaryingData>
 
 	void passQuad(const Quad<VaryingData*>& quad) override
 	{
-		ddx = quad[1]->texCoord - quad[0]->texCoord;
-		ddy = quad[2]->texCoord - quad[0]->texCoord;
+		ddx = quad[1]->texcoord - quad[0]->texcoord;
+		ddy = quad[2]->texcoord - quad[0]->texcoord;
 	}
 
 	Color frag(const VaryingData& input) override
 	{
 		Color fragColor = Color::white;
-		if (mainTex != nullptr) fragColor = Tex2D(mainTex, input.texCoord, ddx, ddy);
+		if (mainTex != nullptr) fragColor = Tex2D(mainTex, input.texcoord, ddx, ddy);
 
 		Vector3 normal = input.normal;
 		if (normalTex != nullptr)
 		{
 			Matrix4x4 tbn = TangentSpaceRotation(input.tangent, input.bitangent, input.normal);
-			normal = UnpackNormal(Tex2D(normalTex, input.texCoord, ddx, ddy), tbn);
+			normal = UnpackNormal(Tex2D(normalTex, input.texcoord, ddx, ddy), tbn);
 		}
 
 		Vector3 lightDir;
@@ -123,7 +123,7 @@ struct ShaderStand : Shader<Vertex, VaryingData>
 
 			if (specularTex != nullptr)
 			{
-				Color specColor = Tex2D(specularTex, input.texCoord);
+				Color specColor = Tex2D(specularTex, input.texcoord);
 				lightInput.specular = specColor;
 				lightInput.shininess = shininess;
 
@@ -147,7 +147,7 @@ struct ShaderWithAlphaTest : ShaderStand
 	{
 		if (alphaMaskTex != nullptr)
 		{
-			float alpha = Tex2D(alphaMaskTex, input.texCoord).r;
+			float alpha = Tex2D(alphaMaskTex, input.texcoord).r;
 			if (Clip(alpha - 0.2f)) return Color::white;
 		}
 

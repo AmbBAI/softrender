@@ -12,6 +12,7 @@
 #include "rasterizer/mesh.h"
 #include "rasterizer/material.h"
 #include "rasterizer/texture.h"
+#include "rasterizer/texture_cube.h"
 #include "rasterizer/render_data.h"
 #include "rasterizer/clipper.hpp"
 #include "rasterizer/vertex.hpp"
