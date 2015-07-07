@@ -36,18 +36,18 @@ public:
 		return Type::LinearInterp(a, b, t);
 	}
 
-	template<> static inline const float LinearInterp<float>(const float& a, const float& b, float t)
-	{
-		return a * (1 - t) + b * t;
-	}
-
 	template<typename Type>
 	static inline const Type TriangleInterp(const Type& a, const Type& b, const Type& c, float t0, float t1, float t2)
 	{
 		return Type::TriangleInterp(a, b, c, t0, t1, t2);
 	}
 
-	template<> static inline const float TriangleInterp<float>(const float& a, const float& b, const float& c, float t0, float t1, float t2)
+	static inline const float LinearInterp(float a, float b, float t)
+	{
+		return a * (1.f - t) + b * t;
+	}
+
+	static inline const float TriangleInterp(float a, float b, float c, float t0, float t1, float t2)
 	{
 		return a * t0 + b * t1 + c * t2;
 	}
