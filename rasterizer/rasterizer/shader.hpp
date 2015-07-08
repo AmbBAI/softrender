@@ -53,7 +53,7 @@ struct ShaderBase
 	//Vector4 _CosTime;
 	//Vector4 _DeltaTime;
 
-	virtual void _VSMain(const void* input) = 0;
+	virtual void _VSMain(const rawptr_t input) = 0;
 	virtual Color _PSMain() = 0;
 	virtual void _PassQuad(const Quad<PixelVaryingData>& quadVaryingData) {}
 
@@ -141,7 +141,7 @@ struct ShaderBase
 template <typename VSInputType, typename VaryingDataType>
 struct Shader : ShaderBase
 {
-	void _VSMain(const void* input) override
+	void _VSMain(const rawptr_t input) override
 	{
 		VSInputType* vertexInput = (VSInputType*)input;
 		*((VaryingDataType*)vertexVaryingData->data) = vert(*vertexInput);

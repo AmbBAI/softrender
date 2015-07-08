@@ -58,7 +58,7 @@ void Mesh::LoadMesh(std::vector<MeshPtr>& meshes, const std::vector<tinyobj::sha
 		FOREACH(s.mesh.material_ids, i)
         {
 			int id = s.mesh.material_ids[i];
-			assert(id != -1);
+			//assert(id != -1);
 			if (matID != id)
 			{
 				if (matID != -1) 
