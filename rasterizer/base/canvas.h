@@ -66,7 +66,7 @@ private:
 	int width;
 	int height;
 
-	u32* pixels = nullptr;
+	uint32_t* pixels = nullptr;
 	float* depths = nullptr;
 };
 

@@ -75,7 +75,7 @@ struct RasterizerInfo
 struct Rasterizer2x2Info
 {
 	int x, y;
-	u8 maskCode;
+	uint8_t maskCode;
 #if _MATH_SIMD_INTRINSIC_
 	SIMD_ALIGN float depth[4];
 	SIMD_ALIGN float wx[4], wy[4], wz[4];

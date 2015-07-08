@@ -21,7 +21,7 @@ struct MeshWrapper
 {
 	std::string name;
 	std::vector<Type> vertices;
-	std::vector<u16> indices;
+	std::vector<uint16_t> indices;
 	std::vector<std::tuple<MaterialPtr, int, int> > materials;
 };
 

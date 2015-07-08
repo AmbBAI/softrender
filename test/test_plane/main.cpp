@@ -90,7 +90,7 @@ void MainLoop()
 	static Transform cameraTrans;
 	static TransformController objectCtrl;
 	static std::vector<Vertex> vertices;
-	static std::vector<u16> indices;
+	static std::vector<uint16_t> indices;
 	static MaterialPtr material;
 	static PlaneShader shader;
 	Canvas* canvas = app->GetCanvas();
@@ -129,7 +129,7 @@ void MainLoop()
 		{
 			vertices.emplace_back(Vertex{ mesh->vertices[i], mesh->texcoords[i], mesh->normals[i], mesh->tangents[i] });
 		}
-		for (auto idx : mesh->indices) indices.emplace_back((u16)idx);
+		for (auto idx : mesh->indices) indices.emplace_back((uint16_t)idx);
     }
 
 	canvas->Clear();

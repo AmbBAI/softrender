@@ -88,7 +88,7 @@ bool Buffer::AllocPage(int pageIdx)
 
 	if (data[pageIdx] == nullptr)
 	{
-		data[pageIdx] = new u8[pageSize];
+		data[pageIdx] = new uint8_t[pageSize];
 	}
 	return true;
 }
@@ -107,7 +107,7 @@ bool Buffer::DeallocPage(int pageIdx)
 	return true;
 }
 
-void* Buffer::operator[](int idx)
+rawptr_t Buffer::operator[](int idx)
 {
 	assert(pageSize > 0);
 	assert(blockPrePage > 0);
@@ -123,5 +123,5 @@ void* Buffer::operator[](int idx)
 	}
 	blockOffset = idx;
 	if (!AllocPage(page)) return nullptr;
-	return (void*)(data[page] + blockOffset * blockSize);
+	return data[page] + blockOffset * blockSize;
 }

@@ -28,7 +28,7 @@ struct Mesh
 
 	std::string name;
 	std::vector<Vector3> vertices;
-	std::vector<u32> indices;
+	std::vector<uint16_t> indices;
 	std::vector<Color> colors;
 	std::vector<Vector3> normals;
 	std::vector<Vector4> tangents;

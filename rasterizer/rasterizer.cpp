@@ -210,8 +210,8 @@ void Rasterizer::Submit(int startIndex/* = 0*/, int primitiveCount/* = 0*/)
 	assert(canvas != nullptr);
 	assert(camera != nullptr);
 
-	u32 width = canvas->GetWidth();
-	u32 height = canvas->GetHeight();
+	int width = canvas->GetWidth();
+	int height = canvas->GetHeight();
 
 	shader->_MATRIX_V = *camera->GetViewMatrix();
 	shader->_MATRIX_P = *camera->GetProjectionMatrix();
@@ -226,12 +226,12 @@ void Rasterizer::Submit(int startIndex/* = 0*/, int primitiveCount/* = 0*/)
 
 	shader->light = light;
 
-	u32 vertexCount = renderData.GetVertexCount();
+	int vertexCount = renderData.GetVertexCount();
 	varyingDataBuffer.InitVerticesVaryingData(vertexCount);
-	for (u32 i = 0; i < vertexCount; ++i)
+	for (int i = 0; i < vertexCount; ++i)
 	{
 		shader->vertexVaryingData = &varyingDataBuffer.GetVertexVaryingData(i);
-		void* vertexData = renderData.GetVertexData(i);
+		rawptr_t vertexData = renderData.GetVertexData<uint8_t>(i);
 		shader->_VSMain(vertexData);
 	}
 
@@ -242,7 +242,7 @@ void Rasterizer::Submit(int startIndex/* = 0*/, int primitiveCount/* = 0*/)
 	for (int i = 0; i < primitiveCount; ++i)
 	{
 		int primitiveIndex = i + startIndex;
-		Triangle<u16> triangleIdx;
+		Triangle<uint16_t> triangleIdx;
 		if (!renderData.GetTrianglePrimitive(primitiveIndex, triangleIdx))
 		{
 			assert(false);
@@ -307,7 +307,7 @@ void Rasterizer::Submit(int startIndex/* = 0*/, int primitiveCount/* = 0*/)
 	}
 
 	/* draw point
-	for (u32 i = 0; i < vertexCount; ++i)
+	for (int i = 0; i < vertexCount; ++i)
 	{
 		auto data = varyingDataBuffer.GetVertexVaryingData(i);
 		if (data.clipCode != 0) continue;

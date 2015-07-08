@@ -97,7 +97,7 @@ void MainLoop()
 	static Transform cameraTrans;
 	static TransformController objectCtrl;
 	static std::vector<Vertex> vertices;
-	static std::vector<u16> indices;
+	static std::vector<uint16_t> indices;
 	static MaterialPtr material;
 	static TestShader shader;
 	Canvas* canvas = app->GetCanvas();

@@ -90,10 +90,10 @@ Color::operator Color32() const
     color.b = _mm_extract_epi8(im, 8);
     color.a = _mm_extract_epi8(im, 12);
 #else
-    color.a = (u8)(Mathf::Clamp01(a) * 255);
-	color.r = (u8)(Mathf::Clamp01(r) * 255);
-	color.g = (u8)(Mathf::Clamp01(g) * 255);
-	color.b = (u8)(Mathf::Clamp01(b) * 255);
+    color.a = (uint8_t)(Mathf::Clamp01(a) * 255);
+	color.r = (uint8_t)(Mathf::Clamp01(r) * 255);
+	color.g = (uint8_t)(Mathf::Clamp01(g) * 255);
+	color.b = (uint8_t)(Mathf::Clamp01(b) * 255);
 #endif
     return color;
 }

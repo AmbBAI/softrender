@@ -42,7 +42,7 @@ void Mesh::LoadMesh(std::vector<MeshPtr>& meshes, const std::vector<tinyobj::sha
 		mesh->name = s.name;
 
 		FOREACH_STEP(_p, i, 3) mesh->vertices.emplace_back(_p[i], _p[i + 1], _p[i + 2]);
-		FOREACH_STEP(_i, i, 1) mesh->indices.emplace_back(_i[i]);
+		FOREACH_STEP(_i, i, 1) { assert(_i[i] < UINT16_MAX); mesh->indices.emplace_back((uint16_t)_i[i]); }
 		FOREACH_STEP(_n, i, 3) mesh->normals.emplace_back(_n[i], _n[i + 1], _n[i + 2]);
 		FOREACH_STEP(_tc, i, 2) mesh->texcoords.emplace_back(_tc[i], _tc[i + 1]);
             
@@ -87,7 +87,7 @@ void Mesh::RecalculateNormals()
 {
     normals.clear();
     
-	u32 vertexCount = vertices.size();
+	uint32_t vertexCount = vertices.size();
 	normals.assign(vertexCount, Vector3::zero);
 	for (int i = 0; i + 2 < (int)indices.size(); i += 3)
 	{
@@ -114,7 +114,7 @@ void Mesh::RecalculateNormals()
 
 void Mesh::CalculateTangents()
 {
-	u32 vertexCount = normals.size();
+	uint32_t vertexCount = normals.size();
 	tangents.resize(vertexCount);
 	std::vector<Vector3> tan1(vertexCount, Vector3::zero);
 	std::vector<Vector3> tan2(vertexCount, Vector3::zero);

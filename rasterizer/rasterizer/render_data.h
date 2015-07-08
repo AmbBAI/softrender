@@ -20,10 +20,10 @@ struct VertexVaryingData
 {
 	VaryingDataBuffer* varyingDataBuffer = nullptr;
 
-	void* data = nullptr;
+	rawptr_t data = nullptr;
 
 	Vector4 position;
-	u32 clipCode = 0x00;
+	uint32_t clipCode = 0x00;
 
 	VertexVaryingData() = default;
 	VertexVaryingData(VaryingDataBuffer* _varyingDataBuffer) : varyingDataBuffer(_varyingDataBuffer) {}
@@ -33,7 +33,7 @@ struct VertexVaryingData
 struct PixelVaryingData
 {
 	VaryingDataBuffer* varyingDataBuffer = nullptr;
-	void* data = nullptr;
+	rawptr_t data = nullptr;
 
 	PixelVaryingData() = default;
 	PixelVaryingData(VaryingDataBuffer* _varyingDataBuffer) : varyingDataBuffer(_varyingDataBuffer) {}
@@ -88,8 +88,8 @@ struct VaryingDataDecl
 		}
 	}
 
-	void LinearInterp(void* output, const void* a, const void* b, float t) const;
-	void TriangleInterp(void* output, const void* a, const void* b, const void* c, float x, float y, float z) const;
+	void LinearInterp(rawptr_t output, const rawptr_t a, const rawptr_t b, float t) const;
+	void TriangleInterp(rawptr_t output, const rawptr_t a, const rawptr_t b, const rawptr_t c, float x, float y, float z) const;
 };
 
 class RenderData
@@ -104,7 +104,7 @@ public:
 		PrimitiveType_TriangleStrip,
 	};
 
-	static const u32 VERTEX_MAX_COUNT;
+	static const uint32_t VERTEX_MAX_COUNT;
 
 	template<typename VertexType>
 	bool AssignVertexBuffer(const std::vector<VertexType>& vertices)
@@ -129,7 +129,7 @@ public:
 		return (VertexType*)vertexBuffer[index];
 	}
 
-	bool AssignIndexBuffer(const std::vector<u16>& indices, PrimitiveType type = PrimitiveType_Triangle)
+	bool AssignIndexBuffer(const std::vector<uint16_t>& indices, PrimitiveType type = PrimitiveType_Triangle)
 	{
 		int count = (int)indices.size();
 		indexBuffer.Assign(indices);
@@ -167,7 +167,7 @@ public:
 	// TODO GetPointPrimitive(int id, u16& point);
 	// TODO GetLinePrimitive(int id, Line<u16>& line);
 
-	bool GetTrianglePrimitive(int id, Triangle<u16>& triangle)
+	bool GetTrianglePrimitive(int id, Triangle<uint16_t>& triangle)
 	{
 		switch (primitiveType)
 		{
@@ -177,9 +177,9 @@ public:
 		   if (offset + 3 > indexCount) return false;
 		   auto itor = indexBuffer.itor;
 		   itor.Seek(offset);
-		   triangle.v0 = *(u16*)itor.Get();
-		   triangle.v1 = *(u16*)itor.Get();
-		   triangle.v2 = *(u16*)itor.Get();
+		   triangle.v0 = *(uint16_t*)itor.Get();
+		   triangle.v1 = *(uint16_t*)itor.Get();
+		   triangle.v2 = *(uint16_t*)itor.Get();
 		   return true;
 		}
 		case PrimitiveType_TriangleStrip:
@@ -206,10 +206,10 @@ public:
 	void InitVerticesVaryingData(int vertexCount);
 	VertexVaryingData& GetVertexVaryingData(int index);
 	void InitDynamicVaryingData();
-	void* CreateDynamicVaryingData();
+	rawptr_t CreateDynamicVaryingData();
 	void ResetDynamicVaryingData();
 	void InitPixelVaryingData();
-	void* CreatePixelVaryingData();
+	rawptr_t CreatePixelVaryingData();
 	void ResetPixelVaryingData();
 
 	bool SetVaryingDataDecl(std::vector<VaryingDataLayout> layout, int size);

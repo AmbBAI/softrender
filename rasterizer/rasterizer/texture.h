@@ -51,8 +51,8 @@ public:
 	virtual ~Texture() = default;
 
 public:
-    u32 GetWidth() { return mainTex ? mainTex->GetWidth() : 0; }
-    u32 GetHeight() { return mainTex ? mainTex->GetHeight() : 0; }
+	int GetWidth() { return mainTex ? mainTex->GetWidth() : 0; }
+	int GetHeight() { return mainTex ? mainTex->GetHeight() : 0; }
 
 	void ConvertBumpToNormal(float strength = 10.f);
 	bool GenerateMipmaps();
@@ -61,7 +61,7 @@ public:
 	const Color Sample(float u, float v, float lod = 0.f) const;
 
 protected:
-	static BitmapPtr UnparkColor(u8* bytes, u32 width, u32 height, u32 pitch, u32 bpp);
+	static BitmapPtr UnparkColor(rawptr_t bytes, int width, int height, int pitch, int bpp);
 	const BitmapPtr GetBitmap(int miplv) const;
     
 public:

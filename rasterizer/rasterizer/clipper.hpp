@@ -19,19 +19,19 @@ struct Clipper
 		typedef bool(*GetClipCodeFunc)(const Vector4& v);
 		typedef float(*ClippingFunc)(const Vector4& v0, const Vector4& v1);
 
-		u32 cullMask = 0x0;
+		uint32_t cullMask = 0x0;
 		GetClipCodeFunc getClipCodeFunc = nullptr;
 		ClippingFunc clippingFunc = nullptr;
-		Plane(u32 _cullMask, GetClipCodeFunc _getClipCodeFunc, ClippingFunc _clippingFunc) :
+		Plane(uint32_t _cullMask, GetClipCodeFunc _getClipCodeFunc, ClippingFunc _clippingFunc) :
 			cullMask(_cullMask),
 			getClipCodeFunc(_getClipCodeFunc),
 			clippingFunc(_clippingFunc) {}
 	};
 
 	static Plane viewFrustumPlanes[6];
-	static u32 CalculateClipCode(const Vector4& hc)
+	static uint32_t CalculateClipCode(const Vector4& hc)
 	{
-		u32 clipCode = 0x0;
+		uint32_t clipCode = 0x0;
 		for (auto& p : viewFrustumPlanes)
 		{
 			if (p.getClipCodeFunc(hc))

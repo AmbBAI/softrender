@@ -17,7 +17,7 @@ struct Projection
 	int y = 0;
 	float invW = 1.0f;
 
-	static Projection CalculateViewProjection(const Vector4& position, u32 width, u32 height)
+	static Projection CalculateViewProjection(const Vector4& position, uint32_t width, uint32_t height)
 	{
 		float w = position.w;
 		assert(w > 0.f);

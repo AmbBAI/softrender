@@ -11,41 +11,41 @@ namespace rasterizer
 
 struct WarpAddresser
 {
-	static float CalcAddress(float coord, u32 length)
+	static float CalcAddress(float coord, int length)
 	{
-		return (coord - Mathf::Floor(coord)) * (int)length - 0.5f;
+		return (coord - Mathf::Floor(coord)) * length - 0.5f;
 	}
-	static int FixAddress(int coord, u32 length)
+	static int FixAddress(int coord, int length)
 	{
 		if (coord < 0) return length - 1;
-		if (coord >= (int)length) return 0;
+		if (coord >= length) return 0;
 		return coord;
 	}
 };
 
 struct ClampAddresser
 {
-	static float CalcAddress(float coord, u32 length)
+	static float CalcAddress(float coord, int length)
 	{
 		return Mathf::Clamp(coord * length, 0.5f, length - 0.5f) - 0.5f;
 	}
-	static int FixAddress(int coord, u32 length)
+	static int FixAddress(int coord, int length)
 	{
 		if (coord < 0) return 0;
-		if (coord >= (int)length) return length - 1;
+		if (coord >= length) return length - 1;
 		return coord;
 	}
 };
 
 struct MirrorAddresser
 {
-	static float CalcAddress(float coord, u32 length)
+	static float CalcAddress(float coord, int length)
 	{
 		int round = Mathf::FloorToInt(coord);
 		float tmpCoord = (round & 1) ? (1 + round - coord) : (coord - round);
 		return tmpCoord * length - 0.5f;
 	}
-	static int FixAddress(int coord, u32 length)
+	static int FixAddress(int coord, int length)
 	{
 		if (coord < 0) return 0;
 		if (coord >= (int)length) return length - 1;
@@ -58,8 +58,8 @@ struct PointSampler
 	template<typename XAddresserType, typename YAddresserType>
 	static Color Sample(const BitmapPtr bitmap, float u, float v)
 	{
-		u32 width = bitmap->GetWidth();
-		u32 height = bitmap->GetHeight();
+		int width = bitmap->GetWidth();
+		int height = bitmap->GetHeight();
 
 		float fx = XAddresserType::CalcAddress(u, width);
 		int x = XAddresserType::FixAddress(Mathf::RoundToInt(fx), width);
@@ -75,8 +75,8 @@ struct LinearSampler
 	template<typename XAddresserType, typename YAddresserType>
 	static Color Sample(const BitmapPtr bitmap, float u, float v)
 	{
-		u32 width = bitmap->GetWidth();
-		u32 height = bitmap->GetHeight();
+		int width = bitmap->GetWidth();
+		int height = bitmap->GetHeight();
 
 		float fx = XAddresserType::CalcAddress(u, width);
 		int x0 = Mathf::FloorToInt(fx);

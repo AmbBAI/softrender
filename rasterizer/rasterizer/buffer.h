@@ -25,7 +25,7 @@ public:
 	bool Realloc(int blockCount);
 	void Dealloc();
 
-	void* operator[](int idx);
+	rawptr_t operator[](int idx);
 
 	struct Iterator
 	{
@@ -36,10 +36,10 @@ public:
 
 	public:
 		void Seek(int index) { this->index = index; }
-		void* Get()
+		rawptr_t Get()
 		{
 			assert(buffer != nullptr);
-			void* ret = (*buffer)[index];
+			rawptr_t ret = (*buffer)[index];
 			index += 1;
 			return ret;
 		}
@@ -47,14 +47,14 @@ public:
 	} itor;
 
 	template<typename Type>
-	static Type* Value(const void* data, int offset);
+	static Type* Value(const rawptr_t data, int offset);
 
 protected:
 	bool AllocPage(int pageIdx);
 	bool DeallocPage(int pageIdx);
 
 private:
-	std::vector<u8*> data;
+	std::vector<rawptr_t> data;
 	int blockPrePage = 0;
 	int blockSize = 1;
 	int pageSize = 0;
@@ -64,9 +64,9 @@ private:
 };
 
 template<typename Type>
-Type* Buffer::Value(const void* data, int offset)
+Type* Buffer::Value(const rawptr_t data, int offset)
 {
-	return (Type*)((u8*)data + offset);
+	return (Type*)(data + offset);
 }
 
 template<typename BlockType>

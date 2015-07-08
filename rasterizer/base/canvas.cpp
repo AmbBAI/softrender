@@ -11,7 +11,7 @@ Canvas::Canvas(int width, int height)
 
 	if (width > 0 && height > 0)
 	{
-		pixels = new u32[width * height];
+		pixels = new uint32_t[width * height];
 		depths = new float[width * height];
 	}
 }

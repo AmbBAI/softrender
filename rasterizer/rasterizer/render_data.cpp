@@ -1,7 +1,7 @@
 #include "render_data.h"
 using namespace rasterizer;
 
-const u32 RenderData::VERTEX_MAX_COUNT = (1 << 16) - 1;
+const uint32_t RenderData::VERTEX_MAX_COUNT = (1 << 16) - 1;
 
 void VaryingDataBuffer::InitVerticesVaryingData(int vertexCount)
 {
@@ -28,7 +28,7 @@ void VaryingDataBuffer::InitDynamicVaryingData()
 	dynamicVaryingDataBuffer.Alloc(1);
 }
 
-void* VaryingDataBuffer::CreateDynamicVaryingData()
+rawptr_t VaryingDataBuffer::CreateDynamicVaryingData()
 {
 	return dynamicVaryingDataBuffer.itor.Get();
 }
@@ -45,7 +45,7 @@ void VaryingDataBuffer::InitPixelVaryingData()
 	pixelVaryingDataBuffer.Alloc(1);
 }
 
-void* VaryingDataBuffer::CreatePixelVaryingData()
+rawptr_t VaryingDataBuffer::CreatePixelVaryingData()
 {
 	return pixelVaryingDataBuffer.itor.Get();
 }
@@ -109,18 +109,18 @@ PixelVaryingData PixelVaryingData::TriangleInterp(const VertexVaryingData& v0, c
 }
 
 template<typename Type>
-void LinearInterpValue(void* output, const void* a, const void* b, int offset, float t)
+void LinearInterpValue(rawptr_t output, const rawptr_t a, const rawptr_t b, int offset, float t)
 {
 	*Buffer::Value<Type>(output, offset) = Mathf::LinearInterp(*Buffer::Value<Type>(a, offset), *Buffer::Value<Type>(b, offset), t);
 }
 
 template<typename Type>
-void TriangleInterpValue(void* output, const void* a, const void* b, const void* c, int offset, float x, float y, float z)
+void TriangleInterpValue(rawptr_t output, const rawptr_t a, const rawptr_t b, const rawptr_t c, int offset, float x, float y, float z)
 {
 	*Buffer::Value<Type>(output, offset) = Mathf::TriangleInterp(*Buffer::Value<Type>(a, offset), *Buffer::Value<Type>(b, offset), *Buffer::Value<Type>(c, offset), x, y, z);
 }
 
-void VaryingDataDecl::LinearInterp(void* output, const void* a, const void* b, float t) const
+void VaryingDataDecl::LinearInterp(rawptr_t output, const rawptr_t a, const rawptr_t b, float t) const
 {
 	for (auto l : layout)
 	{
@@ -144,7 +144,7 @@ void VaryingDataDecl::LinearInterp(void* output, const void* a, const void* b, f
 	}
 }
 
-void VaryingDataDecl::TriangleInterp(void* output, const void* a, const void* b, const void* c, float x, float y, float z) const
+void VaryingDataDecl::TriangleInterp(rawptr_t output, const rawptr_t a, const rawptr_t b, const rawptr_t c, float x, float y, float z) const
 {
 	for (auto l : layout)
 	{

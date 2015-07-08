@@ -9,7 +9,7 @@
 #include <cmath>
 #include <cfloat>
 #include <cassert>
-
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <sstream>
@@ -60,8 +60,6 @@
 #endif
 #include "glfw/include/GLFW/glfw3.h"
 
-typedef unsigned char u8;
-typedef unsigned short u16;
-typedef unsigned int u32;
+typedef uint8_t* rawptr_t;
 
 #endif // !_BASE_HEADER_H_

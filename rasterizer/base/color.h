@@ -96,17 +96,17 @@ struct Color32
 {
 	union
 	{
-		u32 rgba;
+		uint32_t rgba;
 		struct 
 		{
-			u8 r, g, b, a;
+			uint8_t r, g, b, a;
 		};
 	};
 
 	Color32() = default;
-	Color32(u32 _rgba)
+	Color32(uint32_t _rgba)
         : rgba(_rgba) {}    
-	Color32(u8 _a, u8 _r, u8 _g, u8 _b)
+	Color32(uint8_t _a, uint8_t _r, uint8_t _g, uint8_t _b)
         : a(_a), r(_r), g(_g), b(_b){}
 
 	inline operator Color() const;

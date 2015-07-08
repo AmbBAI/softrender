@@ -24,12 +24,12 @@ public:
 		BitmapType_DXT1 = 10
 	};
 
-	static BitmapPtr Create(u32 width, u32 height, BitmapType type);
+	static BitmapPtr Create(int width, int height, BitmapType type);
 
 	Bitmap() = default;
 	~Bitmap();
 
-	Color GetColor(u32 x, u32 y)
+	Color GetColor(int x, int y)
 	{
 		switch (type)
 		{
@@ -47,25 +47,25 @@ public:
 		return Color::black;
 	}
 
-	u8* GetBytes() { return bytes; }
-	u32 GetWidth() const { return width; }
-	u32 GetHeight() const { return height; }
+	rawptr_t GetBytes() { return bytes; }
+	int GetWidth() const { return width; }
+	int GetHeight() const { return height; }
 	BitmapType GetType() const { return type; }
 
 	BitmapPtr CompressToDXT1();
 
 protected:
-	Color GetPixel_L8(u32 x, u32 y);
-	Color GetPixel_RGB888(u32 x, u32 y);
-	Color GetPixel_RGBA8888(u32 x, u32 y);
-	Color GetPixel_DXT1(u32 x, u32 y);
+	Color GetPixel_L8(int x, int y);
+	Color GetPixel_RGB888(int x, int y);
+	Color GetPixel_RGBA8888(int x, int y);
+	Color GetPixel_DXT1(int x, int y);
 
 private:
 	BitmapType type = BitmapType_Unknown;
-	u32 width = 0;
-	u32 height = 0;
+	int width = 0;
+	int height = 0;
 
-	u8* bytes = nullptr;
+	rawptr_t bytes = nullptr;
 };
 
 
