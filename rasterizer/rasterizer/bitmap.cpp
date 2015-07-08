@@ -9,7 +9,6 @@ BitmapPtr Bitmap::Create(int width, int height, BitmapType type)
 	bitmap->width = width;
 	bitmap->height = height;
 	bitmap->type = type;
-	if (bitmap->type == BitmapType_Unknown) return bitmap;
 
 	int size = width * height;
 	switch (type)
@@ -30,6 +29,9 @@ BitmapPtr Bitmap::Create(int width, int height, BitmapType type)
 	//case Bitmap::BitmapType_Normal:
 	//	size <<= 1;
 	//	break;
+	case Bitmap::BitmapType_Unknown:
+		assert(false);
+		return bitmap;
 	}
 
 	bitmap->bytes = new uint8_t[size];

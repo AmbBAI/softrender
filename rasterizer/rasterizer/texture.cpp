@@ -246,7 +246,7 @@ const Color Texture::Sample(float u, float v, float lod/* = 0.f*/) const
             assert(bmp1 != nullptr);
             Color color1 = sampleFunc[1][xAddressMode][xAddressMode](bmp1, u, v);
             
-			const BitmapPtr bmp2 = GetBitmap(miplv1);
+			const BitmapPtr bmp2 = GetBitmap(miplv2);
             if (bmp2 == bmp1) return color1;
             Color color2 = sampleFunc[1][xAddressMode][xAddressMode](bmp2, u, v);
             return Color::Lerp(color1, color2, frac);
