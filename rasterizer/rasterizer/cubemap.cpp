@@ -1,16 +1,16 @@
-#include "texture_cube.h"
+#include "cubemap.h"
 
 using namespace rasterizer;
 
-Color TextureCUBE::Sample(const Vector3& s)
+Color Cubemap::Sample(const Vector3& s)
 {
-	CUBEAxis axis;
+	CubemapFace axis;
 	Vector2 texcoord;
 	CalcTexCoord(s, axis, texcoord);
 
-	TexturePtr tex = cubeMap[axis];
+	TexturePtr tex = maps[axis];
 	if (tex == nullptr) return Color::black;
-	return tex->Sample(texcoord.x, texcoord.y);
+	return tex->Sample(texcoord);
 }
 
 //Color TextureCUBE::Sample(const Vector3& s, const Vector3& ddx, const Vector3& ddy)
@@ -24,7 +24,7 @@ Color TextureCUBE::Sample(const Vector3& s)
 //	return tex->Sample(texcoord.x, texcoord.y);
 //}
 
-void TextureCUBE::CalcTexCoord(const Vector3& s, CUBEAxis& axis, Vector2& texcoord)
+void Cubemap::CalcTexCoord(const Vector3& s, CubemapFace& face, Vector2& texcoord)
 {
 	Vector3 ns = s.Normalize();
 
@@ -36,12 +36,12 @@ void TextureCUBE::CalcTexCoord(const Vector3& s, CUBEAxis& axis, Vector2& texcoo
 	{
 		if (ns.x > 0)
 		{
-			axis = CUBEAxis_Right;
+			face = CubemapFace_PositiveX;
 			texcoord = (Vector2(ns.z, ns.y) / absx + Vector2::one) / 2.f;
 		}
 		else
 		{
-			axis = CUBEAxis_Left;
+			face = CubemapFace_NegativeX;
 			texcoord = (Vector2(-ns.z, ns.y) / absx + Vector2::one) / 2.f;
 		}
 	}
@@ -49,12 +49,12 @@ void TextureCUBE::CalcTexCoord(const Vector3& s, CUBEAxis& axis, Vector2& texcoo
 	{
 		if (ns.y > 0)
 		{
-			axis = CUBEAxis_Top;
+			face = CubemapFace_PositiveY;
 			texcoord = (Vector2(ns.x, ns.z) / absy + Vector2::one) / 2.f;
 		}
 		else
 		{
-			axis = CUBEAxis_Bottom;
+			face = CubemapFace_NegativeY;
 			texcoord = (Vector2(ns.x, -ns.z) / absy + Vector2::one) / 2.f;
 		}
 	}
@@ -62,14 +62,19 @@ void TextureCUBE::CalcTexCoord(const Vector3& s, CUBEAxis& axis, Vector2& texcoo
 	{
 		if (ns.z > 0)
 		{
-			axis = CUBEAxis_Front;
+			face = CubemapFace_PositiveZ;
 			texcoord = (Vector2(-ns.x, ns.y) / absz + Vector2::one) / 2.f;
 		}
 		else
 		{
-			axis = CUBEAxis_Back;
+			face = CubemapFace_NegativeZ;
 			texcoord = (Vector2(ns.x, ns.y) / absz + Vector2::one) / 2.f;
 		}
 	}
+}
+
+void Cubemap::SetTexture(CubemapFace face, TexturePtr tex)
+{
+	maps[face] = tex;
 }
 

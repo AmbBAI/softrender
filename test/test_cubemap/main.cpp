@@ -43,12 +43,35 @@ struct VaryingData
 	}
 };
 
-struct PlaneShader : Shader<Vertex, VaryingData>
+struct SkyShader : Shader<Vertex, VaryingData>
+{
+	CubemapPtr cubeMap;
+
+	VaryingData vert(const Vertex& input) override
+	{
+		VaryingData output;
+		output.position = _MATRIX_MVP.MultiplyPoint(input.position);
+		output.normal = _Object2World.MultiplyVector(input.normal);
+		output.worldPos = _Object2World.MultiplyPoint3x4(input.position);
+		return output;
+	}
+
+	Color frag(const VaryingData& input) override
+	{
+		Vector3 viewDir = (_WorldSpaceCameraPos - input.worldPos).Normalize();
+		Vector3 reflectDir = Reflect(viewDir, -input.normal).Normalize();
+		Color reflectCol = TexCUBE(cubeMap, reflectDir);
+
+		return reflectCol;
+	}
+};
+
+struct ObjShader : Shader<Vertex, VaryingData>
 {
 	Vector3 lightDir = Vector3(1.f, 1.f, 1.f).Normalize();
 
 	TexturePtr mainTex;
-	TextureCUBEPtr cubeMap;
+	CubemapPtr cubeMap;
 	Vector2 ddx, ddy;
 
 	VaryingData vert(const Vertex& input) override
@@ -74,7 +97,7 @@ struct PlaneShader : Shader<Vertex, VaryingData>
 
 		Vector3 viewDir = (_WorldSpaceCameraPos - input.worldPos).Normalize();
 		Vector3 reflectDir = Reflect(-viewDir, input.normal).Normalize();
-		Color reflectCol = cubeMap->Sample(reflectDir);
+		Color reflectCol = TexCUBE(cubeMap, reflectDir);
 
 		color.rgb = color.rgb * ndotl + reflectCol.rgb * 0.2f;
 		return color;
@@ -84,13 +107,13 @@ struct PlaneShader : Shader<Vertex, VaryingData>
 void MainLoop()
 {
 	static bool isInitilized = false;
-	static Transform objectTrans;
 	static Transform cameraTrans;
 	static TransformController transCtrl;
 	static std::vector<Vertex> vertices;
 	static std::vector<uint16_t> indices;
 	static MaterialPtr material;
-	static PlaneShader shader;
+	static ObjShader shader;
+	static SkyShader skyShader;
 	Canvas* canvas = app->GetCanvas();
 
 	if (!isInitilized)
@@ -111,18 +134,22 @@ void MainLoop()
 		material->diffuseTexture->GenerateMipmaps();
 
 		shader.mainTex = material->diffuseTexture;
-		shader.cubeMap = TextureCUBEPtr(new TextureCUBE());
+		shader.cubeMap = CubemapPtr(new Cubemap());
 		for (int i = 0; i < 6; ++i)
 		{
 			char path[32];
 			sprintf(path, "resources/cubemap/%d.png", i);
-			shader.cubeMap->cubeMap[i] = Texture::LoadTexture(path);
-			shader.cubeMap->cubeMap[i]->xAddressMode = Texture::AddressMode_Clamp;
-			shader.cubeMap->cubeMap[i]->yAddressMode = Texture::AddressMode_Clamp;
+			TexturePtr tex = Texture::LoadTexture(path);
+			tex->xAddressMode = Texture::AddressMode_Clamp;
+			tex->yAddressMode = Texture::AddressMode_Clamp;
+			shader.cubeMap->SetTexture((Cubemap::CubemapFace)i, tex);
 		}
 		shader.varyingDataDecl = VaryingData::GetLayout();
 		shader.varyingDataSize = sizeof(VaryingData);
 		assert(shader.varyingDataSize == 48);
+		skyShader.varyingDataDecl = VaryingData::GetLayout();
+		skyShader.varyingDataSize = sizeof(VaryingData);
+		skyShader.cubeMap = shader.cubeMap;
 
 		std::vector<MeshPtr> meshes;
 		Mesh::LoadMesh(meshes, "resources/cubemap/sphere.obj");
@@ -135,8 +162,6 @@ void MainLoop()
 			vertices.emplace_back(Vertex{ mesh->vertices[i], mesh->texcoords[i], mesh->normals[i] });
 		}
 		for (auto idx : mesh->indices) indices.emplace_back(idx);
-
-		Rasterizer::transform = objectTrans.GetMatrix();
     }
 
 	if (transCtrl.MouseRotate(cameraTrans)
@@ -149,7 +174,19 @@ void MainLoop()
 
 	Rasterizer::renderData.AssignVertexBuffer(vertices);
 	Rasterizer::renderData.AssignIndexBuffer(indices);
+	
+
+	Transform objTrans;
+	Rasterizer::SetTransform(objTrans.GetMatrix());
 	Rasterizer::SetShader(&shader);
+	Rasterizer::renderState.cull = RenderState::CullType_Back;
+	Rasterizer::Submit();
+
+	Transform skyTrans;
+	skyTrans.scale = Vector3::one * 1000.f;
+	Rasterizer::SetTransform(skyTrans.GetMatrix());
+	Rasterizer::SetShader(&skyShader);
+	Rasterizer::renderState.cull = RenderState::CullType_Front;
 	Rasterizer::Submit();
 
     canvas->Present();

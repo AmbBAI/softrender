@@ -19,7 +19,7 @@ void DrawTexture(Canvas* canvas, const Vector4& rect, const Texture& texture, fl
 		for (int x = minX; x < maxX; ++x)
 		{
 			float u = ((float)x - rect.x) / (rect.z - rect.x);
-			Color color = texture.Sample(u, v, lod);
+			Color color = texture.Sample(Vector2(u, v), lod);
 			canvas->SetPixel(x, y, color);
 		}
 	}

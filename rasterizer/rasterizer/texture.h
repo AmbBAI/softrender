@@ -4,6 +4,7 @@
 #include "base/header.h"
 #include "rasterizer/bitmap.h"
 #include "base/color.h"
+#include "math/vector2.h"
 
 namespace rasterizer
 {
@@ -51,14 +52,16 @@ public:
 	virtual ~Texture() = default;
 
 public:
-	int GetWidth() { return mainTex ? mainTex->GetWidth() : 0; }
-	int GetHeight() { return mainTex ? mainTex->GetHeight() : 0; }
+	int GetWidth() const { return mainTex ? mainTex->GetWidth() : 0; }
+	int GetHeight() const { return mainTex ? mainTex->GetHeight() : 0; }
 
 	void ConvertBumpToNormal(float strength = 10.f);
 	bool GenerateMipmaps();
 	void CompressTexture();
 
-	const Color Sample(float u, float v, float lod = 0.f) const;
+	float CalcLOD(const Vector2& ddx, const Vector2& ddy) const;
+	const Color Sample(const Vector2& uv, float lod = 0.f) const;
+	const Color Sample(const Vector2& uv, const Vector2& ddx, const Vector2& ddy) const { return Sample(uv, CalcLOD(ddx, ddy)); }
 
 protected:
 	static BitmapPtr UnparkColor(rawptr_t bytes, int width, int height, int pitch, int bpp);

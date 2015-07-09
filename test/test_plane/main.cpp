@@ -46,7 +46,7 @@ struct VaryingData
 	}
 };
 
-struct PlaneShader : Shader<Vertex, VaryingData>
+struct ObjShader : Shader<Vertex, VaryingData>
 {
 	Vector3 lightDir = Vector3(1.f, 1.f, 1.f).Normalize();
 
@@ -92,7 +92,7 @@ void MainLoop()
 	static std::vector<Vertex> vertices;
 	static std::vector<uint16_t> indices;
 	static MaterialPtr material;
-	static PlaneShader shader;
+	static ObjShader shader;
 	Canvas* canvas = app->GetCanvas();
 
 	if (!isInitilized)

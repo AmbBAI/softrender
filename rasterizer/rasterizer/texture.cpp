@@ -217,7 +217,7 @@ void Texture::ConvertBumpToNormal(float strength/* = 10.f*/)
 	}
 }
 
-const Color Texture::Sample(float u, float v, float lod/* = 0.f*/) const
+const Color Texture::Sample(const Vector2& uv, float lod/* = 0.f*/) const
 {
 	switch (filterMode) {
 	case FilterMode_Point:
@@ -226,7 +226,7 @@ const Color Texture::Sample(float u, float v, float lod/* = 0.f*/) const
             
             const BitmapPtr bmp = GetBitmap(miplv);
             assert(bmp != nullptr);
-            return sampleFunc[0][xAddressMode][xAddressMode](bmp, u, v);
+            return sampleFunc[0][xAddressMode][xAddressMode](bmp, uv.x, uv.y);
         }
 	case FilterMode_Bilinear:
         {
@@ -234,7 +234,7 @@ const Color Texture::Sample(float u, float v, float lod/* = 0.f*/) const
             
 			const BitmapPtr bmp = GetBitmap(miplv);
 			assert(bmp != nullptr);
-            return sampleFunc[1][xAddressMode][xAddressMode](bmp, u, v);
+            return sampleFunc[1][xAddressMode][xAddressMode](bmp, uv.x, uv.y);
         }
 	case FilterMode_Trilinear:
         {
@@ -244,17 +244,16 @@ const Color Texture::Sample(float u, float v, float lod/* = 0.f*/) const
             
 			const BitmapPtr bmp1 = GetBitmap(miplv1);
             assert(bmp1 != nullptr);
-            Color color1 = sampleFunc[1][xAddressMode][xAddressMode](bmp1, u, v);
+            Color color1 = sampleFunc[1][xAddressMode][xAddressMode](bmp1, uv.x, uv.y);
             
 			const BitmapPtr bmp2 = GetBitmap(miplv2);
             if (bmp2 == bmp1) return color1;
-            Color color2 = sampleFunc[1][xAddressMode][xAddressMode](bmp2, u, v);
+            Color color2 = sampleFunc[1][xAddressMode][xAddressMode](bmp2, uv.x, uv.y);
             return Color::Lerp(color1, color2, frac);
         }
 	}
     return Color::black;
 }
-
 
 bool Texture::GenerateMipmaps()
 {
@@ -318,5 +317,15 @@ void Texture::CompressTexture()
 	}
 }
 
+float Texture::CalcLOD(const Vector2& ddx, const Vector2& ddy) const
+{
+	if (mainTex == nullptr) return 0.f;
+	int width = mainTex->GetWidth();
+	int height = mainTex->GetHeight();
+	float w2 = (float)width * width;
+	float h2 = (float)height * height;
+	float delta = Mathf::Max(ddx.Dot(ddx) * w2, ddy.Dot(ddy) * h2);
+	return Mathf::Max(0.f, 0.5f * Mathf::Log2(delta));
+}
 
 }

@@ -358,6 +358,11 @@ void Rasterizer::Rasterizer2x2RenderFunc(const Triangle<VertexVaryingData>& data
 	}
 }
 
+void Rasterizer::SetTransform(const Matrix4x4& transform)
+{
+	Rasterizer::transform = transform;
+}
+
 bool RenderState::ZTest(float zPixel, float zInBuffer) const
 {
 	switch (zTest)
