@@ -41,6 +41,7 @@ struct RenderState
 	};
 	BlendFactor srcFactor = BlendFactor_SrcAlpha;
 	BlendFactor dstFactor = BlendFactor_OneMinusSrcAlpha;
+	const Color BlendOp(BlendFactor factor, const Color& col, const Color& src, const Color& dst) const;
 	const Color Blend(const Color& src, const Color& dst) const;
 
 	enum ZTestType
@@ -113,6 +114,9 @@ struct Rasterizer
 	static void SetMainLight(LightPtr light);
 	static void SetShader(ShaderBase* shader);
 	static void SetTransform(const Matrix4x4& transform);
+
+	static bool InitShaderLightParams(ShaderBase* shader, const LightPtr light);
+
 	static void Submit(int startIndex = 0, int primitiveCount = 0);
 
 	static void DrawLine(int x0, int x1, int y0, int y1, const Color32& color);

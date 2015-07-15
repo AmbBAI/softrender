@@ -224,7 +224,8 @@ void Rasterizer::Submit(int startIndex/* = 0*/, int primitiveCount/* = 0*/)
 	shader->_WorldSpaceCameraPos = camera->GetPosition();
 	shader->_ScreenParams = Vector4((float)width, (float)height, 1.f + 1.f / (float)width, 1.f + 1.f / (float)height);
 
-	shader->light = light;
+	InitShaderLightParams(shader, light);
+
 
 	int vertexCount = renderData.GetVertexCount();
 	varyingDataBuffer.InitVerticesVaryingData(vertexCount);
@@ -352,6 +353,11 @@ void Rasterizer::Rasterizer2x2RenderFunc(const Triangle<VertexVaryingData>& data
 		Color color = shader->_PSMain();
 		if (!shader->isClipped)
 		{
+			if (renderState.alphaBlend)
+			{
+				Color dst = canvas->GetPixel(x, y);
+				color = renderState.Blend(color, dst);
+			}
 			canvas->SetPixel(x, y, color);
 			if (renderState.zWrite) canvas->SetDepth(x, y, quad.depth[i]);
 		}
@@ -361,6 +367,39 @@ void Rasterizer::Rasterizer2x2RenderFunc(const Triangle<VertexVaryingData>& data
 void Rasterizer::SetTransform(const Matrix4x4& transform)
 {
 	Rasterizer::transform = transform;
+}
+
+bool Rasterizer::InitShaderLightParams(ShaderBase* shader, const LightPtr light)
+{
+	if (light == nullptr)
+	{
+		shader->_WorldSpaceLightPos = Vector4(0.f, 0.f, 1.f, 0.f);
+		shader->_LightColor = Color::black;
+		return false;
+	}
+
+	light->Initilize();
+	if (light->type == Light::LightType_Directional)
+	{
+		shader->_WorldSpaceLightPos = Vector4(light->direction.Normalize(), 0.f);
+	}
+	else
+	{
+		shader->_WorldSpaceLightPos = Vector4(light->position, 1.f);
+		if (light->type == Light::LightType_Spot)
+		{
+			shader->_SpotLightDir = Vector3(light->direction.Normalize());
+			shader->_SpotLightParams = Vector3(light->cosHalfPhi, light->cosHalfTheta, light->falloff);
+		}
+		else
+		{
+			shader->_SpotLightParams = Vector3(-1.f, -1.f, 0.f);
+		}
+	}
+	shader->_LightColor = light->color;
+	shader->_LightColor *= light->intensity;
+	shader->_LightAtten = Vector4(light->atten0, light->atten1, light->atten2, light->range);
+	return true;
 }
 
 bool RenderState::ZTest(float zPixel, float zInBuffer) const
@@ -385,6 +424,41 @@ bool RenderState::ZTest(float zPixel, float zInBuffer) const
 		break;
 	}
 	return false;
+}
+
+const Color RenderState::BlendOp(BlendFactor factor, const Color& col, const Color& src, const Color& dst) const
+{
+	switch (factor)
+	{
+	case BlendFactor_One:
+		return col;
+	case BlendFactor_Zero:
+		return Color(0.f,0.f,0.f,0.f);
+	case BlendFactor_SrcColor:
+		return col * src;
+	case BlendFactor_SrcAlpha:
+		return col * src.a;
+	case BlendFactor_DstColor:
+		return col * dst;
+	case BlendFactor_DstAlpha:
+		return col * dst.a;
+	case BlendFactor_OneMinusSrcColor:
+		return col * src.Inverse();
+	case BlendFactor_OneMinusSrcAlpha:
+		return col * (1.f - src.a);
+	case BlendFactor_OneMinusDstColor:
+		return col * dst.Inverse();
+	case BlendFactor_OneMinusDstAlpha:
+		return col * (1.f - dst.a);
+	default:
+		break;
+	}
+	return col;
+}
+
+const Color RenderState::Blend(const Color& src, const Color& dst) const
+{
+	return BlendOp(srcFactor, src, src, dst) + BlendOp(dstFactor, dst, src, dst);
 }
 
 }

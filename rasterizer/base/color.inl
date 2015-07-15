@@ -18,28 +18,18 @@ ColorRGB::operator Vector3() const
 	return Vector3(r, g, b);
 }
 
-const Color Color::Add(const Color& c) const
-{
-	return Color(a + c.a, r + c.r, g + c.g, b + c.b);
-}
-
-const Color Color::Multiply(float s) const
-{
 #if _NOCRASH_
-    return Color(_mm_mul_ps(m, _mm_set1_ps(s)));
+const Color Color::operator +(const Color& v) const { return Color(_mm_add_ps(m, v.m)); }
+const Color Color::operator *(float f) const { return Color(_mm_mul_ps(m, _mm_set1_ps(s))); }
+const Color Color::operator *(const Color& v) const { return Color(_mm_mul_ps(m, v.m)); }
 #else
-	return Color(a * s, r * s, g * s, b * s);
+const Color Color::operator +(const Color& v) const { return Color(a + v.a, r + v.r, g + v.g, b + v.b); }
+const Color Color::operator *(float f) const { return Color(a * f, r * f, g * f, b * f); }
+const Color Color::operator *(const Color& v) const { return Color(a * v.a, r * v.r, g * v.g, b * v.b); }
 #endif
-}
-
-const Color Color::Modulate(const Color& c) const
-{
-#if _NOCRASH_
-    return Color(_mm_mul_ps(m, c.m));
-#else
-	return Color(a * c.a, r * c.r, g * c.g, b * c.b);
-#endif
-}
+const Color Color::operator += (const Color& v) { return (*this) = (*this) + v; }
+const Color Color::operator *= (float f) { return (*this) = (*this) * f; }
+const Color Color::operator *= (const Color& v) { return (*this) = (*this) * v; }
 
 const Color Color::Lerp(const Color& a, const Color& b, float t)
 {
@@ -70,9 +60,7 @@ const Color Color::Lerp(const Color& a, const Color& b, const Color& c, const Co
 	__m128 tmp1 = _mm_add_ps(_mm_mul_ps(a.m, mrt1), _mm_mul_ps(b.m, mt1));
 	__m128 tmp2 = _mm_add_ps(_mm_mul_ps(c.m, mrt1), _mm_mul_ps(d.m, mt1));
 
-	Color color;
-	color.m = _mm_add_ps(_mm_mul_ps(tmp1, mrt2), _mm_mul_ps(tmp2, mt2));
-	return color;
+	return Color(_mm_add_ps(_mm_mul_ps(tmp1, mrt2), _mm_mul_ps(tmp2, mt2)));
 #else
 	return Color::Lerp(Color::Lerp(a, b, t1), Color::Lerp(c, d, t1), t2);
 #endif
@@ -81,19 +69,19 @@ const Color Color::Lerp(const Color& a, const Color& b, const Color& c, const Co
 Color::operator Color32() const
 {
     Color32 color;
+	Color col = Clamp();
 #if _NOCRASH_
     static __m128 _ps255 = _mm_set1_ps(255.f);
-    __m128 tmp = _mm_min_ps(_mm_set1_ps(1.f), _mm_max_ps(_mm_set1_ps(0.f), m));
-    __m128i im = _mm_cvtps_epi32(_mm_mul_ps(tmp, _ps255));
+    __m128i im = _mm_cvtps_epi32(_mm_mul_ps(col.m, _ps255));
     color.r = _mm_extract_epi8(im, 0);
     color.g = _mm_extract_epi8(im, 4);
     color.b = _mm_extract_epi8(im, 8);
     color.a = _mm_extract_epi8(im, 12);
 #else
-    color.a = (uint8_t)(Mathf::Clamp01(a) * 255);
-	color.r = (uint8_t)(Mathf::Clamp01(r) * 255);
-	color.g = (uint8_t)(Mathf::Clamp01(g) * 255);
-	color.b = (uint8_t)(Mathf::Clamp01(b) * 255);
+	color.a = (uint8_t)(col.a * 255);
+	color.r = (uint8_t)(col.r * 255);
+	color.g = (uint8_t)(col.g * 255);
+	color.b = (uint8_t)(col.b * 255);
 #endif
     return color;
 }
@@ -101,6 +89,29 @@ Color::operator Color32() const
 Color::operator Vector4() const
 {
 	return Vector4(r, g, b, a);
+}
+
+
+Color Color::Clamp() const
+{
+#if _NOCRASH_
+	return Color(_mm_min_ps(_mm_set1_ps(1.f), _mm_max_ps(_mm_set1_ps(0.f), m)));
+#else
+	return Color(
+		Mathf::Clamp01(a),
+		Mathf::Clamp01(r),
+		Mathf::Clamp01(g),
+		Mathf::Clamp01(b));
+#endif
+}
+
+Color Color::Inverse() const
+{
+#if _NOCRASH_
+	return Color(_mm_sub_ps(_mm_set1_ps(1.f), m));
+#else
+	return Color(1.f - a, 1.f - r, 1.f - g, 1.f - b);
+#endif
 }
 
 Color32::operator Color() const

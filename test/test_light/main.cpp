@@ -40,10 +40,8 @@ struct VaryingData
 	}
 };
 
-struct TestShader : Shader<Vertex, VaryingData>
+struct ForwardBaseShader : Shader<Vertex, VaryingData>
 {
-	Vector3 lightDir = Vector3(1.f, 1.f, 1.f).Normalize();
-
 	void Init()
 	{
 		varyingDataDecl = VaryingData::GetLayout();
@@ -62,33 +60,60 @@ struct TestShader : Shader<Vertex, VaryingData>
 	Color frag(const VaryingData& input) override
 	{
 		LightInput lightInput;
-		lightInput.ambient = Color(1.f, 0.18f, 0.04f, 0.18f);
-		lightInput.diffuse = Color(1.f, 0.9f, 0.2f, 0.9f);
+		lightInput.ambient = Color(1.f, 0.18f, 0.18f, 0.18f);
+		lightInput.diffuse = Color(1.f, 0.9f, 0.9f, 0.9f);
 		lightInput.specular = Color::white;
 		lightInput.shininess = 10.f;
 
 		Color fragColor;
 
 		Vector3 lightDir;
-		ColorRGB lightColor;
 		float lightAtten;
-		if (InitLightArgs(input.worldPos, lightDir, lightColor, lightAtten))
-		{
-			Vector3 viewDir = (_WorldSpaceCameraPos - input.worldPos).Normalize();
-			fragColor.rgb = ShaderF::LightingPhong(lightInput, input.normal, lightDir, lightColor, viewDir, 1.f);
-		}
-		else
-		{
-			fragColor = Color(1.f, 0.f, 1.f, 1.f);
-			fragColor.rgb += lightInput.ambient.rgb;
-			fragColor.rgb += lightInput.diffuse.rgb;
-		}
+		InitLightArgs(input.worldPos, lightDir, lightAtten);
 
-		//fragColor.rgb = (input.normal + Vector3::one) / 2.f;
+		Vector3 viewDir = (_WorldSpaceCameraPos - input.worldPos).Normalize();
+		fragColor.rgb = ShaderF::LightingPhong(lightInput, input.normal, lightDir, _LightColor.xyz, viewDir, 1.f);
+
 		return fragColor;
 	}
 };
 
+struct ForwardAdditionShader : Shader<Vertex, VaryingData>
+{
+	void Init()
+	{
+		varyingDataDecl = VaryingData::GetLayout();
+		varyingDataSize = sizeof(VaryingData);
+	}
+
+	VaryingData vert(const Vertex& input) override
+	{
+		VaryingData output;
+		output.position = _MATRIX_MVP.MultiplyPoint(input.position);
+		output.normal = _Object2World.MultiplyVector(input.normal).Normalize();
+		output.worldPos = _Object2World.MultiplyPoint3x4(input.position);
+		return output;
+	}
+
+	Color frag(const VaryingData& input) override
+	{
+		LightInput lightInput;
+		lightInput.ambient = Color::black;
+		lightInput.diffuse = Color(1.f, 0.9f, 0.9f, 0.9f);
+		lightInput.specular = Color::white;
+		lightInput.shininess = 10.f;
+
+		Color fragColor;
+
+		Vector3 lightDir;
+		float lightAtten;
+		InitLightArgs(input.worldPos, lightDir, lightAtten);
+
+		Vector3 viewDir = (_WorldSpaceCameraPos - input.worldPos).Normalize();
+		fragColor.rgb = ShaderF::LightingPhong(lightInput, input.normal, lightDir, _LightColor.xyz, viewDir, 1.f);
+		return fragColor;
+	}
+};
 
 void MainLoop()
 {
@@ -99,7 +124,10 @@ void MainLoop()
 	static std::vector<Vertex> vertices;
 	static std::vector<uint16_t> indices;
 	static MaterialPtr material;
-	static TestShader shader;
+	static ForwardBaseShader fbShader;
+	static ForwardAdditionShader faShader;
+	static LightPtr lightRed;
+	static LightPtr lightBlue;
 	Canvas* canvas = app->GetCanvas();
 
 	if (!isInitilized)
@@ -115,24 +143,38 @@ void MainLoop()
 		camera->SetLookAt(cameraTrans);
 		Rasterizer::camera = camera;
 
-		auto light = LightPtr(new Light());
-		light->type = Light::LightType_Point;
-		light->position = Vector3(0.f, 0.5f, 0.f);
-		light->range = 1.f;
-		light->atten0 = 0.1f;
-		light->atten1 = 5.0f;
-		light->atten2 = 2.0f;
-		light->theta = 30.f;
-		light->phi = 45.f;
-		light->direction = Vector3(0.f, -1.f, 0.f).Normalize();
-		light->Initilize();
-		Rasterizer::light = light;
+		lightRed = LightPtr(new Light());
+		lightRed->type = Light::LightType_Point;
+		lightRed->color = Color::red;
+		lightRed->position = Vector3(-0.5f, 0.5f, 0.f);
+		lightRed->range = 2.f;
+		lightRed->atten0 = 0.1f;
+		lightRed->atten1 = 5.0f;
+		lightRed->atten2 = 2.0f;
+		lightRed->theta = 30.f;
+		lightRed->phi = 45.f;
+		lightRed->direction = Vector3(0.f, -1.f, 0.f).Normalize();
+		lightRed->Initilize();
+
+		lightBlue = LightPtr(new Light());
+		lightBlue->type = Light::LightType_Point;
+		lightBlue->color = Color::blue;
+		lightBlue->position = Vector3(0.5f, 0.5f, 0.f);
+		lightBlue->range = 2.f;
+		lightBlue->atten0 = 0.1f;
+		lightBlue->atten1 = 5.0f;
+		lightBlue->atten2 = 2.0f;
+		lightBlue->theta = 30.f;
+		lightBlue->phi = 45.f;
+		lightBlue->direction = Vector3(0.f, -1.f, 0.f).Normalize();
+		lightBlue->Initilize();
 
 		material = MaterialPtr(new Material());
 		material->diffuseTexture = Texture::LoadTexture("resources/cube/default.png");
 		material->diffuseTexture->GenerateMipmaps();
 
-		shader.Init();
+		fbShader.Init();
+		faShader.Init();
 
 		std::vector<MeshPtr> meshes;
 		//Mesh::LoadMesh(meshes, "resources/knot.obj");
@@ -164,7 +206,17 @@ void MainLoop()
 	Rasterizer::transform = objectTrans.GetMatrix();
 	Rasterizer::renderData.AssignVertexBuffer(vertices);
 	Rasterizer::renderData.AssignIndexBuffer(indices);
-	Rasterizer::SetShader(&shader);
+
+	Rasterizer::light = lightRed;
+	Rasterizer::renderState.alphaBlend = false;
+	Rasterizer::SetShader(&fbShader);
+	Rasterizer::Submit();
+
+	Rasterizer::light = lightBlue;
+	Rasterizer::renderState.alphaBlend = true;
+	Rasterizer::renderState.srcFactor = RenderState::BlendFactor_One;
+	Rasterizer::renderState.dstFactor = RenderState::BlendFactor_One;
+	Rasterizer::SetShader(&faShader);
 	Rasterizer::Submit();
 
     canvas->Present();

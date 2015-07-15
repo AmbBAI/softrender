@@ -25,7 +25,6 @@ struct ShaderBase
 	VertexVaryingData* vertexVaryingData = nullptr;
 	PixelVaryingData* pixelVaryingData = nullptr;
 
-	LightPtr light;
 	bool isClipped;
 
 	//uniform
@@ -43,10 +42,11 @@ struct ShaderBase
 	Vector3 _ZBufferParams;
 
 	// light
-	Vector3 _LightDir;
-	Vector3 _LightColor;
-	float _LightAtten;
-
+	Vector4 _WorldSpaceLightPos;
+	Vector4 _LightColor;
+	Vector4 _LightAtten; // atten0, atten1, atten2, range
+	Vector3 _SpotLightDir;
+	Vector3 _SpotLightParams; // cos(phi/2), cos(theta/2), falloff
 	// uniform time
 	//Vector4 _Time;
 	//Vector4 _SinTime;
@@ -103,36 +103,31 @@ struct ShaderBase
 		return isClipped = (x < 0.f);
 	}
 
-	bool InitLightArgs(const Vector3& worldPos, Vector3& lightDir, ColorRGB& lightColor, float& lightAtten)
+	void InitLightArgs(const Vector3& worldPos, Vector3& lightDir, float& lightAtten)
 	{
-		if (light == nullptr) return false;
-
-		lightDir = (-light->direction).Normalize();
-		lightAtten = 1.f;
-		float intensity = light->intensity;
-		switch (light->type) {
-		case Light::LightType_Directional:
-			break;
-		case Light::LightType_Point:
-			{
-				lightDir = light->position - worldPos;
-				float distance = lightDir.Length();
-				lightDir /= distance;
-				lightAtten = light->CalcAttenuation(distance);
-			}
-			break;
-		case Light::LightType_Spot:
-			{
-				lightDir = light->position - worldPos;
-				float distance = lightDir.Length();
-				lightDir /= distance;
-				lightAtten = light->CalcAttenuation(distance);
-				intensity *= light->CalcSpotlightFactor(lightDir);
-			}
-			break;
+		if (Mathf::Approximately(_WorldSpaceLightPos.w, 0.f))
+		{
+			lightDir = -_WorldSpaceLightPos.xyz;
+			lightAtten = 1.f;
 		}
-		lightColor = light->color.rgb * intensity;
-		return true;
+		else
+		{
+			lightDir = _WorldSpaceLightPos.xyz - worldPos;
+			float distance = lightDir.Length();
+			lightDir /= distance;
+			if (_LightAtten.w < distance)
+				lightAtten = 0.f;
+			else
+			{
+				lightAtten = 1.f / (_LightAtten.x + _LightAtten.y * distance + _LightAtten.z * distance * distance);
+				if (_SpotLightParams.x >= 0.f)
+				{
+					float spotLightFactor = ((-_SpotLightDir).Dot(lightDir) - _SpotLightParams.x) / (_SpotLightParams.y - _SpotLightParams.x);
+					spotLightFactor = Mathf::Clamp01(Mathf::Pow(spotLightFactor, _SpotLightParams.z));
+					lightAtten *= spotLightFactor;
+				}
+			}
+		}
 	}
 };
 

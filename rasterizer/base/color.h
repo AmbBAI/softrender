@@ -16,9 +16,10 @@ struct ColorRGB
 	ColorRGB() = default;
 	ColorRGB(float _r, float _g, float _b)
 		: r(_r), g(_g), b(_b) {}
-		//: r(Mathf::Clamp01(_r))
-		//, g(Mathf::Clamp01(_g))
-		//, b(Mathf::Clamp01(_b)) {}
+	//: a(Mathf::Clamp01(_a))
+	//, r(Mathf::Clamp01(_r))
+	//, g(Mathf::Clamp01(_g))
+	//{}
 	ColorRGB(const Vector3& rgb)
 		: ColorRGB(rgb.x, rgb.y, rgb.z) {}
 
@@ -54,30 +55,37 @@ struct Color
 	Color() = default;
 	Color(float _a, float _r, float _g, float _b)
 #if _NOCRASH_
-    : Color(_mm_setr_ps(_r, _g, _b, _a))
-    {}
+		: Color(_mm_setr_ps(_r, _g, _b, _a)) {}
 #else
-    : a(Mathf::Clamp01(_a))
-    , r(Mathf::Clamp01(_r))
-    , g(Mathf::Clamp01(_g))
-    , b(Mathf::Clamp01(_b))
-    {}
+		: a(_a), r(_r), g(_g), b(_b) {}
+	//: a(Mathf::Clamp01(_a))
+	//, r(Mathf::Clamp01(_r))
+	//, g(Mathf::Clamp01(_g))
+	//, b(Mathf::Clamp01(_b))
+	//{}
 #endif
     
 	Color(const Vector4& rgba)
 		: Color(rgba.w, rgba.x, rgba.y, rgba.z) {}
 
 #if _NOCRASH_
-    Color(__m128 _m)
-        : m(_m)
-    {
-        m = _mm_min_ps(_mm_set1_ps(1.f), _mm_max_ps(_mm_set1_ps(0.f), m));
-    }
+	Color(__m128 _m)
+		: m(_m) {}
+    //{
+    //    m = _mm_min_ps(_mm_set1_ps(1.f), _mm_max_ps(_mm_set1_ps(0.f), m));
+    //}
 #endif
 
-	inline const Color Add(const Color& c) const;
-	inline const Color Multiply(float s) const;
-	inline const Color Modulate(const Color& c) const;
+	inline const Color operator +(const Color& color) const;
+	inline const Color operator +=(const Color& color);
+	inline const Color operator *(float f) const;
+	inline const Color operator *(const Color& color) const;
+	inline const Color operator *=(float f);
+	inline const Color operator *=(const Color& color);
+
+	inline Color Clamp() const;
+	inline Color Inverse() const;
+
 	static inline const Color Lerp(const Color& a, const Color& b, float t);
 	static inline const Color Lerp(const Color& a, const Color& b, const Color& c, const Color& d, float t1, float t2);
 

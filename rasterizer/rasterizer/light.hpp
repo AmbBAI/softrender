@@ -46,18 +46,6 @@ struct Light
         }
     }
 
-	float CalcAttenuation(float distance) const
-	{
-		return range / (atten0 + atten1 * distance + atten2 * distance * distance);
-	}
-
-	float CalcSpotlightFactor(const Vector3& lightDir) const
-	{
-		float factor = ((-direction).Dot(lightDir) - cosHalfPhi) / (cosHalfTheta - cosHalfPhi);
-		factor = Mathf::Clamp01(Mathf::Pow(factor, falloff));
-		return factor;
-	}
-	
 #if _NOCRASH_ && defined(_MSC_VER)
 	MEMALIGN_NEW_OPERATOR_OVERRIDE(16)
 	MEMALIGN_DELETE_OPERATOR_OVERRIDE

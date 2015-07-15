@@ -111,30 +111,29 @@ struct ShaderStand : Shader<Vertex, VaryingData>
 		}
 
 		Vector3 lightDir;
-		ColorRGB lightColor;
 		float lightAtten;
-		if (InitLightArgs(input.worldPos, lightDir, lightColor, lightAtten))
+		InitLightArgs(input.worldPos, lightDir, lightAtten);
+
+		LightInput lightInput;
+		lightInput.ambient = fragColor;
+		lightInput.ambient.rgb *= 0.2f;
+		lightInput.diffuse = fragColor;
+		//lightInput.diffuse.rgb *= 0.9f;
+
+		if (specularTex != nullptr)
 		{
-			LightInput lightInput;
-			lightInput.ambient = fragColor;
-			lightInput.ambient.rgb *= 0.2f;
-			lightInput.diffuse = fragColor;
-			//lightInput.diffuse.rgb *= 0.9f;
+			Color specColor = Tex2D(specularTex, input.texcoord);
+			lightInput.specular = specColor;
+			lightInput.shininess = shininess;
 
-			if (specularTex != nullptr)
-			{
-				Color specColor = Tex2D(specularTex, input.texcoord);
-				lightInput.specular = specColor;
-				lightInput.shininess = shininess;
-
-				Vector3 viewDir = (_WorldSpaceCameraPos - input.worldPos).Normalize();
-				fragColor.rgb = ShaderF::LightingPhong(lightInput, normal, lightDir, lightColor, viewDir, lightAtten);
-			}
-			else
-			{
-				fragColor.rgb = ShaderF::LightingLambert(lightInput, normal, lightDir, lightColor, lightAtten);
-			}
+			Vector3 viewDir = (_WorldSpaceCameraPos - input.worldPos).Normalize();
+			fragColor.rgb = ShaderF::LightingPhong(lightInput, normal, lightDir, _LightColor.xyz, viewDir, lightAtten);
 		}
+		else
+		{
+			fragColor.rgb = ShaderF::LightingLambert(lightInput, normal, lightDir, _LightColor.xyz, lightAtten);
+		}
+
 		return fragColor;
 	}
 };
