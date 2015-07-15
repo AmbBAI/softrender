@@ -30,16 +30,16 @@ struct VaryingData
 	Vector3 normal;
 	Vector3 worldPos;
 
-	static std::vector<VaryingDataLayout> GetLayout()
+	static std::vector<VaryingDataElement> GetDecl()
 	{
-		static std::vector<VaryingDataLayout> layout = {
+		static std::vector<VaryingDataElement> decl = {
 			{ 0, VaryingDataDeclUsage_SVPOSITION, VaryingDataDeclFormat_Vector4 },
 			{ 16, VaryingDataDeclUsage_TEXCOORD, VaryingDataDeclFormat_Vector2 },
 			{ 24, VaryingDataDeclUsage_TEXCOORD, VaryingDataDeclFormat_Vector3 },
 			{ 36, VaryingDataDeclUsage_TEXCOORD, VaryingDataDeclFormat_Vector3 }
 		};
 
-		return layout;
+		return decl;
 	}
 };
 
@@ -112,8 +112,8 @@ void MainLoop()
 	static std::vector<Vertex> vertices;
 	static std::vector<uint16_t> indices;
 	static MaterialPtr material;
-	static ObjShader shader;
-	static SkyShader skyShader;
+	static std::shared_ptr<ObjShader> objShader;
+	static std::shared_ptr<SkyShader> skyShader;
 	Canvas* canvas = app->GetCanvas();
 
 	if (!isInitilized)
@@ -133,8 +133,9 @@ void MainLoop()
 		material->diffuseTexture = Texture::LoadTexture("resources/teapot/default.png");
 		material->diffuseTexture->GenerateMipmaps();
 
-		shader.mainTex = material->diffuseTexture;
-		shader.cubeMap = CubemapPtr(new Cubemap());
+		objShader = std::make_shared<ObjShader>();
+		objShader->mainTex = material->diffuseTexture;
+		objShader->cubeMap = CubemapPtr(new Cubemap());
 		for (int i = 0; i < 6; ++i)
 		{
 			char path[32];
@@ -142,14 +143,11 @@ void MainLoop()
 			TexturePtr tex = Texture::LoadTexture(path);
 			tex->xAddressMode = Texture::AddressMode_Clamp;
 			tex->yAddressMode = Texture::AddressMode_Clamp;
-			shader.cubeMap->SetTexture((Cubemap::CubemapFace)i, tex);
+			objShader->cubeMap->SetTexture((Cubemap::CubemapFace)i, tex);
 		}
-		shader.varyingDataDecl = VaryingData::GetLayout();
-		shader.varyingDataSize = sizeof(VaryingData);
-		assert(shader.varyingDataSize == 48);
-		skyShader.varyingDataDecl = VaryingData::GetLayout();
-		skyShader.varyingDataSize = sizeof(VaryingData);
-		skyShader.cubeMap = shader.cubeMap;
+		assert(objShader->varyingDataSize == 48);
+		skyShader = std::make_shared<SkyShader>();
+		skyShader->cubeMap = objShader->cubeMap;
 
 		std::vector<MeshPtr> meshes;
 		Mesh::LoadMesh(meshes, "resources/cubemap/sphere.obj");
@@ -178,14 +176,14 @@ void MainLoop()
 
 	Transform objTrans;
 	Rasterizer::SetTransform(objTrans.GetMatrix());
-	Rasterizer::SetShader(&shader);
+	Rasterizer::SetShader(objShader);
 	Rasterizer::renderState.cull = RenderState::CullType_Back;
 	Rasterizer::Submit();
 
 	Transform skyTrans;
 	skyTrans.scale = Vector3::one * 1000.f;
 	Rasterizer::SetTransform(skyTrans.GetMatrix());
-	Rasterizer::SetShader(&skyShader);
+	Rasterizer::SetShader(skyShader);
 	Rasterizer::renderState.cull = RenderState::CullType_Front;
 	Rasterizer::Submit();
 

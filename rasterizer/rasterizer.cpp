@@ -6,7 +6,7 @@ namespace rasterizer
 Canvas* Rasterizer::canvas = nullptr;
 CameraPtr Rasterizer::camera = nullptr;
 LightPtr Rasterizer::light = nullptr;
-ShaderBase* Rasterizer::shader = nullptr;
+ShaderPtr Rasterizer::shader = nullptr;
 Matrix4x4 Rasterizer::transform;
 RenderState Rasterizer::renderState;
 RenderData Rasterizer::renderData;
@@ -231,9 +231,14 @@ void Rasterizer::Submit(int startIndex/* = 0*/, int primitiveCount/* = 0*/)
 	varyingDataBuffer.InitVerticesVaryingData(vertexCount);
 	for (int i = 0; i < vertexCount; ++i)
 	{
-		shader->vertexVaryingData = &varyingDataBuffer.GetVertexVaryingData(i);
+		VertexVaryingData& varyingData = varyingDataBuffer.GetVertexVaryingData(i);
+		shader->varyingData = varyingData.data;
 		rawptr_t vertexData = renderData.GetVertexData<uint8_t>(i);
 		shader->_VSMain(vertexData);
+
+		auto decl = varyingDataBuffer.GetVaryingDataDecl();
+		varyingData.position = *Buffer::Value<Vector4>(shader->varyingData, decl.positionOffset);
+		varyingData.clipCode = Clipper::CalculateClipCode(varyingData.position);
 	}
 
 	varyingDataBuffer.InitDynamicVaryingData();
@@ -319,7 +324,7 @@ void Rasterizer::Submit(int startIndex/* = 0*/, int primitiveCount/* = 0*/)
 	*/
 }
 
-void Rasterizer::SetShader(ShaderBase* shader)
+void Rasterizer::SetShader(ShaderPtr shader)
 {
 	assert(shader != nullptr);
 	Rasterizer::shader = shader;
@@ -327,15 +332,37 @@ void Rasterizer::SetShader(ShaderBase* shader)
 	varyingDataBuffer.SetVaryingDataDecl(shader->varyingDataDecl, shader->varyingDataSize);
 }
 
+void Rasterizer::RasterizerRenderFunc(const VertexVaryingData& data, const RasterizerInfo& info)
+{
+	int x = info.x;
+	int y = info.y;
+
+	if (!renderState.ZTest(info.depth, canvas->GetDepth(x, y))) return;
+
+	shader->varyingData = data.data;
+	shader->isClipped = false;
+	Color color = shader->_PSMain();
+	if (!shader->isClipped)
+	{
+		if (renderState.alphaBlend)
+		{
+			Color dst = canvas->GetPixel(x, y);
+			color = renderState.Blend(color, dst);
+		}
+		canvas->SetPixel(x, y, color);
+		if (renderState.zWrite) canvas->SetDepth(x, y, info.depth);
+	}
+}
+
 void Rasterizer::Rasterizer2x2RenderFunc(const Triangle<VertexVaryingData>& data, const Rasterizer2x2Info& quad)
 {
 	static int quadX[4] = { 0, 1, 0, 1 };
 	static int quadY[4] = { 0, 0, 1, 1 };
 
-	Quad<PixelVaryingData> pixelVaryingDataQuad;
+	rawptr_t pixelVaryingDataQuad[4];
 	for (int i = 0; i < 4; ++i)
 	{
-		pixelVaryingDataQuad[i] = PixelVaryingData::TriangleInterp(data.v0, data.v1, data.v2, quad.wx[i], quad.wy[i], quad.wz[i]);
+		pixelVaryingDataQuad[i] = VertexVaryingData::TriangleInterp(data.v0, data.v1, data.v2, quad.wx[i], quad.wy[i], quad.wz[i]);
 	}
 	shader->_PassQuad(pixelVaryingDataQuad);
 
@@ -348,7 +375,7 @@ void Rasterizer::Rasterizer2x2RenderFunc(const Triangle<VertexVaryingData>& data
 
 		if (!renderState.ZTest(quad.depth[i], canvas->GetDepth(x, y))) continue;
 
-		shader->pixelVaryingData = &pixelVaryingDataQuad[i];
+		shader->varyingData = pixelVaryingDataQuad[i];
 		shader->isClipped = false;
 		Color color = shader->_PSMain();
 		if (!shader->isClipped)
@@ -369,7 +396,7 @@ void Rasterizer::SetTransform(const Matrix4x4& transform)
 	Rasterizer::transform = transform;
 }
 
-bool Rasterizer::InitShaderLightParams(ShaderBase* shader, const LightPtr light)
+bool Rasterizer::InitShaderLightParams(ShaderPtr shader, const LightPtr light)
 {
 	if (light == nullptr)
 	{
@@ -400,65 +427,6 @@ bool Rasterizer::InitShaderLightParams(ShaderBase* shader, const LightPtr light)
 	shader->_LightColor *= light->intensity;
 	shader->_LightAtten = Vector4(light->atten0, light->atten1, light->atten2, light->range);
 	return true;
-}
-
-bool RenderState::ZTest(float zPixel, float zInBuffer) const
-{
-	switch (zTest)
-	{
-	case RenderState::ZTestType_Always:
-		return true;
-	case RenderState::ZTestType_Less:
-		return zPixel < zInBuffer;
-	case RenderState::ZTestType_Greater:
-		return zPixel > zInBuffer;
-	case RenderState::ZTestType_LEqual:
-		return zPixel <= zInBuffer;
-	case RenderState::ZTestType_GEqual:
-		return zPixel >= zInBuffer;
-	case RenderState::ZTestType_Equal:
-		return zPixel == zInBuffer;
-	case RenderState::ZTestType_NotEqual:
-		return zPixel != zInBuffer;
-	default:
-		break;
-	}
-	return false;
-}
-
-const Color RenderState::BlendOp(BlendFactor factor, const Color& col, const Color& src, const Color& dst) const
-{
-	switch (factor)
-	{
-	case BlendFactor_One:
-		return col;
-	case BlendFactor_Zero:
-		return Color(0.f,0.f,0.f,0.f);
-	case BlendFactor_SrcColor:
-		return col * src;
-	case BlendFactor_SrcAlpha:
-		return col * src.a;
-	case BlendFactor_DstColor:
-		return col * dst;
-	case BlendFactor_DstAlpha:
-		return col * dst.a;
-	case BlendFactor_OneMinusSrcColor:
-		return col * src.Inverse();
-	case BlendFactor_OneMinusSrcAlpha:
-		return col * (1.f - src.a);
-	case BlendFactor_OneMinusDstColor:
-		return col * dst.Inverse();
-	case BlendFactor_OneMinusDstAlpha:
-		return col * (1.f - dst.a);
-	default:
-		break;
-	}
-	return col;
-}
-
-const Color RenderState::Blend(const Color& src, const Color& dst) const
-{
-	return BlendOp(srcFactor, src, src, dst) + BlendOp(dstFactor, dst, src, dst);
 }
 
 }

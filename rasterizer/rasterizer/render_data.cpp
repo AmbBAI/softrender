@@ -55,23 +55,24 @@ void VaryingDataBuffer::ResetPixelVaryingData()
 	pixelVaryingDataBuffer.itor.Seek(0);
 }
 
-bool VaryingDataBuffer::SetVaryingDataDecl(std::vector<VaryingDataLayout> layout, int size)
+bool VaryingDataBuffer::SetVaryingDataDecl(const std::vector<VaryingDataElement>& decl, int size)
 {
-	varyingDataDecl.layout = layout;
+	varyingDataDecl.decl = decl;
 	varyingDataDecl.size = size;
+	varyingDataDecl.positionOffset = -1;
 
-	for (auto l : layout)
+	for (auto element : decl)
 	{
-		if (l.offset + VaryingDataDecl::GetFormatSize(l.format) > size)
+		if (element.offset + VaryingDataDecl::GetFormatSize(element.format) > size)
 		{
 			assert(false);
 			return false;
 		}
 
-		if (l.usage == VaryingDataDeclUsage_SVPOSITION
-			&& l.format == VaryingDataDeclFormat_Vector4)
+		if (element.usage == VaryingDataDeclUsage_SVPOSITION
+			&& element.format == VaryingDataDeclFormat_Vector4)
 		{
-			varyingDataDecl.positionOffset = l.offset;
+			varyingDataDecl.positionOffset = element.offset;
 		}
 	}
 	assert(varyingDataDecl.positionOffset >= 0);
@@ -88,24 +89,24 @@ VertexVaryingData VertexVaryingData::LinearInterp(const VertexVaryingData& a, co
 	VertexVaryingData output(varyingDataBuffer);
 	const VaryingDataDecl& decl = varyingDataBuffer->GetVaryingDataDecl();
 	output.data = varyingDataBuffer->CreateDynamicVaryingData();
+	assert(output.data != nullptr);
 	decl.LinearInterp(output.data, a.data, b.data, t);
 	output.position = *Buffer::Value<Vector4>(output.data, decl.positionOffset);
 	output.clipCode = Clipper::CalculateClipCode(output.position);
 	return output;
 }
 
-PixelVaryingData PixelVaryingData::TriangleInterp(const VertexVaryingData& v0, const VertexVaryingData& v1, const VertexVaryingData& v2, float x, float y, float z)
+rawptr_t VertexVaryingData::TriangleInterp(const VertexVaryingData& v0, const VertexVaryingData& v1, const VertexVaryingData& v2, float x, float y, float z)
 {
 	assert(v0.varyingDataBuffer != nullptr);
 	assert(v0.varyingDataBuffer == v1.varyingDataBuffer && v0.varyingDataBuffer == v2.varyingDataBuffer);
 
 	auto varyingDataBuffer = v0.varyingDataBuffer;
-	PixelVaryingData output(varyingDataBuffer);
 	const VaryingDataDecl& varyingDecl = varyingDataBuffer->GetVaryingDataDecl();
-	output.data = varyingDataBuffer->CreatePixelVaryingData();
-	varyingDecl.TriangleInterp(output.data, v0.data, v1.data, v2.data, x, y, z);
-	// TODO
-	return output;
+	rawptr_t data = varyingDataBuffer->CreatePixelVaryingData();
+	assert(data != nullptr);
+	varyingDecl.TriangleInterp(data, v0.data, v1.data, v2.data, x, y, z);
+	return data;
 }
 
 template<typename Type>
@@ -122,21 +123,21 @@ void TriangleInterpValue(rawptr_t output, const rawptr_t a, const rawptr_t b, co
 
 void VaryingDataDecl::LinearInterp(rawptr_t output, const rawptr_t a, const rawptr_t b, float t) const
 {
-	for (auto l : layout)
+	for (auto element : decl)
 	{
-		switch (l.format)
+		switch (element.format)
 		{
 		case VaryingDataDeclFormat_Float:
-			LinearInterpValue<float>(output, a, b, l.offset, t);
+			LinearInterpValue<float>(output, a, b, element.offset, t);
 			break;
 		case VaryingDataDeclFormat_Vector2:
-			LinearInterpValue<Vector2>(output, a, b, l.offset, t);
+			LinearInterpValue<Vector2>(output, a, b, element.offset, t);
 			break;
 		case VaryingDataDeclFormat_Vector3:
-			LinearInterpValue<Vector3>(output, a, b, l.offset, t);
+			LinearInterpValue<Vector3>(output, a, b, element.offset, t);
 			break;
 		case VaryingDataDeclFormat_Vector4:
-			LinearInterpValue<Vector4>(output, a, b, l.offset, t);
+			LinearInterpValue<Vector4>(output, a, b, element.offset, t);
 			break;
 		default:
 			break;
@@ -146,7 +147,7 @@ void VaryingDataDecl::LinearInterp(rawptr_t output, const rawptr_t a, const rawp
 
 void VaryingDataDecl::TriangleInterp(rawptr_t output, const rawptr_t a, const rawptr_t b, const rawptr_t c, float x, float y, float z) const
 {
-	for (auto l : layout)
+	for (auto l : decl)
 	{
 		if (l.usage == VaryingDataDeclUsage_SVPOSITION) continue;
 		switch (l.format)

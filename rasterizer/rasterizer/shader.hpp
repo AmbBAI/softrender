@@ -17,14 +17,16 @@ struct LightInput
 	float shininess;
 };
 
-struct ShaderBase
+struct IShader;
+typedef std::shared_ptr<IShader> ShaderPtr;
+
+struct IShader
 {
-	std::vector<VaryingDataLayout> varyingDataDecl;
+	std::vector<VaryingDataElement> varyingDataDecl;
 	int varyingDataSize;
+	rawptr_t varyingData = nullptr;
 
-	VertexVaryingData* vertexVaryingData = nullptr;
-	PixelVaryingData* pixelVaryingData = nullptr;
-
+	// alpha test
 	bool isClipped;
 
 	//uniform
@@ -55,7 +57,7 @@ struct ShaderBase
 
 	virtual void _VSMain(const rawptr_t input) = 0;
 	virtual Color _PSMain() = 0;
-	virtual void _PassQuad(const Quad<PixelVaryingData>& quadVaryingData) {}
+	virtual void _PassQuad(const rawptr_t quadVaryingData[4]) {}
 
 	template<typename Type>
 	static float CalcLod(const Type& ddx, const Type& ddy)
@@ -132,30 +134,32 @@ struct ShaderBase
 };
 
 template <typename VSInputType, typename VaryingDataType>
-struct Shader : ShaderBase
+struct Shader : IShader
 {
-	void _VSMain(const rawptr_t input) override
+	Shader()
 	{
-		VSInputType* vertexInput = (VSInputType*)input;
-		*((VaryingDataType*)vertexVaryingData->data) = vert(*vertexInput);
-		auto decl = vertexVaryingData->varyingDataBuffer->GetVaryingDataDecl();
-		vertexVaryingData->position = *Buffer::Value<Vector4>(vertexVaryingData->data, decl.positionOffset);
-		vertexVaryingData->clipCode = Clipper::CalculateClipCode(vertexVaryingData->position);
+		varyingDataDecl = VaryingDataType::GetDecl();
+		varyingDataSize = sizeof(VaryingDataType);
 	}
 
-	void _PassQuad(const Quad<PixelVaryingData>& quadVaryingData) override
+	void _VSMain(const rawptr_t input) override
+	{
+		*((VaryingDataType*)varyingData) = vert(*(VSInputType*)input);
+	}
+
+	void _PassQuad(const rawptr_t quadVaryingData[4]) override
 	{
 		passQuad(Quad<VaryingDataType*> {
-				(VaryingDataType*)quadVaryingData[0].data,
-				(VaryingDataType*)quadVaryingData[1].data,
-				(VaryingDataType*)quadVaryingData[2].data,
-				(VaryingDataType*)quadVaryingData[3].data
+				(VaryingDataType*)quadVaryingData[0],
+				(VaryingDataType*)quadVaryingData[1],
+				(VaryingDataType*)quadVaryingData[2],
+				(VaryingDataType*)quadVaryingData[3]
 		});
 	}
 
 	Color _PSMain() override
 	{
-		return frag(*(VaryingDataType*)(pixelVaryingData->data));
+		return frag(*(VaryingDataType*)(varyingData));
 	}
 
 	virtual VaryingDataType vert(const VSInputType& input)

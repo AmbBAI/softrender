@@ -28,26 +28,20 @@ struct VaryingData
 	Vector3 normal;
 	Vector3 worldPos;
 
-	static std::vector<VaryingDataLayout> GetLayout()
+	static std::vector<VaryingDataElement> GetDecl()
 	{
-		static std::vector<VaryingDataLayout> layout = {
+		static std::vector<VaryingDataElement> decl = {
 			{ 0, VaryingDataDeclUsage_SVPOSITION, VaryingDataDeclFormat_Vector4 },
 			{ 16, VaryingDataDeclUsage_TEXCOORD, VaryingDataDeclFormat_Vector3 },
 			{ 28, VaryingDataDeclUsage_POSITION, VaryingDataDeclFormat_Vector3 }
 		};
 
-		return layout;
+		return decl;
 	}
 };
 
 struct ForwardBaseShader : Shader<Vertex, VaryingData>
 {
-	void Init()
-	{
-		varyingDataDecl = VaryingData::GetLayout();
-		varyingDataSize = sizeof(VaryingData);
-	}
-
 	VaryingData vert(const Vertex& input) override
 	{
 		VaryingData output;
@@ -80,12 +74,6 @@ struct ForwardBaseShader : Shader<Vertex, VaryingData>
 
 struct ForwardAdditionShader : Shader<Vertex, VaryingData>
 {
-	void Init()
-	{
-		varyingDataDecl = VaryingData::GetLayout();
-		varyingDataSize = sizeof(VaryingData);
-	}
-
 	VaryingData vert(const Vertex& input) override
 	{
 		VaryingData output;
@@ -124,8 +112,8 @@ void MainLoop()
 	static std::vector<Vertex> vertices;
 	static std::vector<uint16_t> indices;
 	static MaterialPtr material;
-	static ForwardBaseShader fbShader;
-	static ForwardAdditionShader faShader;
+	static ShaderPtr forwardBaseShader;
+	static ShaderPtr forwardAdditionShader;
 	static LightPtr lightRed;
 	static LightPtr lightBlue;
 	Canvas* canvas = app->GetCanvas();
@@ -173,8 +161,10 @@ void MainLoop()
 		material->diffuseTexture = Texture::LoadTexture("resources/cube/default.png");
 		material->diffuseTexture->GenerateMipmaps();
 
-		fbShader.Init();
-		faShader.Init();
+		auto shader0 = std::make_shared<ForwardBaseShader>();
+		forwardBaseShader = shader0;
+		auto shader1 = std::make_shared<ForwardAdditionShader>();
+		forwardAdditionShader = shader1;
 
 		std::vector<MeshPtr> meshes;
 		//Mesh::LoadMesh(meshes, "resources/knot.obj");
@@ -209,14 +199,14 @@ void MainLoop()
 
 	Rasterizer::light = lightRed;
 	Rasterizer::renderState.alphaBlend = false;
-	Rasterizer::SetShader(&fbShader);
+	Rasterizer::SetShader(forwardBaseShader);
 	Rasterizer::Submit();
 
 	Rasterizer::light = lightBlue;
 	Rasterizer::renderState.alphaBlend = true;
 	Rasterizer::renderState.srcFactor = RenderState::BlendFactor_One;
 	Rasterizer::renderState.dstFactor = RenderState::BlendFactor_One;
-	Rasterizer::SetShader(&faShader);
+	Rasterizer::SetShader(forwardAdditionShader);
 	Rasterizer::Submit();
 
     canvas->Present();

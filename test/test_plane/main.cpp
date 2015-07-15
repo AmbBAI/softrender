@@ -32,9 +32,9 @@ struct VaryingData
 	Vector3 tangent;
 	Vector3 bitangent;
 
-	static std::vector<VaryingDataLayout> GetLayout()
+	static std::vector<VaryingDataElement> GetDecl()
 	{
-		static std::vector<VaryingDataLayout> layout = {
+		static std::vector<VaryingDataElement> decl = {
 			{ 0, VaryingDataDeclUsage_SVPOSITION, VaryingDataDeclFormat_Vector4 },
 			{ 16, VaryingDataDeclUsage_TEXCOORD, VaryingDataDeclFormat_Vector2 },
 			{ 24, VaryingDataDeclUsage_TEXCOORD, VaryingDataDeclFormat_Vector3 },
@@ -42,7 +42,7 @@ struct VaryingData
 			{ 48, VaryingDataDeclUsage_TEXCOORD, VaryingDataDeclFormat_Vector3 }
 		};
 
-		return layout;
+		return decl;
 	}
 };
 
@@ -92,7 +92,7 @@ void MainLoop()
 	static std::vector<Vertex> vertices;
 	static std::vector<uint16_t> indices;
 	static MaterialPtr material;
-	static ObjShader shader;
+	static std::shared_ptr<ObjShader> objectShader;
 	Canvas* canvas = app->GetCanvas();
 
 	if (!isInitilized)
@@ -114,11 +114,10 @@ void MainLoop()
 		material->normalTexture = Texture::LoadTexture("resources/crytek-sponza/textures/spnza_bricks_a_bump.png");
 		material->normalTexture->ConvertBumpToNormal(8.f);
 
-		shader.mainTex = material->diffuseTexture;
-		shader.normalTex = material->normalTexture;
-		shader.varyingDataDecl = VaryingData::GetLayout();
-		shader.varyingDataSize = sizeof(VaryingData);
-		assert(shader.varyingDataSize == 60);
+		objectShader = std::make_shared<ObjShader>();
+		objectShader->mainTex = material->diffuseTexture;
+		objectShader->normalTex = material->normalTexture;
+		assert(objectShader->varyingDataSize == 60);
 
 		MeshPtr mesh = CreatePlane();
 		mesh->CalculateTangents();
@@ -138,7 +137,7 @@ void MainLoop()
 	Rasterizer::transform = objectTrans.GetMatrix();
 	Rasterizer::renderData.AssignVertexBuffer(vertices);
 	Rasterizer::renderData.AssignIndexBuffer(indices);
-	Rasterizer::SetShader(&shader);
+	Rasterizer::SetShader(objectShader);
 	Rasterizer::Submit();
 
     canvas->Present();

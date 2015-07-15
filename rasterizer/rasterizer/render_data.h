@@ -3,8 +3,6 @@
 
 #include "base/header.h"
 #include "rasterizer/vertex.hpp"
-#include "rasterizer/light.hpp"
-#include "rasterizer/material.h"
 #include "math/vector2.h"
 #include "math/vector3.h"
 #include "math/vector4.h"
@@ -28,16 +26,7 @@ struct VertexVaryingData
 	VertexVaryingData() = default;
 	VertexVaryingData(VaryingDataBuffer* _varyingDataBuffer) : varyingDataBuffer(_varyingDataBuffer) {}
 	static VertexVaryingData LinearInterp(const VertexVaryingData& a, const VertexVaryingData& b, float t);
-};
-
-struct PixelVaryingData
-{
-	VaryingDataBuffer* varyingDataBuffer = nullptr;
-	rawptr_t data = nullptr;
-
-	PixelVaryingData() = default;
-	PixelVaryingData(VaryingDataBuffer* _varyingDataBuffer) : varyingDataBuffer(_varyingDataBuffer) {}
-	static PixelVaryingData TriangleInterp(const VertexVaryingData& v0, const VertexVaryingData& v1, const VertexVaryingData& v2, float x, float y, float z);
+	static rawptr_t TriangleInterp(const VertexVaryingData& v0, const VertexVaryingData& v1, const VertexVaryingData& v2, float x, float y, float z);
 };
 
 enum VaryingDeclUsage
@@ -57,7 +46,7 @@ enum VaryingDeclFormat
 	VaryingDataDeclFormat_Vector4,
 };
 
-struct VaryingDataLayout
+struct VaryingDataElement
 {
 	int offset;
 	VaryingDeclUsage usage;
@@ -66,10 +55,9 @@ struct VaryingDataLayout
 
 struct VaryingDataDecl
 {
-	std::vector<VaryingDataLayout> layout;
+	std::vector<VaryingDataElement> decl;
 	int size;
 	int positionOffset = -1;
-	int texCoordOffset = -1;
 
 	static int GetFormatSize(VaryingDeclFormat format)
 	{
@@ -138,30 +126,28 @@ public:
 		return true;
 	}
 
-	int GetIndicesCount()
+	int GetIndexCount()
 	{
 		return indexCount;
 	}
 
 	int GetPrimitiveCount()
 	{
-		/* TODO
 		switch (primitiveType)
 		{
 		case PrimitiveType_Point:
-			break;
+			return indexCount;
 		case PrimitiveType_Line:
-			break;
+			return indexCount / 2;
 		case PrimitiveType_LineStrip:
-			break;
+			return indexCount - 1;
 		case PrimitiveType_Triangle:
-			break;
+			return indexCount / 3;
 		case PrimitiveType_TriangleStrip:
-			break;
+			return indexCount - 2;
+		default:
+			return 0;
 		}
-		*/
-
-		return indexCount / 3;
 	}
 
 	// TODO GetPointPrimitive(int id, u16& point);
@@ -212,7 +198,7 @@ public:
 	rawptr_t CreatePixelVaryingData();
 	void ResetPixelVaryingData();
 
-	bool SetVaryingDataDecl(std::vector<VaryingDataLayout> layout, int size);
+	bool SetVaryingDataDecl(const std::vector<VaryingDataElement>& layout, int size);
 	const VaryingDataDecl& GetVaryingDataDecl() { return varyingDataDecl; }
 
 private:
@@ -220,7 +206,6 @@ private:
 	std::vector<VertexVaryingData> vertexVaryingData;
 	Buffer vertexVaryingDataBuffer;
 	Buffer dynamicVaryingDataBuffer;
-	std::vector<PixelVaryingData> pixelVaryingData;
 	Buffer pixelVaryingDataBuffer;
 };
 

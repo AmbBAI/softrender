@@ -19,52 +19,10 @@
 #include "rasterizer/light.hpp"
 #include "rasterizer/shader.hpp"
 #include "rasterizer/shaderf.hpp"
+#include "rasterizer/render_state.hpp"
 
 namespace rasterizer
 {
-
-struct RenderState
-{
-	bool alphaBlend = false;
-	enum BlendFactor
-	{
-		BlendFactor_One,
-		BlendFactor_Zero,
-		BlendFactor_SrcColor,
-		BlendFactor_SrcAlpha,
-		BlendFactor_DstColor,
-		BlendFactor_DstAlpha,
-		BlendFactor_OneMinusSrcColor,
-		BlendFactor_OneMinusSrcAlpha,
-		BlendFactor_OneMinusDstColor,
-		BlendFactor_OneMinusDstAlpha
-	};
-	BlendFactor srcFactor = BlendFactor_SrcAlpha;
-	BlendFactor dstFactor = BlendFactor_OneMinusSrcAlpha;
-	const Color BlendOp(BlendFactor factor, const Color& col, const Color& src, const Color& dst) const;
-	const Color Blend(const Color& src, const Color& dst) const;
-
-	enum ZTestType
-	{
-		ZTestType_Always = 0,
-		ZTestType_Less,
-		ZTestType_Greater,
-		ZTestType_LEqual,
-		ZTestType_GEqual,
-		ZTestType_Equal,
-		ZTestType_NotEqual
-	};
-	ZTestType zTest = ZTestType_LEqual;
-	bool zWrite = true;
-
-	enum CullType
-	{
-		CullType_Off = 0,
-		CullType_Back,
-		CullType_Front,
-	} cull = CullType_Back;
-	bool ZTest(float zPixel, float zInBuffer) const;
-};
 
 struct RasterizerInfo
 {
@@ -97,7 +55,7 @@ struct Rasterizer
 	static CameraPtr camera;
     static LightPtr light;
 	static MaterialPtr material;
-	static ShaderBase* shader;
+	static ShaderPtr shader;
 
 	static bool isDrawPoint;
 	static bool isDrawWireFrame;
@@ -111,11 +69,10 @@ struct Rasterizer
     static void Initialize();
     
 	static void SetCamera(CameraPtr camera);
-	static void SetMainLight(LightPtr light);
-	static void SetShader(ShaderBase* shader);
+	static void SetShader(ShaderPtr shader);
 	static void SetTransform(const Matrix4x4& transform);
 
-	static bool InitShaderLightParams(ShaderBase* shader, const LightPtr light);
+	static bool InitShaderLightParams(ShaderPtr shader, const LightPtr light);
 
 	static void Submit(int startIndex = 0, int primitiveCount = 0);
 
@@ -123,6 +80,7 @@ struct Rasterizer
 	template<typename DrawDataType>
 	static void RasterizerTriangle(Triangle<Projection> projection, Render2x2Func<DrawDataType> renderFunc, const DrawDataType& renderData);
 
+	static void RasterizerRenderFunc(const VertexVaryingData& data, const RasterizerInfo& info);
 	static void Rasterizer2x2RenderFunc(const Triangle<VertexVaryingData>& data,  const Rasterizer2x2Info& info);
 };
 

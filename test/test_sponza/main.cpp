@@ -57,9 +57,9 @@ struct VaryingData
 	Vector3 bitangent;
 	Vector3 worldPos;
 
-	static std::vector<VaryingDataLayout> GetLayout()
+	static std::vector<VaryingDataElement> GetDecl()
 	{
-		static std::vector<VaryingDataLayout> layout = {
+		static std::vector<VaryingDataElement> decl = {
 			{ 0, VaryingDataDeclUsage_SVPOSITION, VaryingDataDeclFormat_Vector4 },
 			{ 16, VaryingDataDeclUsage_TEXCOORD, VaryingDataDeclFormat_Vector2 },
 			{ 24, VaryingDataDeclUsage_TEXCOORD, VaryingDataDeclFormat_Vector3 },
@@ -68,16 +68,17 @@ struct VaryingData
 			{ 60, VaryingDataDeclUsage_POSITION, VaryingDataDeclFormat_Vector3 }
 		};
 
-		return layout;
+		return decl;
 	}
 };
 
-struct ShaderStand : Shader<Vertex, VaryingData>
+struct SceneShader : Shader<Vertex, VaryingData>
 {
 	TexturePtr mainTex;
 	TexturePtr normalTex;
 	TexturePtr specularTex;
 	float shininess = 10.f;
+	TexturePtr alphaMaskTex;
 	Vector2 ddx, ddy;
 
 	VaryingData vert(const Vertex& input) override
@@ -100,6 +101,12 @@ struct ShaderStand : Shader<Vertex, VaryingData>
 
 	Color frag(const VaryingData& input) override
 	{
+		if (alphaMaskTex != nullptr)
+		{
+			float alpha = Tex2D(alphaMaskTex, input.texcoord).r;
+			if (Clip(alpha - 0.2f)) return Color::white;
+		}
+
 		Color fragColor = Color::white;
 		if (mainTex != nullptr) fragColor = Tex2D(mainTex, input.texcoord, ddx, ddy);
 
@@ -138,27 +145,11 @@ struct ShaderStand : Shader<Vertex, VaryingData>
 	}
 };
 
-struct ShaderWithAlphaTest : ShaderStand
-{
-	TexturePtr alphaMaskTex;
-
-	Color frag(const VaryingData& input) override
-	{
-		if (alphaMaskTex != nullptr)
-		{
-			float alpha = Tex2D(alphaMaskTex, input.texcoord).r;
-			if (Clip(alpha - 0.2f)) return Color::white;
-		}
-
-		return ShaderStand::frag(input);
-	}
-};
-
 void MainLoop()
 {
 	static bool isInitilized = false;
 	static std::vector<MeshWrapper<Vertex> > meshData;
-	static ShaderWithAlphaTest shader;
+	static std::shared_ptr<SceneShader> sceneShader;
 	static Transform sceneTrans;
 	static Transform cameraTrans;
 	static TransformController transCtrl;
@@ -189,9 +180,8 @@ void MainLoop()
 		light->Initilize();
 		Rasterizer::light = light;
 
-		shader.varyingDataDecl = VaryingData::GetLayout();
-		shader.varyingDataSize = sizeof(VaryingData);
-		Rasterizer::SetShader(&shader);
+		sceneShader = std::make_shared<SceneShader>();
+		Rasterizer::SetShader(sceneShader);
 
 		std::vector<MeshPtr> meshes;
         LoadSponzaMesh(meshes, sceneTrans);
@@ -244,11 +234,11 @@ void MainLoop()
 			int startIndex = std::get<1>(materialTuple);
 			int primitiveCount = std::get<2>(materialTuple);
 
-			shader.mainTex = material->diffuseTexture;
-			shader.normalTex = material->normalTexture;
-			shader.specularTex = material->specularTexture;
-			shader.shininess = shader.shininess;
-			shader.alphaMaskTex = material->alphaMaskTexture;
+			sceneShader->mainTex = material->diffuseTexture;
+			sceneShader->normalTex = material->normalTexture;
+			sceneShader->specularTex = material->specularTexture;
+			sceneShader->shininess = sceneShader->shininess;
+			sceneShader->alphaMaskTex = material->alphaMaskTexture;
 
 			Rasterizer::Submit(startIndex, primitiveCount);
 		}
