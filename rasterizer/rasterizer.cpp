@@ -22,7 +22,7 @@ int Rasterizer::triangleDrawCount = 0;
 
 void Rasterizer::Initialize()
 {
-    Texture::Initialize();
+    Texture2D::Initialize();
 }
 
 void Rasterizer::DrawLine(int x0, int x1, int y0, int y1, const Color32& color)

@@ -2,7 +2,7 @@
 #define _BASE_TEXTURE_CUBE_H_
 
 #include "base/header.h"
-#include "rasterizer/texture.h"
+#include "rasterizer/texture2d.h"
 #include "math/vector2.h"
 #include "math/vector3.h"
 
@@ -25,7 +25,7 @@ public:
 		CubemapFace_NegativeZ = 5
 	};
 
-	void SetTexture(CubemapFace face, TexturePtr tex);
+	void SetTexture(CubemapFace face, Texture2DPtr tex);
 
 	Color Sample(const Vector3& s);
 	//Color Sample(const Vector3& s, const Vector3& ddx, const Vector3& ddy);
@@ -34,7 +34,7 @@ protected:
 	void CalcTexCoord(const Vector3& s, CubemapFace& face, Vector2& texcoord);
 
 private:
-	TexturePtr maps[6];
+	Texture2DPtr maps[6];
 };
 
 }

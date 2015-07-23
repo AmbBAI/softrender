@@ -66,13 +66,13 @@ struct IShader
 		return Mathf::Max(0.f, 0.5f * Mathf::Log2(delta));
 	}
 
-	static Color Tex2D(const TexturePtr& tex, const Vector2& uv, float lod = 0.f)
+	static Color Tex2D(const Texture2DPtr& tex, const Vector2& uv, float lod = 0.f)
 	{
 		if (tex == nullptr) return Color::white;
 		return tex->Sample(uv, lod);
 	}
 
-	static Color Tex2D(const TexturePtr& tex, const Vector2& uv, const Vector2& ddx, const Vector2& ddy)
+	static Color Tex2D(const Texture2DPtr& tex, const Vector2& uv, const Vector2& ddx, const Vector2& ddy)
 	{
 		if (tex == nullptr) return Color::white;
 		return tex->Sample(uv, ddx, ddy);

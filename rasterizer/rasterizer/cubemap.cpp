@@ -8,7 +8,7 @@ Color Cubemap::Sample(const Vector3& s)
 	Vector2 texcoord;
 	CalcTexCoord(s, axis, texcoord);
 
-	TexturePtr tex = maps[axis];
+	Texture2DPtr tex = maps[axis];
 	if (tex == nullptr) return Color::black;
 	return tex->Sample(texcoord);
 }
@@ -73,7 +73,7 @@ void Cubemap::CalcTexCoord(const Vector3& s, CubemapFace& face, Vector2& texcoor
 	}
 }
 
-void Cubemap::SetTexture(CubemapFace face, TexturePtr tex)
+void Cubemap::SetTexture(CubemapFace face, Texture2DPtr tex)
 {
 	maps[face] = tex;
 }

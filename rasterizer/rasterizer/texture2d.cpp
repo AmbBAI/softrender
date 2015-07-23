@@ -1,4 +1,4 @@
-#include "texture.h"
+#include "texture2d.h"
 #include "math/mathf.h"
 #include "freeimage/FreeImage.h"
 #include "sampler.hpp"
@@ -6,7 +6,7 @@
 namespace rasterizer
 {
 
-Texture::SampleFunc Texture::sampleFunc[2][AddressModeCount][AddressModeCount] = {
+Texture2D::SampleFunc Texture2D::sampleFunc[2][AddressModeCount][AddressModeCount] = {
 	{
 		{
 			PointSampler::Sample < WarpAddresser, WarpAddresser >,
@@ -45,18 +45,18 @@ Texture::SampleFunc Texture::sampleFunc[2][AddressModeCount][AddressModeCount] =
 
 
 
-void Texture::Initialize()
+void Texture2D::Initialize()
 {
 	FreeImage_Initialise();
 }
 
-void Texture::Finalize()
+void Texture2D::Finalize()
 {
 	FreeImage_DeInitialise();
 }
 
-std::map<std::string, TexturePtr> Texture::texturePool;
-TexturePtr Texture::CreateTexture(const char* file)
+std::map<std::string, Texture2DPtr> Texture2D::texturePool;
+Texture2DPtr Texture2D::CreateTexture(const char* file)
 {
 	FREE_IMAGE_FORMAT imageFormat = FreeImage_GetFileType(file);
 	FIBITMAP* fiBitmap = FreeImage_Load(imageFormat, file);
@@ -82,8 +82,10 @@ TexturePtr Texture::CreateTexture(const char* file)
 	}
 
 	//TexturePtr tex = std::make_shared<Texture>();
-	TexturePtr tex = TexturePtr(new Texture());
+	Texture2DPtr tex = Texture2DPtr(new Texture2D());
 	tex->file = file;
+	tex->width = width;
+	tex->height = height;
 	tex->mainTex = UnparkColor(bytes, width, height, pitch, bpp);
 	if (tex->mainTex == nullptr) tex = nullptr;
 
@@ -91,9 +93,9 @@ TexturePtr Texture::CreateTexture(const char* file)
 	return tex;
 }
 
-TexturePtr Texture::LoadTexture(const char* file)
+Texture2DPtr Texture2D::LoadTexture(const char* file)
 {
-	std::map<std::string, TexturePtr>::iterator itor;
+	std::map<std::string, Texture2DPtr>::iterator itor;
 	itor = texturePool.find(file);
 	if (itor != texturePool.end())
 	{
@@ -101,13 +103,13 @@ TexturePtr Texture::LoadTexture(const char* file)
 	}
 	else
 	{
-		TexturePtr tex = CreateTexture(file);
+		Texture2DPtr tex = CreateTexture(file);
 		if (tex != nullptr) texturePool[file] = tex;
 		return tex;
 	}
 }
 
-BitmapPtr Texture::UnparkColor(rawptr_t bytes, int width, int height, int pitch, int bpp)
+BitmapPtr Texture2D::UnparkColor(rawptr_t bytes, int width, int height, int pitch, int bpp)
 {
 	if (bytes == nullptr) return nullptr;
 	if (width <= 0 || height <= 0) return nullptr;
@@ -158,7 +160,7 @@ BitmapPtr Texture::UnparkColor(rawptr_t bytes, int width, int height, int pitch,
 	return bitmap;
 }
 
-void Texture::ConvertBumpToNormal(float strength/* = 10.f*/)
+void Texture2D::ConvertBumpToNormal(float strength/* = 10.f*/)
 {
 	int width = mainTex->GetWidth();
 	int height = mainTex->GetHeight();
@@ -217,7 +219,7 @@ void Texture::ConvertBumpToNormal(float strength/* = 10.f*/)
 	}
 }
 
-const Color Texture::Sample(const Vector2& uv, float lod/* = 0.f*/) const
+const Color Texture2D::Sample(const Vector2& uv, float lod/* = 0.f*/) const
 {
 	switch (filterMode) {
 	case FilterMode_Point:
@@ -255,7 +257,7 @@ const Color Texture::Sample(const Vector2& uv, float lod/* = 0.f*/) const
     return Color::black;
 }
 
-bool Texture::GenerateMipmaps()
+bool Texture2D::GenerateMipmaps()
 {
 	int width = mainTex->GetWidth();
 	int height = mainTex->GetHeight();
@@ -297,7 +299,7 @@ bool Texture::GenerateMipmaps()
 	return true;
 }
 
-const BitmapPtr Texture::GetBitmap(int miplv) const
+const BitmapPtr Texture2D::GetBitmap(int miplv) const
 {
     if (miplv < 0) miplv = 0;
 	if (mipmaps.size() <= 0) miplv = 0;
@@ -309,7 +311,7 @@ const BitmapPtr Texture::GetBitmap(int miplv) const
 	}
 }
 
-void Texture::CompressTexture()
+void Texture2D::CompressTexture()
 {
 	if (mainTex->GetType() == Bitmap::BitmapType_RGB888)
 	{
@@ -317,11 +319,9 @@ void Texture::CompressTexture()
 	}
 }
 
-float Texture::CalcLOD(const Vector2& ddx, const Vector2& ddy) const
+float Texture2D::CalcLOD(const Vector2& ddx, const Vector2& ddy) const
 {
 	if (mainTex == nullptr) return 0.f;
-	int width = mainTex->GetWidth();
-	int height = mainTex->GetHeight();
 	float w2 = (float)width * width;
 	float h2 = (float)height * height;
 	float delta = Mathf::Max(ddx.Dot(ddx) * w2, ddy.Dot(ddy) * h2);

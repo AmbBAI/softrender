@@ -3,7 +3,7 @@ using namespace rasterizer;
 
 Application* app;
 
-void DrawTexture(Canvas* canvas, const Vector4& rect, const Texture& texture, float lod /*= 0.f*/)
+void DrawTexture(Canvas* canvas, const Vector4& rect, const Texture2D& texture, float lod /*= 0.f*/)
 {
 	int width = (int)canvas->GetWidth();
 	int height = (int)canvas->GetHeight();
@@ -27,16 +27,16 @@ void DrawTexture(Canvas* canvas, const Vector4& rect, const Texture& texture, fl
 
 void MainLoop()
 {
-	static TexturePtr tex = nullptr;
+	static Texture2DPtr tex = nullptr;
 
 	Canvas* canvas = app->GetCanvas();
 
 	if (tex == nullptr)
 	{
-		tex = Texture::LoadTexture("resources/crytek-sponza/textures/background.tga");
-		tex->filterMode = Texture::FilterMode_Bilinear;
-		tex->xAddressMode = Texture::AddressMode_Clamp;
-		tex->yAddressMode = Texture::AddressMode_Clamp;
+		tex = Texture2D::LoadTexture("resources/crytek-sponza/textures/background.tga");
+		tex->filterMode = Texture2D::FilterMode_Bilinear;
+		tex->xAddressMode = Texture2D::AddressMode_Clamp;
+		tex->yAddressMode = Texture2D::AddressMode_Clamp;
 		// tex->CompressTexture();
 		// tex->ConvertBumpToNormal(10);
 		// tex->GenerateMipmaps();

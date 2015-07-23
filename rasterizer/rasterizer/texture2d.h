@@ -1,5 +1,5 @@
-#ifndef _BASE_TEXTURE_H_
-#define _BASE_TEXTURE_H_
+#ifndef _RASTERIZER_TEXTURE2D_H_
+#define _RASTERIZER_TEXTURE2D_H_
 
 #include "base/header.h"
 #include "rasterizer/bitmap.h"
@@ -9,18 +9,12 @@
 namespace rasterizer
 {
 
-class Texture;
-typedef std::shared_ptr<Texture> TexturePtr;
+class Texture2D;
+typedef std::shared_ptr<Texture2D> Texture2DPtr;
 
-class Texture
+class Texture2D
 {
 public:
-	enum TextureType
-	{
-		TextureType_Texture,
-		TextureType_NormalMap,
-	};
-
 	enum AddressMode
 	{
 		AddressMode_Warp = 0,
@@ -43,17 +37,17 @@ public:
 	static void Initialize();
 	static void Finalize();
 
-	static TexturePtr CreateTexture(const char* file);
-    static TexturePtr LoadTexture(const char* file);
-	static std::map<std::string, TexturePtr> texturePool;
+	static Texture2DPtr CreateTexture(const char* file);
+    static Texture2DPtr LoadTexture(const char* file);
+	static std::map<std::string, Texture2DPtr> texturePool;
 
 public:
-	Texture() = default;
-	virtual ~Texture() = default;
+	Texture2D() = default;
+	virtual ~Texture2D() = default;
 
 public:
-	int GetWidth() const { return mainTex ? mainTex->GetWidth() : 0; }
-	int GetHeight() const { return mainTex ? mainTex->GetHeight() : 0; }
+	int GetWidth() const { return width; }
+	int GetHeight() const { return height; }
 
 	void ConvertBumpToNormal(float strength = 10.f);
 	bool GenerateMipmaps();
@@ -75,6 +69,8 @@ public:
 protected:
 	std::string file;
 
+	int width;
+	int height;
 	BitmapPtr mainTex;
 	std::vector<BitmapPtr> mipmaps;
 
@@ -82,4 +78,4 @@ protected:
 
 }
 
-#endif //! _BASE_TEXTURE_H_
+#endif //! _RASTERIZER_TEXTURE2D_H_

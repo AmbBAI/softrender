@@ -156,7 +156,7 @@ void MainLoop()
 		lightBlue->Initilize();
 
 		MaterialPtr material = MaterialPtr(new Material());
-		material->diffuseTexture = Texture::LoadTexture("resources/cube/default.png");
+		material->diffuseTexture = Texture2D::LoadTexture("resources/cube/default.png");
 		material->diffuseTexture->GenerateMipmaps();
 
 		auto shader0 = std::make_shared<ForwardBaseShader>();

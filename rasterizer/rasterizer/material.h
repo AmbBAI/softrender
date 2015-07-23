@@ -3,7 +3,7 @@
 
 #include "base/header.h"
 #include "base/color.h"
-#include "rasterizer/texture.h"
+#include "rasterizer/texture2d.h"
 #include "tinyobjloader/tiny_obj_loader.h"
 
 
@@ -24,11 +24,11 @@ struct Material
 	float alpha = 1.f;
 	bool isTransparent = false;
 
-	TexturePtr ambientTexture;
-	TexturePtr diffuseTexture;
-	TexturePtr normalTexture;
-	TexturePtr specularTexture;
-	TexturePtr alphaMaskTexture;
+	Texture2DPtr ambientTexture;
+	Texture2DPtr diffuseTexture;
+	Texture2DPtr normalTexture;
+	Texture2DPtr specularTexture;
+	Texture2DPtr alphaMaskTexture;
 	
 
     static void LoadMaterial(std::vector<MaterialPtr>& materials, const std::vector<tinyobj::material_t>& objMaterials, const char* fileDir);

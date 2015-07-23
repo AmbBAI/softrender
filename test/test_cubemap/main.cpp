@@ -70,7 +70,7 @@ struct ObjShader : Shader<Vertex, VaryingData>
 {
 	Vector3 lightDir = Vector3(1.f, 1.f, 1.f).Normalize();
 
-	TexturePtr mainTex;
+	Texture2DPtr mainTex;
 	CubemapPtr cubeMap;
 	Vector2 ddx, ddy;
 
@@ -128,7 +128,7 @@ void MainLoop()
 		Rasterizer::camera = camera;
 
 		MaterialPtr material = MaterialPtr(new Material());
-		material->diffuseTexture = Texture::LoadTexture("resources/teapot/default.png");
+		material->diffuseTexture = Texture2D::LoadTexture("resources/teapot/default.png");
 		material->diffuseTexture->GenerateMipmaps();
 
 		objShader = std::make_shared<ObjShader>();
@@ -138,9 +138,9 @@ void MainLoop()
 		{
 			char path[32];
 			sprintf(path, "resources/cubemap/%d.png", i);
-			TexturePtr tex = Texture::LoadTexture(path);
-			tex->xAddressMode = Texture::AddressMode_Clamp;
-			tex->yAddressMode = Texture::AddressMode_Clamp;
+			Texture2DPtr tex = Texture2D::LoadTexture(path);
+			tex->xAddressMode = Texture2D::AddressMode_Clamp;
+			tex->yAddressMode = Texture2D::AddressMode_Clamp;
 			objShader->cubeMap->SetTexture((Cubemap::CubemapFace)i, tex);
 		}
 		assert(objShader->varyingDataSize == 48);

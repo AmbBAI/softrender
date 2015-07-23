@@ -19,7 +19,7 @@ void Material::LoadMaterial(std::vector<MaterialPtr>& materials, const std::vect
         {
             std::string texPath = fileDir + m.diffuse_texname;
             std::replace(texPath.begin(), texPath.end(), '\\', '/');
-            newM->diffuseTexture = Texture::LoadTexture(texPath.c_str());
+            newM->diffuseTexture = Texture2D::LoadTexture(texPath.c_str());
             newM->diffuseTexture->GenerateMipmaps();
             //newM->diffuseTexture->filterMode = Texture::FilterMode_Trilinear;
         }
@@ -27,7 +27,7 @@ void Material::LoadMaterial(std::vector<MaterialPtr>& materials, const std::vect
         {
             std::string texPath = fileDir + m.normal_texname;
             std::replace(texPath.begin(), texPath.end(), '\\', '/');
-            newM->normalTexture = Texture::LoadTexture(texPath.c_str());
+            newM->normalTexture = Texture2D::LoadTexture(texPath.c_str());
         }
         else
         { // check bump
@@ -53,7 +53,7 @@ void Material::LoadMaterial(std::vector<MaterialPtr>& materials, const std::vect
                 {
                     bumpPath = fileDir + bumpPath;
                     std::replace(bumpPath.begin(), bumpPath.end(), '\\', '/');
-                    newM->normalTexture = Texture::LoadTexture(bumpPath.c_str());
+                    newM->normalTexture = Texture2D::LoadTexture(bumpPath.c_str());
                     if (newM->normalTexture)
                     {
                         newM->normalTexture->ConvertBumpToNormal();
@@ -67,7 +67,7 @@ void Material::LoadMaterial(std::vector<MaterialPtr>& materials, const std::vect
         {
             std::string texPath = fileDir + m.specular_texname;
             std::replace(texPath.begin(), texPath.end(), '\\', '/');
-            newM->specularTexture = Texture::LoadTexture(texPath.c_str());
+            newM->specularTexture = Texture2D::LoadTexture(texPath.c_str());
         }
 
 		// alpha_mask
@@ -76,7 +76,7 @@ void Material::LoadMaterial(std::vector<MaterialPtr>& materials, const std::vect
 		{
 			std::string texPath = fileDir + paramItor->second;
 			std::replace(texPath.begin(), texPath.end(), '\\', '/');
-			newM->alphaMaskTexture = Texture::LoadTexture(texPath.c_str());
+			newM->alphaMaskTexture = Texture2D::LoadTexture(texPath.c_str());
 		}
 		//newM->alpha = m.dissolve;
 

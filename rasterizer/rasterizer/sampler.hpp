@@ -4,7 +4,7 @@
 #include "base/header.h"
 #include "math/vector3.h"
 #include "math/mathf.h"
-#include "rasterizer/texture.h"
+#include "rasterizer/texture2d.h"
 
 namespace rasterizer
 {

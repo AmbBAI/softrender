@@ -50,8 +50,8 @@ struct ObjShader : Shader<Vertex, VaryingData>
 {
 	Vector3 lightDir = Vector3(1.f, 1.f, 1.f).Normalize();
 
-	TexturePtr mainTex;
-	TexturePtr normalTex;
+	Texture2DPtr mainTex;
+	Texture2DPtr normalTex;
 	Vector2 ddx, ddy;
 
 	VaryingData vert(const Vertex& input) override
@@ -107,9 +107,9 @@ void MainLoop()
 		Rasterizer::camera = camera;
 
 		MaterialPtr material = MaterialPtr(new Material());
-		material->diffuseTexture = Texture::LoadTexture("resources/crytek-sponza/textures/spnza_bricks_a_diff.tga");
+		material->diffuseTexture = Texture2D::LoadTexture("resources/crytek-sponza/textures/spnza_bricks_a_diff.tga");
 		material->diffuseTexture->GenerateMipmaps();
-		material->normalTexture = Texture::LoadTexture("resources/crytek-sponza/textures/spnza_bricks_a_bump.png");
+		material->normalTexture = Texture2D::LoadTexture("resources/crytek-sponza/textures/spnza_bricks_a_bump.png");
 		material->normalTexture->ConvertBumpToNormal(8.f);
 
 		objectShader = std::make_shared<ObjShader>();

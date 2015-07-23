@@ -65,11 +65,11 @@ struct VaryingData
 
 struct SceneShader : Shader<Vertex, VaryingData>
 {
-	TexturePtr mainTex;
-	TexturePtr normalTex;
-	TexturePtr specularTex;
+	Texture2DPtr mainTex;
+	Texture2DPtr normalTex;
+	Texture2DPtr specularTex;
 	float shininess = 10.f;
-	TexturePtr alphaMaskTex;
+	Texture2DPtr alphaMaskTex;
 	Vector2 ddx, ddy;
 
 	VaryingData vert(const Vertex& input) override
