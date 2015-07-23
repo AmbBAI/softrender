@@ -109,9 +109,7 @@ void MainLoop()
 	static bool isInitilized = false;
 	static Transform cameraTrans;
 	static TransformController transCtrl;
-	static std::vector<Vertex> vertices;
-	static std::vector<uint16_t> indices;
-	static MaterialPtr material;
+	static MeshWrapper<Vertex> meshW;
 	static std::shared_ptr<ObjShader> objShader;
 	static std::shared_ptr<SkyShader> skyShader;
 	Canvas* canvas = app->GetCanvas();
@@ -129,7 +127,7 @@ void MainLoop()
 		camera->SetLookAt(cameraTrans);
 		Rasterizer::camera = camera;
 
-		material = MaterialPtr(new Material());
+		MaterialPtr material = MaterialPtr(new Material());
 		material->diffuseTexture = Texture::LoadTexture("resources/teapot/default.png");
 		material->diffuseTexture->GenerateMipmaps();
 
@@ -152,14 +150,14 @@ void MainLoop()
 		std::vector<MeshPtr> meshes;
 		Mesh::LoadMesh(meshes, "resources/cubemap/sphere.obj");
 		MeshPtr mesh = meshes[0];
-		vertices.clear();
-		indices.clear();
+		meshW.vertices.clear();
+		meshW.indices.clear();
 		int vertexCount = mesh->GetVertexCount();
 		for (int i = 0; i < vertexCount; ++i)
 		{
-			vertices.emplace_back(Vertex{ mesh->vertices[i], mesh->texcoords[i], mesh->normals[i] });
+			meshW.vertices.emplace_back(Vertex{ mesh->vertices[i], mesh->texcoords[i], mesh->normals[i] });
 		}
-		for (auto idx : mesh->indices) indices.emplace_back(idx);
+		for (auto idx : mesh->indices) meshW.indices.emplace_back(idx);
     }
 
 	if (transCtrl.MouseRotate(cameraTrans)
@@ -170,8 +168,8 @@ void MainLoop()
 
 	canvas->Clear();
 
-	Rasterizer::renderData.AssignVertexBuffer(vertices);
-	Rasterizer::renderData.AssignIndexBuffer(indices);
+	Rasterizer::renderData.AssignVertexBuffer(meshW.vertices);
+	Rasterizer::renderData.AssignIndexBuffer(meshW.indices);
 	
 
 	Transform objTrans;

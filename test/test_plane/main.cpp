@@ -89,9 +89,7 @@ void MainLoop()
 	static Transform objectTrans;
 	static Transform cameraTrans;
 	static TransformController objectCtrl;
-	static std::vector<Vertex> vertices;
-	static std::vector<uint16_t> indices;
-	static MaterialPtr material;
+	static MeshWrapper<Vertex> meshW;
 	static std::shared_ptr<ObjShader> objectShader;
 	Canvas* canvas = app->GetCanvas();
 
@@ -108,7 +106,7 @@ void MainLoop()
 		camera->SetLookAt(cameraTrans);
 		Rasterizer::camera = camera;
 
-		material = MaterialPtr(new Material());
+		MaterialPtr material = MaterialPtr(new Material());
 		material->diffuseTexture = Texture::LoadTexture("resources/crytek-sponza/textures/spnza_bricks_a_diff.tga");
 		material->diffuseTexture->GenerateMipmaps();
 		material->normalTexture = Texture::LoadTexture("resources/crytek-sponza/textures/spnza_bricks_a_bump.png");
@@ -121,22 +119,22 @@ void MainLoop()
 
 		MeshPtr mesh = CreatePlane();
 		mesh->CalculateTangents();
-		vertices.clear();
-		indices.clear();
+		meshW.vertices.clear();
+		meshW.indices.clear();
 		int vertexCount = mesh->GetVertexCount();
 		for (int i = 0; i < vertexCount; ++i)
 		{
-			vertices.emplace_back(Vertex{ mesh->vertices[i], mesh->texcoords[i], mesh->normals[i], mesh->tangents[i] });
+			meshW.vertices.emplace_back(Vertex{ mesh->vertices[i], mesh->texcoords[i], mesh->normals[i], mesh->tangents[i] });
 		}
-		for (auto idx : mesh->indices) indices.emplace_back((uint16_t)idx);
+		for (auto idx : mesh->indices) meshW.indices.emplace_back((uint16_t)idx);
     }
 
 	canvas->Clear();
 
 	objectCtrl.MouseRotate(objectTrans, false);
 	Rasterizer::transform = objectTrans.GetMatrix();
-	Rasterizer::renderData.AssignVertexBuffer(vertices);
-	Rasterizer::renderData.AssignIndexBuffer(indices);
+	Rasterizer::renderData.AssignVertexBuffer(meshW.vertices);
+	Rasterizer::renderData.AssignIndexBuffer(meshW.indices);
 	Rasterizer::SetShader(objectShader);
 	Rasterizer::Submit();
 

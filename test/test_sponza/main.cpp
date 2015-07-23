@@ -16,15 +16,6 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
-template<typename Type>
-struct MeshWrapper
-{
-	std::string name;
-	std::vector<Type> vertices;
-	std::vector<uint16_t> indices;
-	std::vector<std::tuple<MaterialPtr, int, int> > materials;
-};
-
 void LoadSponzaMesh(std::vector<MeshPtr>& mesh, Transform& trans)
 {
 	Mesh::LoadMesh(mesh, "resources/crytek-sponza/sponza.obj");

@@ -109,9 +109,7 @@ void MainLoop()
 	static Transform objectTrans;
 	static Transform cameraTrans;
 	static TransformController objectCtrl;
-	static std::vector<Vertex> vertices;
-	static std::vector<uint16_t> indices;
-	static MaterialPtr material;
+	static MeshWrapper<Vertex> meshW;
 	static ShaderPtr forwardBaseShader;
 	static ShaderPtr forwardAdditionShader;
 	static LightPtr lightRed;
@@ -157,7 +155,7 @@ void MainLoop()
 		lightBlue->direction = Vector3(0.f, -1.f, 0.f).Normalize();
 		lightBlue->Initilize();
 
-		material = MaterialPtr(new Material());
+		MaterialPtr material = MaterialPtr(new Material());
 		material->diffuseTexture = Texture::LoadTexture("resources/cube/default.png");
 		material->diffuseTexture->GenerateMipmaps();
 
@@ -171,21 +169,21 @@ void MainLoop()
 		meshes.push_back(CreatePlane());
 		objectTrans.position.y = -0.5f;
 
-		vertices.clear();
-		indices.clear();
+		meshW.vertices.clear();
+		meshW.indices.clear();
 		for (int meshID = 0; meshID < (int)meshes.size(); ++meshID)
 		{
 			auto& mesh = meshes[meshID];
-			int meshOffset = (int)vertices.size();
+			int meshOffset = (int)meshW.vertices.size();
 			int vertexCount = mesh->GetVertexCount();
 			int indexCount = mesh->indices.size();
 			for (int i = 0; i < vertexCount; ++i)
 			{
-				vertices.emplace_back(Vertex{ mesh->vertices[i], mesh->normals[i] });
+				meshW.vertices.emplace_back(Vertex{ mesh->vertices[i], mesh->normals[i] });
 			}
 			for (int i = 0; i < indexCount; ++i)
 			{
-				indices.emplace_back(mesh->indices[i] + meshOffset);
+				meshW.indices.emplace_back(mesh->indices[i] + meshOffset);
 			}
 		}
     }
@@ -194,8 +192,8 @@ void MainLoop()
 
 	objectCtrl.MouseRotate(objectTrans, false);
 	Rasterizer::transform = objectTrans.GetMatrix();
-	Rasterizer::renderData.AssignVertexBuffer(vertices);
-	Rasterizer::renderData.AssignIndexBuffer(indices);
+	Rasterizer::renderData.AssignVertexBuffer(meshW.vertices);
+	Rasterizer::renderData.AssignIndexBuffer(meshW.indices);
 
 	Rasterizer::light = lightRed;
 	Rasterizer::renderState.alphaBlend = false;
