@@ -118,19 +118,19 @@ BitmapPtr Texture2D::UnparkColor(rawptr_t bytes, int width, int height, int pitc
 	switch (bpp)
 	{
 	case 1:
-		pixelType = Bitmap::BitmapType_L8;
+		pixelType = Bitmap::BitmapType_Alpha8;
 		break;
 	case 3:
-		pixelType = Bitmap::BitmapType_RGB888;
+		pixelType = Bitmap::BitmapType_RGB24;
 		break;
 	case 4:
-		pixelType = Bitmap::BitmapType_RGBA8888;
+		pixelType = Bitmap::BitmapType_RGBA32;
 		break;
 	default:
 		return nullptr;
 	}
 
-	BitmapPtr bitmap = Bitmap::Create(width, height, pixelType);
+	BitmapPtr bitmap = std::make_shared<Bitmap>(width, height, pixelType);
 	rawptr_t bmpLine = bitmap->GetBytes();
 	int bmpPitch = width * bpp;
 
@@ -169,12 +169,11 @@ void Texture2D::ConvertBumpToNormal(float strength/* = 10.f*/)
 	{
 		for (int x = 0; x < width; ++x)
 		{
-			bump[y * width + x] = mainTex->GetColor(x, y).a;
+			bump[y * width + x] = mainTex->GetAlpha(x, y);
 		}
 	}
 
-	mainTex = Bitmap::Create(width, height, Bitmap::BitmapType_RGBA8888);
-	rawptr_t bytes = mainTex->GetBytes();
+	mainTex = std::make_shared<Bitmap>(width, height, Bitmap::BitmapType_RGB24);
 	for (int y = 0; y < (int)height; ++y)
 	{
 		for (int x = 0; x < (int)width; ++x)
@@ -201,9 +200,7 @@ void Texture2D::ConvertBumpToNormal(float strength/* = 10.f*/)
 			color.r = (normal.x + 1.0f) / 2.0f;
 			color.g = (normal.y + 1.0f) / 2.0f;
 			color.b = (normal.z + 1.0f) / 2.0f;
-			color.a = ph;
-
-			*((uint32_t*)bytes + offset) = Color32(color).rgba;
+			mainTex->SetPixel(x, y, color);
 
 			//float invZ = 1.f / (normal.z + 1.);
 			//float px = normal.x * invZ;
@@ -272,7 +269,7 @@ bool Texture2D::GenerateMipmaps()
 	int ss = width;
 	for (int l = 0;; ++l)
 	{
-		BitmapPtr mipmap = Bitmap::Create(s, s, Bitmap::BitmapType_RGBA8888);
+		BitmapPtr mipmap = std::make_shared<Bitmap>(s, s, mainTex->GetType());
 		rawptr_t bytes = mipmap->GetBytes();
 		for (int y = 0; y < s; ++y)
 		{
@@ -282,11 +279,11 @@ bool Texture2D::GenerateMipmaps()
 			{
 				int x0 = x * 2;
 				int x1 = x0 + 1;
-				Color c0 = source->GetColor(x0, y0);
-				Color c1 = source->GetColor(x1, y0);
-				Color c2 = source->GetColor(x0, y1);
-				Color c3 = source->GetColor(x1, y1);
-				*((uint32_t*)bytes + y * s + x) = Color32(Color::Lerp(c0, c1, c2, c3, 0.5f, 0.5f)).rgba;
+				Color c0 = source->GetPixel(x0, y0);
+				Color c1 = source->GetPixel(x1, y0);
+				Color c2 = source->GetPixel(x0, y1);
+				Color c3 = source->GetPixel(x1, y1);
+				mipmap->SetPixel(x, y, Color::Lerp(c0, c1, c2, c3, 0.5f, 0.5f));
 			}
 		}
 
@@ -311,13 +308,13 @@ const BitmapPtr Texture2D::GetBitmap(int miplv) const
 	}
 }
 
-void Texture2D::CompressTexture()
-{
-	if (mainTex->GetType() == Bitmap::BitmapType_RGB888)
-	{
-		mainTex = mainTex->CompressToDXT1();
-	}
-}
+//void Texture2D::CompressTexture()
+//{
+//	if (mainTex->GetType() == Bitmap::BitmapType_RGB888)
+//	{
+//		mainTex = mainTex->CompressToDXT1();
+//	}
+//}
 
 float Texture2D::CalcLOD(const Vector2& ddx, const Vector2& ddy) const
 {

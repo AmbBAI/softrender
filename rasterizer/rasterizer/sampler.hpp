@@ -66,7 +66,7 @@ struct PointSampler
 		float fy = YAddresserType::CalcAddress(v, height);
 		int y = YAddresserType::FixAddress(Mathf::RoundToInt(fy), height);
 
-		return bitmap->GetColor(x, y);
+		return bitmap->GetPixel(x, y);
 	}
 };
 
@@ -89,10 +89,10 @@ struct LinearSampler
 		int x1 = XAddresserType::FixAddress(x0 + 1, width);
 		int y1 = YAddresserType::FixAddress(y0 + 1, height);
 
-		Color c0 = bitmap->GetColor(x0, y0);
-		Color c1 = bitmap->GetColor(x1, y0);
-		Color c2 = bitmap->GetColor(x0, y1);
-		Color c3 = bitmap->GetColor(x1, y1);
+		Color c0 = bitmap->GetPixel(x0, y0);
+		Color c1 = bitmap->GetPixel(x1, y0);
+		Color c2 = bitmap->GetPixel(x0, y1);
+		Color c3 = bitmap->GetPixel(x1, y1);
 
 		return Color::Lerp(c0, c1, c2, c3, xFrac, yFrac);
 	}

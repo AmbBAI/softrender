@@ -30,9 +30,6 @@ public:
 		FilterMode_Trilinear
 	};
 
-	typedef Color(*SampleFunc)(const BitmapPtr bitmap, float u, float v);
-	static SampleFunc sampleFunc[2][AddressModeCount][AddressModeCount];
-
 public:
 	static void Initialize();
 	static void Finalize();
@@ -41,9 +38,11 @@ public:
     static Texture2DPtr LoadTexture(const char* file);
 	static std::map<std::string, Texture2DPtr> texturePool;
 
-public:
+protected:
+	typedef Color(*SampleFunc)(const BitmapPtr bitmap, float u, float v);
+	static SampleFunc sampleFunc[2][AddressModeCount][AddressModeCount];
+
 	Texture2D() = default;
-	virtual ~Texture2D() = default;
 
 public:
 	int GetWidth() const { return width; }
@@ -51,7 +50,7 @@ public:
 
 	void ConvertBumpToNormal(float strength = 10.f);
 	bool GenerateMipmaps();
-	void CompressTexture();
+	//void CompressTexture();
 
 	float CalcLOD(const Vector2& ddx, const Vector2& ddy) const;
 	const Color Sample(const Vector2& uv, float lod = 0.f) const;
@@ -73,7 +72,6 @@ protected:
 	int height;
 	BitmapPtr mainTex;
 	std::vector<BitmapPtr> mipmaps;
-
 };
 
 }

@@ -17,48 +17,39 @@ public:
 	enum BitmapType
 	{
 		BitmapType_Unknown = 0,
-		BitmapType_L8 = 1,
-		BitmapType_RGB888 = 3,
-		BitmapType_RGBA8888 = 4,
-		//BitmapType_Normal = 9,
-		BitmapType_DXT1 = 10
+		BitmapType_Alpha8,
+		BitmapType_RGB24,
+		BitmapType_RGBA32,
+
+		BitmapType_AlphaFloat,
+		
+		//BitmapType_DXT1,
+		//BitmapType_Normal,
+
 	};
 
-	static BitmapPtr Create(int width, int height, BitmapType type);
+	Bitmap(int width, int height, BitmapType type);
+	virtual ~Bitmap();
 
-	Bitmap() = default;
-	~Bitmap();
-
-	Color GetColor(int x, int y)
-	{
-		switch (type)
-		{
-		case BitmapType_L8:
-			return GetPixel_L8(x, y);
-		case BitmapType_RGB888:
-			return GetPixel_RGB888(x, y);
-		case BitmapType_RGBA8888:
-			return GetPixel_RGBA8888(x, y);
-		//case BitmapType_Normal:
-		//	return GetPixel_Normal(x, y);
-		case BitmapType_DXT1:
-			return GetPixel_DXT1(x, y);
-		}
-		return Color::black;
-	}
+	Color GetPixel(int x, int y) const;
+	void SetPixel(int x, int y, const Color& color);
+	float GetAlpha(int x, int y) const;
+	void SetAlpha(int x, int y, float alpha);
 
 	rawptr_t GetBytes() { return bytes; }
 	int GetWidth() const { return width; }
 	int GetHeight() const { return height; }
 	BitmapType GetType() const { return type; }
 
-	BitmapPtr CompressToDXT1();
-
 protected:
-	Color GetPixel_L8(int x, int y);
-	Color GetPixel_RGB888(int x, int y);
-	Color GetPixel_RGBA8888(int x, int y);
-	Color GetPixel_DXT1(int x, int y);
+	uint8_t GetPixel_Alpha8(int x, int y) const;
+	void SetPixel_Alpha8(int x, int y, uint8_t val);
+	Color32 GetPixel_RGB24(int x, int y) const;
+	void SetPixel_RGB24(int x, int y, Color32 color);
+	Color32 GetPixel_RGBA32(int x, int y) const;
+	void SetPixel_RGBA32(int x, int y, Color32 color);
+	float GetPixel_AlphaFloat(int x, int y) const;
+	void SetPixel_AlphaFloat(int x, int y, float val);
 
 private:
 	BitmapType type = BitmapType_Unknown;
