@@ -189,7 +189,6 @@ void Texture2D::ConvertBumpToNormal(float strength/* = 10.f*/)
 			if (y1 < 0) y1 = 0;
 			if (y2 >= (int)height) y2 = height - 1;
 
-			float ph = bump[offset];
 			float px1 = bump[y * width + x1];
 			float px2 = bump[y * width + x2];
 			float py1 = bump[y1 * width + x];
@@ -270,7 +269,6 @@ bool Texture2D::GenerateMipmaps()
 	for (int l = 0;; ++l)
 	{
 		BitmapPtr mipmap = std::make_shared<Bitmap>(s, s, mainTex->GetType());
-		rawptr_t bytes = mipmap->GetBytes();
 		for (int y = 0; y < s; ++y)
 		{
 			int y0 = y * 2;

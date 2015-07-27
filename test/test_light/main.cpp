@@ -191,7 +191,7 @@ void MainLoop()
 	canvas->Clear();
 
 	objectCtrl.MouseRotate(objectTrans, false);
-	Rasterizer::transform = objectTrans.GetMatrix();
+	Rasterizer::modelMatrix = objectTrans.GetMatrix();
 	Rasterizer::renderData.AssignVertexBuffer(meshW.vertices);
 	Rasterizer::renderData.AssignIndexBuffer(meshW.indices);
 

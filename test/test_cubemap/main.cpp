@@ -171,16 +171,15 @@ void MainLoop()
 	Rasterizer::renderData.AssignVertexBuffer(meshW.vertices);
 	Rasterizer::renderData.AssignIndexBuffer(meshW.indices);
 	
-
 	Transform objTrans;
-	Rasterizer::SetTransform(objTrans.GetMatrix());
+	Rasterizer::modelMatrix = objTrans.GetMatrix();
 	Rasterizer::SetShader(objShader);
 	Rasterizer::renderState.cull = RenderState::CullType_Back;
 	Rasterizer::Submit();
 
 	Transform skyTrans;
 	skyTrans.scale = Vector3::one * 1000.f;
-	Rasterizer::SetTransform(skyTrans.GetMatrix());
+	Rasterizer::modelMatrix = skyTrans.GetMatrix();
 	Rasterizer::SetShader(skyShader);
 	Rasterizer::renderState.cull = RenderState::CullType_Front;
 	Rasterizer::Submit();

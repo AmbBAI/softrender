@@ -7,18 +7,10 @@ Canvas* Rasterizer::canvas = nullptr;
 CameraPtr Rasterizer::camera = nullptr;
 LightPtr Rasterizer::light = nullptr;
 ShaderPtr Rasterizer::shader = nullptr;
-Matrix4x4 Rasterizer::transform;
+Matrix4x4 Rasterizer::modelMatrix;
 RenderState Rasterizer::renderState;
 RenderData Rasterizer::renderData;
 VaryingDataBuffer Rasterizer::varyingDataBuffer;
-
-
-bool Rasterizer::isDrawTextured = true;
-bool Rasterizer::isDrawWireFrame = false;
-bool Rasterizer::isDrawPoint = false;
-
-int Rasterizer::pixelDrawCount = 0;
-int Rasterizer::triangleDrawCount = 0;
 
 void Rasterizer::Initialize()
 {
@@ -216,10 +208,10 @@ void Rasterizer::Submit(int startIndex/* = 0*/, int primitiveCount/* = 0*/)
 	shader->_MATRIX_V = *camera->GetViewMatrix();
 	shader->_MATRIX_P = *camera->GetProjectionMatrix();
 	shader->_MATRIX_VP = shader->_MATRIX_P.Multiply(shader->_MATRIX_V);
-	shader->_Object2World = transform;
-	shader->_World2Object = transform.Inverse();
-	shader->_MATRIX_MV = shader->_MATRIX_V.Multiply(transform);
-	shader->_MATRIX_MVP = shader->_MATRIX_VP.Multiply(transform);
+	shader->_Object2World = modelMatrix;
+	shader->_World2Object = modelMatrix.Inverse();
+	shader->_MATRIX_MV = shader->_MATRIX_V.Multiply(modelMatrix);
+	shader->_MATRIX_MVP = shader->_MATRIX_VP.Multiply(modelMatrix);
 
 	shader->_WorldSpaceCameraPos = camera->GetPosition();
 	shader->_ScreenParams = Vector4((float)width, (float)height, 1.f + 1.f / (float)width, 1.f + 1.f / (float)height);
@@ -290,7 +282,7 @@ void Rasterizer::Submit(int startIndex/* = 0*/, int primitiveCount/* = 0*/)
 			}
 
 			varyingDataBuffer.ResetPixelVaryingData();
-			RasterizerTriangle<decltype(triangle)>(projection, Rasterizer2x2RenderFunc, triangle);
+			RasterizerTriangle<Triangle<VertexVaryingData> >(projection, Rasterizer2x2RenderFunc, triangle);
 		}
 
 
@@ -389,11 +381,6 @@ void Rasterizer::Rasterizer2x2RenderFunc(const Triangle<VertexVaryingData>& data
 			if (renderState.zWrite) canvas->SetDepth(x, y, quad.depth[i]);
 		}
 	}
-}
-
-void Rasterizer::SetTransform(const Matrix4x4& transform)
-{
-	Rasterizer::transform = transform;
 }
 
 bool Rasterizer::InitShaderLightParams(ShaderPtr shader, const LightPtr light)

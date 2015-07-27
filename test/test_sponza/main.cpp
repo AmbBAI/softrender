@@ -203,7 +203,7 @@ void MainLoop()
 			meshData.push_back(meshWapper);
 		}
 
-		Rasterizer::transform = sceneTrans.GetMatrix();
+		Rasterizer::modelMatrix = sceneTrans.GetMatrix();
     }
 
 	if (transCtrl.MouseRotate(cameraTrans)

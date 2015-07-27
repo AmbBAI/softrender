@@ -1,7 +1,5 @@
-#include "render_data.h"
+#include "varying_data.h"
 using namespace rasterizer;
-
-const uint32_t RenderData::VERTEX_MAX_COUNT = (1 << 16) - 1;
 
 void VaryingDataBuffer::InitVerticesVaryingData(int vertexCount)
 {
