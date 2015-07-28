@@ -238,4 +238,8 @@ void MainLoop()
 	}
 
     canvas->Present();
+
+	static char title[32];
+	sprintf(title, "sponza - %f", app->GetDeltaTime());
+	app->SetTitle(title);
 }

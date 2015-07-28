@@ -5,7 +5,7 @@ A very simple rasterizer by C++
 Make solution file with [premake](http://premake.github.io/)  
   
 `premake5 vs2013` for Windows VS2013  
-Copy `FreeImage.dll` and `glew32.dll` to your workspace
+Copy `FreeImage.dll` to your workspace
   
 `./premake5 xcode4` for MacOSX XCode  
   

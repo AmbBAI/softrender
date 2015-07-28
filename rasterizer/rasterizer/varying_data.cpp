@@ -145,22 +145,22 @@ void VaryingDataDecl::LinearInterp(rawptr_t output, const rawptr_t a, const rawp
 
 void VaryingDataDecl::TriangleInterp(rawptr_t output, const rawptr_t a, const rawptr_t b, const rawptr_t c, float x, float y, float z) const
 {
-	for (auto l : decl)
+	for (auto element : decl)
 	{
-		if (l.usage == VaryingDataDeclUsage_SVPOSITION) continue;
-		switch (l.format)
+		if (element.usage == VaryingDataDeclUsage_SVPOSITION) continue;
+		switch (element.format)
 		{
 		case VaryingDataDeclFormat_Float:
-			TriangleInterpValue<float>(output, a, b, c, l.offset, x, y, z);
+			TriangleInterpValue<float>(output, a, b, c, element.offset, x, y, z);
 			break;
 		case VaryingDataDeclFormat_Vector2:
-			TriangleInterpValue<Vector2>(output, a, b, c, l.offset, x, y, z);
+			TriangleInterpValue<Vector2>(output, a, b, c, element.offset, x, y, z);
 			break;
 		case VaryingDataDeclFormat_Vector3:
-			TriangleInterpValue<Vector3>(output, a, b, c, l.offset, x, y, z);
+			TriangleInterpValue<Vector3>(output, a, b, c, element.offset, x, y, z);
 			break;
 		case VaryingDataDeclFormat_Vector4:
-			TriangleInterpValue<Vector4>(output, a, b, c, l.offset, x, y, z);
+			TriangleInterpValue<Vector4>(output, a, b, c, element.offset, x, y, z);
 			break;
 		default:
 			break;

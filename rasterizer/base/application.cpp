@@ -1,7 +1,6 @@
 #include "application.h"
 #include "canvas.h"
 #include "input.h"
-#include "ui.h"
 
 namespace rasterizer
 {
@@ -19,8 +18,6 @@ Application::~Application()
 		delete canvas;
 		canvas = nullptr;
 	}
-
-    UI::Finalize();
     
 	if (input != nullptr)
 	{
@@ -59,10 +56,13 @@ bool Application::CreateApplication(const char* title, int width, int height)
     this->width = width;
 	this->height = height;
     
-    bool ret = UI::Initialize(window, width, height);
-    assert(ret);
-    
 	return true;
+}
+
+void Application::SetTitle(const char* title)
+{
+	assert(window != nullptr);
+	glfwSetWindowTitle(window, title);
 }
 
 Canvas* Application::GetCanvas()
@@ -111,5 +111,7 @@ float Application::GetDeltaTime()
 {
 	return deltaTime;
 }
+
+
 
 }

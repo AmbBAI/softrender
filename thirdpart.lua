@@ -45,20 +45,3 @@ project "glfw"
         "thirdpart/glfw/src/nsgl_context.m",
         "thirdpart/glfw/src/iokit_joystick.m",
     }
-
-project "nanovg"
-  kind "StaticLib"
-  targetdir ("lib/")
-  includedirs { "thirdpart/nanovg/src/" }
-  files {
-      "thirdpart/nanovg/src/**.h",
-      "thirdpart/nanovg/src/**.c",
-  }
-
-  configuration "Debug"
-    defines { "DEBUG" }
-    flags { "Symbols", "ExtraWarnings"}
-
-  configuration "Release"
-    defines { "NDEBUG" }
-    flags { "Optimize", "ExtraWarnings"}

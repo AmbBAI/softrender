@@ -18,10 +18,10 @@ function createTestProject(_name)
 
     libdirs {"lib/", "thirdpart/freeimage/"}
 
-    links {"common", "rasterizer", "glfw", "tinyobjloader", "nanovg", "freeimage"}
+    links {"common", "rasterizer", "glfw", "tinyobjloader", "freeimage"}
     configuration "windows"
       defines { "_CRT_SECURE_NO_WARNINGS" }
-      links {"opengl32.lib", "glu32.lib", "thirdpart/glew/lib/Release/Win32/glew32.lib"}
+      links { "opengl32.lib" }
 
     configuration "macosx"
       buildoptions {"-std=c++11", "-msse4.1", "-Wno-deprecated-declarations"}
@@ -68,7 +68,7 @@ solution "rasterizer"
 
     configuration "windows"
       defines { "_CRT_SECURE_NO_WARNINGS" }
-      links {"opengl32.lib", "glu32.lib", "thirdpart/glew/lib/Release/Win32/glew32.lib"}
+      links {"opengl32.lib", "glu32.lib"}
 
     configuration "macosx"
       buildoptions {"-std=c++11", "-msse4.1", "-Wno-deprecated-declarations"}
@@ -94,8 +94,8 @@ solution "rasterizer"
         defines { "_MATH_SIMD_INTRINSIC_" }
 
     configuration "windows"
-      defines { "_CRT_SECURE_NO_WARNINGS", "_USE_GLEW_"}
-      links {"opengl32.lib", "glu32.lib", "thirdpart/glew/lib/Release/Win32/glew32.lib"}
+      defines { "_CRT_SECURE_NO_WARNINGS" }
+      links {"opengl32.lib", "glu32.lib" }
 
     configuration "macosx"
       buildoptions {"-std=c++11", "-msse4.1", "-Wno-deprecated-declarations"}

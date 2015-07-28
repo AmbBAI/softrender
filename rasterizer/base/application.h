@@ -17,6 +17,7 @@ public:
 	static Application* GetInstance();
 	typedef void(*LoopFunc)();
 	bool CreateApplication(const char* title, int width, int height);
+	void SetTitle(const char* title);
 
 	void SetRunLoop(LoopFunc loopFunc) { this->loopFunc = loopFunc; }
 	void RunLoop();
