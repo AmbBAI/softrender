@@ -54,10 +54,6 @@
 #define FOREACH_STEP(vec, i, step) FOREACH_RANGE_STEP(vec, i, 0, (int)vec.size(), step)
 #define FOREACH(vec, i) FOREACH_STEP(vec, i, 1)
 
-#ifdef _USE_GLEW_
-#include "glew/include/GL/glew.h"
-#define NANOVG_GLEW
-#endif
 #include "glfw/include/GLFW/glfw3.h"
 
 typedef uint8_t* rawptr_t;

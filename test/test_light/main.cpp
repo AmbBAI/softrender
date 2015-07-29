@@ -152,17 +152,12 @@ void MainLoop()
 		lightBlue->direction = Vector3(0.f, -1.f, 0.f).Normalize();
 		lightBlue->Initilize();
 
-		MaterialPtr material = MaterialPtr(new Material());
-		material->diffuseTexture = Texture2D::LoadTexture("resources/cube/default.png");
-		material->diffuseTexture->GenerateMipmaps();
-
 		auto shader0 = std::make_shared<ForwardBaseShader>();
 		forwardBaseShader = shader0;
 		auto shader1 = std::make_shared<ForwardAdditionShader>();
 		forwardAdditionShader = shader1;
 
 		std::vector<MeshPtr> meshes;
-		//Mesh::LoadMesh(meshes, "resources/knot.obj");
 		meshes.push_back(CreatePlane());
 		objectTrans.position.y = -0.5f;
 
