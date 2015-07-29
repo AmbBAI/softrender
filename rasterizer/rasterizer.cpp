@@ -383,7 +383,7 @@ void Rasterizer::Rasterizer2x2RenderFunc(const Triangle<VertexVaryingData>& data
 	}
 }
 
-bool Rasterizer::InitShaderLightParams(ShaderPtr shader, const LightPtr light)
+bool Rasterizer::InitShaderLightParams(ShaderPtr shader, const LightPtr& light)
 {
 	if (light == nullptr)
 	{

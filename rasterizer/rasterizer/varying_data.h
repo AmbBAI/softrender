@@ -74,7 +74,7 @@ struct VertexVaryingData
 	uint32_t clipCode = 0x00;
 
 	VertexVaryingData() = default;
-	VertexVaryingData(VaryingDataBuffer* _varyingDataBuffer) : varyingDataBuffer(_varyingDataBuffer) {}
+	explicit VertexVaryingData(VaryingDataBuffer* _varyingDataBuffer) : varyingDataBuffer(_varyingDataBuffer) {}
 	static VertexVaryingData LinearInterp(const VertexVaryingData& a, const VertexVaryingData& b, float t);
 	static rawptr_t TriangleInterp(const VertexVaryingData& v0, const VertexVaryingData& v1, const VertexVaryingData& v2, float x, float y, float z);
 };
@@ -82,6 +82,8 @@ struct VertexVaryingData
 class VaryingDataBuffer
 {
 public:
+	VaryingDataBuffer() = default;
+
 	void InitVerticesVaryingData(int vertexCount);
 	VertexVaryingData& GetVertexVaryingData(int index);
 	void InitDynamicVaryingData();

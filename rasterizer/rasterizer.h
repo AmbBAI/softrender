@@ -69,7 +69,7 @@ struct Rasterizer
 	static void RasterizerTriangle(Triangle<Projection> projection, Render2x2Func<DrawDataType> renderFunc, const DrawDataType& renderData);
 
 private:
-	static bool InitShaderLightParams(ShaderPtr shader, const LightPtr light);
+	static bool InitShaderLightParams(ShaderPtr shader, const LightPtr& light);
 	static void RasterizerRenderFunc(const VertexVaryingData& data, const RasterizerInfo& info);
 	static void Rasterizer2x2RenderFunc(const Triangle<VertexVaryingData>& data,  const Rasterizer2x2Info& info);
 

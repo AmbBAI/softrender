@@ -11,8 +11,7 @@ namespace rasterizer
 class Input
 {
 	friend Application;
-	Input(GLFWwindow* window);
-	~Input() = default;
+	explicit Input(GLFWwindow* window);
 
 public:
 	bool GetKey(int key);
