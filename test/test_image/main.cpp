@@ -44,7 +44,6 @@ void MainLoop()
 
 	auto& canvas = Rasterizer::GetRenderTarget()->GetColorBuffer();
 	DrawTexture(canvas, Vector4(0, 0, 512, 512), *tex, 0);
-	//TestTexture(canvas, Vector4(256, 256, 512, 512), *tex, 1);
 	Rasterizer::Present();
 }
 

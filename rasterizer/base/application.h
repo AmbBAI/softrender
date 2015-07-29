@@ -6,7 +6,6 @@
 namespace rasterizer
 {
 
-//class Canvas;
 class Input;
 class Application
 {

@@ -12,12 +12,6 @@ Application* Application::GetInstance()
 
 Application::~Application()
 {
-	//if (canvas != nullptr)
-	//{
-	//	delete canvas;
-	//	canvas = nullptr;
-	//}
-    
 	if (input != nullptr)
 	{
 		delete input;
@@ -63,16 +57,6 @@ void Application::SetTitle(const char* title)
 	assert(window != nullptr);
 	glfwSetWindowTitle(window, title);
 }
-//
-//Canvas* Application::GetCanvas()
-//{
-//	assert(width > 0 && height > 0);
-//	if (canvas == nullptr)
-//	{
-//		canvas = new Canvas(width, height);
-//	}
-//	return canvas;
-//}
 
 Input* Application::GetInput()
 {
