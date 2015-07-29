@@ -3,7 +3,7 @@ using namespace rasterizer;
 
 Application* app;
 
-void TestColor(Canvas* canvas)
+void TestColor(BitmapPtr& canvas)
 {
 	int w = canvas->GetWidth();
 	int h = canvas->GetHeight();
@@ -20,16 +20,17 @@ void TestColor(Canvas* canvas)
 
 void MainLoop()
 {
-	Canvas* canvas = app->GetCanvas();
-	canvas->Clear();
+	Rasterizer::Clear(false, true, Color(1.f, 0.19f, 0.3f, 0.47f));
+	auto& canvas = Rasterizer::GetRenderTarget()->GetColorBuffer();
 	TestColor(canvas);
-	canvas->Present();
+	Rasterizer::Present();
 }
 
 int main(int argc, char *argv[])
 {
 	app = Application::GetInstance();
 	app->CreateApplication("hello", 512, 512);
+	Rasterizer::Initialize(512, 512);
 	app->SetRunLoop(MainLoop);
 	app->RunLoop();
 	return 0;

@@ -186,4 +186,37 @@ void Bitmap::SetAlpha(int x, int y, float alpha)
 	}
 }
 
+void Bitmap::Fill(const Color& color)
+{
+	assert(bytes != nullptr);
+
+	switch (type)
+	{
+	case rasterizer::Bitmap::BitmapType_Alpha8:
+		std::memset(bytes, Color32(color).a, width * height);
+		//std::fill_n((uint8_t*)bytes, width * height, Color32(color).a);
+		break;
+	case rasterizer::Bitmap::BitmapType_RGB24:
+		{
+			Color32 c32 = color;
+			for (int i = 0; i < width * height; ++i)
+			{
+				int offset = i * 3;
+				*(uint8_t*)(bytes + offset) = c32.r;
+				*(uint8_t*)(bytes + offset + 1) = c32.g;
+				*(uint8_t*)(bytes + offset + 2) = c32.b;
+			}
+		}
+		break;
+	case rasterizer::Bitmap::BitmapType_RGBA32:
+		std::fill_n((uint32_t*)bytes, width * height, Color32(color).rgba);
+		break;
+	case rasterizer::Bitmap::BitmapType_AlphaFloat:
+		std::fill_n((float*)bytes, width * height, color.a);
+		break;
+	default:
+		break;
+	}
+}
+
 

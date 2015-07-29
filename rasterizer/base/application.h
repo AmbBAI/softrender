@@ -6,7 +6,7 @@
 namespace rasterizer
 {
 
-class Canvas;
+//class Canvas;
 class Input;
 class Application
 {
@@ -25,7 +25,6 @@ public:
     float GetTime();
 	float GetDeltaTime();
 
-	Canvas* GetCanvas();
 	Input* GetInput();
 
 private:
@@ -36,7 +35,6 @@ private:
 	int width = 0;
 	int height = 0;
 
-	Canvas* canvas = nullptr;
 	Input* input = nullptr;
 
 	float lastFrameTime;

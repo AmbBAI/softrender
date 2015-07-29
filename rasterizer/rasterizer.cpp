@@ -3,18 +3,39 @@
 namespace rasterizer
 {
 
-Canvas* Rasterizer::canvas = nullptr;
 CameraPtr Rasterizer::camera = nullptr;
 LightPtr Rasterizer::light = nullptr;
 ShaderPtr Rasterizer::shader = nullptr;
+RenderTexturePtr Rasterizer::defaultRenderTarget = nullptr;
+RenderTexturePtr Rasterizer::renderTarget = nullptr;
+BitmapPtr Rasterizer::colorBuffer = nullptr;
+BitmapPtr Rasterizer::depthBuffer = nullptr;
 Matrix4x4 Rasterizer::modelMatrix;
 RenderState Rasterizer::renderState;
 RenderData Rasterizer::renderData;
 VaryingDataBuffer Rasterizer::varyingDataBuffer;
 
-void Rasterizer::Initialize()
+
+void Rasterizer::Initialize(int width, int height)
 {
     Texture2D::Initialize();
+
+	defaultRenderTarget = std::make_shared<RenderTexture>(width, height);
+	SetRenderTarget(defaultRenderTarget);
+}
+
+void Rasterizer::SetRenderTarget(RenderTexturePtr& target)
+{
+	if (target == nullptr) renderTarget = defaultRenderTarget;
+	else renderTarget = target;
+
+	colorBuffer = renderTarget->GetColorBuffer();
+	depthBuffer = renderTarget->GetDepthBuffer();
+}
+
+RenderTexturePtr Rasterizer::GetRenderTarget()
+{
+	return renderTarget;
 }
 
 void Rasterizer::DrawLine(int x0, int x1, int y0, int y1, const Color32& color)
@@ -39,7 +60,7 @@ void Rasterizer::DrawLine(int x0, int x1, int y0, int y1, const Color32& color)
 
 	for (int x = x0, y = y0; x < x1; ++x)
 	{
-		steep ? canvas->SetPixel(y, x, color) : canvas->SetPixel(x, y, color);
+		steep ? colorBuffer->SetPixel(y, x, color) : colorBuffer->SetPixel(x, y, color);
 		error = error - deltaY;
 		if (error < 0)
 		{
@@ -67,8 +88,8 @@ void Rasterizer::RasterizerTriangle(
 	int maxX = Mathf::Max(p0.x, p1.x, p2.x);
 	int maxY = Mathf::Max(p0.y, p1.y, p2.y);
 
-	int width = canvas->GetWidth();
-	int height = canvas->GetHeight();
+	int width = colorBuffer->GetWidth();
+	int height = colorBuffer->GetHeight();
 	if (minX < 0) minX = 0;
     if (minY < 0) minY = 0;
     if (maxX >= width) maxX = width - 1;
@@ -129,6 +150,9 @@ void Rasterizer::RasterizerTriangle(
 			if (_mm_extract_epi32(mi_or_w, 1) > 0) info.maskCode |= 0x2;
 			if (_mm_extract_epi32(mi_or_w, 2) > 0) info.maskCode |= 0x4;
 			if (_mm_extract_epi32(mi_or_w, 3) > 0) info.maskCode |= 0x8;
+			if (x + 1 >= maxX) info.maskCode &= ~0xA;
+			if (y + 1 >= maxY) info.maskCode &= ~0xC;
+
 			if (info.maskCode != 0)
 			{
 				__m128 mf_w0 = _mm_cvtepi32_ps(mi_w0);
@@ -158,7 +182,9 @@ void Rasterizer::RasterizerTriangle(
                 i_w2[i] = w2 + i_w2_delta[i];
                 if ((i_w0[i] | i_w1[i] | i_w2[i]) > 0) info.maskCode |= (1<<i);
             }
-                
+			if (x + 1 >= maxX) info.maskCode &= ~0xA;
+			if (y + 1 >= maxY) info.maskCode &= ~0xC;
+
 			if (info.maskCode != 0)
             {
                 for (int i=0; i<4; ++i)
@@ -199,11 +225,10 @@ void Rasterizer::RasterizerTriangle(
 
 void Rasterizer::Submit(int startIndex/* = 0*/, int primitiveCount/* = 0*/)
 {
-	assert(canvas != nullptr);
 	assert(camera != nullptr);
 
-	int width = canvas->GetWidth();
-	int height = canvas->GetHeight();
+	int width = renderTarget->GetWidth();
+	int height = renderTarget->GetHeight();
 
 	shader->_MATRIX_V = *camera->GetViewMatrix();
 	shader->_MATRIX_P = *camera->GetProjectionMatrix();
@@ -329,7 +354,7 @@ void Rasterizer::RasterizerRenderFunc(const VertexVaryingData& data, const Raste
 	int x = info.x;
 	int y = info.y;
 
-	if (!renderState.ZTest(info.depth, canvas->GetDepth(x, y))) return;
+	if (!renderState.ZTest(info.depth, depthBuffer->GetAlpha(x, y))) return;
 
 	shader->varyingData = data.data;
 	shader->isClipped = false;
@@ -338,11 +363,11 @@ void Rasterizer::RasterizerRenderFunc(const VertexVaryingData& data, const Raste
 	{
 		if (renderState.alphaBlend)
 		{
-			Color dst = canvas->GetPixel(x, y);
+			Color dst = colorBuffer->GetPixel(x, y);
 			color = renderState.Blend(color, dst);
 		}
-		canvas->SetPixel(x, y, color);
-		if (renderState.zWrite) canvas->SetDepth(x, y, info.depth);
+		colorBuffer->SetPixel(x, y, color);
+		if (renderState.zWrite) depthBuffer->SetAlpha(x, y, info.depth);
 	}
 }
 
@@ -365,7 +390,7 @@ void Rasterizer::Rasterizer2x2RenderFunc(const Triangle<VertexVaryingData>& data
 		int x = quad.x + quadX[i];
 		int y = quad.y + quadY[i];
 
-		if (!renderState.ZTest(quad.depth[i], canvas->GetDepth(x, y))) continue;
+		if (!renderState.ZTest(quad.depth[i], depthBuffer->GetAlpha(x, y))) continue;
 
 		shader->varyingData = pixelVaryingDataQuad[i];
 		shader->isClipped = false;
@@ -374,11 +399,11 @@ void Rasterizer::Rasterizer2x2RenderFunc(const Triangle<VertexVaryingData>& data
 		{
 			if (renderState.alphaBlend)
 			{
-				Color dst = canvas->GetPixel(x, y);
+				Color dst = colorBuffer->GetPixel(x, y);
 				color = renderState.Blend(color, dst);
 			}
-			canvas->SetPixel(x, y, color);
-			if (renderState.zWrite) canvas->SetDepth(x, y, quad.depth[i]);
+			colorBuffer->SetPixel(x, y, color);
+			if (renderState.zWrite) depthBuffer->SetAlpha(x, y, quad.depth[i]);
 		}
 	}
 }
@@ -414,6 +439,21 @@ bool Rasterizer::InitShaderLightParams(ShaderPtr shader, const LightPtr& light)
 	shader->_LightColor *= light->intensity;
 	shader->_LightAtten = Vector4(light->atten0, light->atten1, light->atten2, light->range);
 	return true;
+}
+
+void Rasterizer::Clear(bool clearDepth, bool clearColor, const Color& backgroundColor, float depth /*= 1.0f*/)
+{
+	if (clearColor) colorBuffer->Fill(backgroundColor);
+	if (clearDepth) depthBuffer->Fill(Color(depth, 0.f, 0.f, 0.f));
+}
+
+void Rasterizer::Present()
+{
+	int width = colorBuffer->GetWidth();
+	int height = colorBuffer->GetHeight();
+	rawptr_t bytes = colorBuffer->GetBytes();
+	glDrawPixels(width, height, GL_RGBA, GL_UNSIGNED_BYTE, bytes);
+	glFlush();
 }
 
 }

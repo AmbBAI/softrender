@@ -11,6 +11,7 @@ int main(int argc, char *argv[])
 {
 	app = Application::GetInstance();
 	app->CreateApplication("sponza", 800, 600);
+	Rasterizer::Initialize(800, 600);
 	app->SetRunLoop(MainLoop);
 	app->RunLoop();
 	return 0;
@@ -144,14 +145,10 @@ void MainLoop()
 	static Transform sceneTrans;
 	static Transform cameraTrans;
 	static TransformController transCtrl;
-	Canvas* canvas = app->GetCanvas();
 
 	if (!isInitilized)
     {
 		isInitilized = true;
-
-		Rasterizer::Initialize();
-        Rasterizer::canvas = canvas;
 
 		auto camera = CameraPtr(new Camera());
 		camera->SetPerspective(60.f, 1.33333f, 0.3f, 4000.f);
@@ -206,13 +203,17 @@ void MainLoop()
 		Rasterizer::modelMatrix = sceneTrans.GetMatrix();
     }
 
+	static char title[32];
+	sprintf(title, "sponza - %f", app->GetDeltaTime());
+	app->SetTitle(title);
+
 	if (transCtrl.MouseRotate(cameraTrans)
 		|| transCtrl.KeyMove(cameraTrans))
 	{
 		Rasterizer::camera->SetLookAt(cameraTrans);
 	}
 
-	canvas->Clear();
+	Rasterizer::Clear(true, true, Color(1.f, 0.19f, 0.3f, 0.47f));
 
 	for (auto& meshWapper : meshData)
 	{
@@ -237,9 +238,5 @@ void MainLoop()
 
 	}
 
-    canvas->Present();
-
-	static char title[32];
-	sprintf(title, "sponza - %f", app->GetDeltaTime());
-	app->SetTitle(title);
+    Rasterizer::Present();
 }

@@ -11,6 +11,7 @@ int main(int argc, char *argv[])
 {
 	app = Application::GetInstance();
 	app->CreateApplication("cubemap", 800, 600);
+	Rasterizer::Initialize(800, 600);
 	app->SetRunLoop(MainLoop);
 	app->RunLoop();
 	return 0;
@@ -112,14 +113,10 @@ void MainLoop()
 	static MeshWrapper<Vertex> meshW;
 	static std::shared_ptr<ObjShader> objShader;
 	static std::shared_ptr<SkyShader> skyShader;
-	Canvas* canvas = app->GetCanvas();
 
 	if (!isInitilized)
     {
 		isInitilized = true;
-
-		Rasterizer::Initialize();
-        Rasterizer::canvas = canvas;
 
 		auto camera = CameraPtr(new Camera());
 		camera->SetPerspective(60.f, 1.33333f, 0.3f, 2000.f);
@@ -166,7 +163,7 @@ void MainLoop()
 		Rasterizer::camera->SetLookAt(cameraTrans);
 	}
 
-	canvas->Clear();
+	Rasterizer::Clear(true, true, Color(1.f, 0.19f, 0.3f, 0.47f));
 
 	Rasterizer::renderData.AssignVertexBuffer(meshW.vertices);
 	Rasterizer::renderData.AssignIndexBuffer(meshW.indices);
@@ -184,5 +181,5 @@ void MainLoop()
 	Rasterizer::renderState.cull = RenderState::CullType_Front;
 	Rasterizer::Submit();
 
-    canvas->Present();
+	Rasterizer::Present();
 }

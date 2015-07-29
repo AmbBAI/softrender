@@ -3,7 +3,7 @@ using namespace rasterizer;
 
 Application* app;
 
-void DrawTexture(Canvas* canvas, const Vector4& rect, const Texture2D& texture, float lod /*= 0.f*/)
+void DrawTexture(BitmapPtr& canvas, const Vector4& rect, const Texture2D& texture, float lod /*= 0.f*/)
 {
 	int width = (int)canvas->GetWidth();
 	int height = (int)canvas->GetHeight();
@@ -29,8 +29,6 @@ void MainLoop()
 {
 	static Texture2DPtr tex = nullptr;
 
-	Canvas* canvas = app->GetCanvas();
-
 	if (tex == nullptr)
 	{
 		tex = Texture2D::LoadTexture("resources/crytek-sponza/textures/background.tga");
@@ -42,17 +40,19 @@ void MainLoop()
 		// tex->GenerateMipmaps();
 	}
 
-	canvas->Clear();
+	Rasterizer::Clear(false, false, Color(1.f, 0.19f, 0.3f, 0.47f));
 
+	auto& canvas = Rasterizer::GetRenderTarget()->GetColorBuffer();
 	DrawTexture(canvas, Vector4(0, 0, 512, 512), *tex, 0);
 	//TestTexture(canvas, Vector4(256, 256, 512, 512), *tex, 1);
-	canvas->Present();
+	Rasterizer::Present();
 }
 
 int main(int argc, char *argv[])
 {
 	app = Application::GetInstance();
 	app->CreateApplication("image", 512, 512);
+	Rasterizer::Initialize(512, 512);
 	app->SetRunLoop(MainLoop);
 	app->RunLoop();
 	return 0;

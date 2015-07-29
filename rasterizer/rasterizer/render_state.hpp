@@ -25,7 +25,7 @@ struct RenderState
 	};
 	BlendFactor srcFactor = BlendFactor_SrcAlpha;
 	BlendFactor dstFactor = BlendFactor_OneMinusSrcAlpha;
-	static Color BlendOp(BlendFactor factor, const Color& col, const Color& src, const Color& dst) const
+	static Color BlendOp(BlendFactor factor, const Color& col, const Color& src, const Color& dst)
 	{
 		switch (factor)
 		{
