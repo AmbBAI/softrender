@@ -1,7 +1,7 @@
 
 function createTestProject(_name)
   project ("test_" .. _name)
-    kind "WindowedApp"
+    kind "ConsoleApp"
     debugdir "bin/"
     targetdir "bin/"
     includedirs {

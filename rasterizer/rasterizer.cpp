@@ -98,17 +98,17 @@ void Rasterizer::RasterizerTriangle(
 	if (maxX < minX) return;
 	if (maxY < minY) return;
 
-	int dx01 = p0.x - p1.x;
-	int dx12 = p1.x - p2.x;
-	int dx20 = p2.x - p0.x;
+	int dx01 = p1.x - p0.x;
+	int dx12 = p2.x - p1.x;
+	int dx20 = p0.x - p2.x;
 
-	int dy01 = p0.y - p1.y;
-	int dy12 = p1.y - p2.y;
-	int dy20 = p2.y - p0.y;
+	int dy01 = p1.y - p0.y;
+	int dy12 = p2.y - p1.y;
+	int dy20 = p0.y - p2.y;
 
-	int startW0 = Orient2D(p0.x, p0.y, p1.x, p1.y, minX, minY);
-	int startW1 = Orient2D(p1.x, p1.y, p2.x, p2.y, minX, minY);
-	int startW2 = Orient2D(p2.x, p2.y, p0.x, p0.y, minX, minY);
+	int startW0 = Orient2D(p1.x, p1.y, p0.x, p0.y, minX, minY);
+	int startW1 = Orient2D(p2.x, p2.y, p1.x, p1.y, minX, minY);
+	int startW2 = Orient2D(p0.x, p0.y, p2.x, p2.y, minX, minY);
 
 	if (dy01 < 0 || (dy01 == 0 && dx01 < 0)) startW0 += 1;
 	if (dy12 < 0 || (dy12 == 0 && dx12 < 0)) startW1 += 1;
@@ -286,7 +286,7 @@ void Rasterizer::Submit(int startIndex/* = 0*/, int primitiveCount/* = 0*/)
 			projection.v1 = Projection::CalculateViewProjection(triangle.v1.position, width, height);
 			projection.v2 = Projection::CalculateViewProjection(triangle.v2.position, width, height);
 
-			int ret = Orient2D(projection.v0.x, projection.v0.y, projection.v1.x, projection.v1.y, projection.v2.x, projection.v2.y);
+			int ret = Orient2D(projection.v0.x, projection.v0.y, projection.v2.x, projection.v2.y, projection.v1.x, projection.v1.y);
 			switch (renderState.cull)
 			{
 			case RenderState::CullType_Front:

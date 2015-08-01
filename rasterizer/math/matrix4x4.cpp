@@ -414,10 +414,11 @@ const Matrix4x4 Matrix4x4::Orthographic(float left, float right, float bottom, f
 	Matrix4x4 mat = Matrix4x4::identity;
 	mat.m[0] = 2.f / deltaX;
 	mat.m[5] = 2.f / deltaY;
-	mat.m[10] = -2.f / deltaZ;
+	mat.m[10] = 1.f / deltaZ;
 	mat.m[12] = -(right + left) / deltaX;
 	mat.m[13] = -(top + bottom) / deltaY;
-	mat.m[14] = -(zFar + zNear) / deltaZ;
+	mat.m[14] = -zNear / deltaZ;
+	mat.m[15] = 1;
 
 	return mat;
 }
@@ -439,8 +440,8 @@ const Matrix4x4 Matrix4x4::PerspectiveFov(float fov, float aspect, float zNear, 
 
 	mat.m[0] = cotR / aspect;
 	mat.m[5] = cotR;
-	mat.m[10] = -zFar / zDelta;
-	mat.m[11] = -1.0f;
+	mat.m[10] = zFar / zDelta;
+	mat.m[11] = 1.0f;
 	mat.m[14] = -zNear * zFar / zDelta;
 	mat.m[15] = 0.f;
 	return mat;
@@ -448,7 +449,7 @@ const Matrix4x4 Matrix4x4::PerspectiveFov(float fov, float aspect, float zNear, 
 
 const Matrix4x4 Matrix4x4::LookAt(const Vector3& eye, const Vector3& target, const Vector3& up)
 {
-	Vector3 zAxis = (eye - target).Normalize();
+	Vector3 zAxis = (target - eye).Normalize();
 	Vector3 xAxis = up.Cross(zAxis).Normalize();
 	Vector3 yAxis = zAxis.Cross(xAxis);
 

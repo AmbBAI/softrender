@@ -60,8 +60,7 @@ struct SkyShader : Shader<Vertex, VaryingData>
 	Color frag(const VaryingData& input) override
 	{
 		Vector3 viewDir = (_WorldSpaceCameraPos - input.worldPos).Normalize();
-		Vector3 reflectDir = Reflect(viewDir, -input.normal).Normalize();
-		Color reflectCol = TexCUBE(cubeMap, reflectDir);
+		Color reflectCol = TexCUBE(cubeMap, -viewDir);
 
 		return reflectCol;
 	}
@@ -69,7 +68,7 @@ struct SkyShader : Shader<Vertex, VaryingData>
 
 struct ObjShader : Shader<Vertex, VaryingData>
 {
-	Vector3 lightDir = Vector3(1.f, 1.f, 1.f).Normalize();
+	Vector3 lightDir = Vector3(1.f, 1.f, -1.f).Normalize();
 
 	Texture2DPtr mainTex;
 	CubemapPtr cubeMap;
@@ -120,7 +119,7 @@ void MainLoop()
 
 		auto camera = CameraPtr(new Camera());
 		camera->SetPerspective(60.f, 1.33333f, 0.3f, 2000.f);
-		cameraTrans.position = Vector3(0.f, 0.f, 2.f);
+		cameraTrans.position = Vector3(0.f, 0.f, -2.f);
 		camera->SetLookAt(cameraTrans);
 		Rasterizer::camera = camera;
 

@@ -49,7 +49,7 @@ struct VaryingData
 
 struct ObjShader : Shader<Vertex, VaryingData>
 {
-	Vector3 lightDir = Vector3(1.f, 1.f, 1.f).Normalize();
+	Vector3 lightDir = Vector3(1.f, 1.f, -1.f).Normalize();
 
 	Texture2DPtr mainTex;
 	Texture2DPtr normalTex;
@@ -99,7 +99,9 @@ void MainLoop()
 
 		auto camera = CameraPtr(new Camera());
 		camera->SetPerspective(60.f, 1.33333f, 0.3f, 2000.f);
-		cameraTrans.position = Vector3(0.f, 0.f, 2.f);
+		cameraTrans.position = Vector3(0.f, 0.f, -2.f);
+		//camera->SetOrthographic(-2.f, 2.f, -1.5f, 1.5f, 0.f, 4.f);
+		//cameraTrans.position = Vector3(0.f, 1.f, 0.f);
 		camera->SetLookAt(cameraTrans);
 		Rasterizer::camera = camera;
 

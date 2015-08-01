@@ -67,7 +67,7 @@ struct ForwardBaseShader : Shader<Vertex, VaryingData>
 		InitLightArgs(input.worldPos, lightDir, lightAtten);
 
 		Vector3 viewDir = (_WorldSpaceCameraPos - input.worldPos).Normalize();
-		fragColor.rgb = ShaderF::LightingPhong(lightInput, input.normal, lightDir, _LightColor.xyz, viewDir, 1.f);
+		fragColor.rgb = ShaderF::LightingPhong(lightInput, input.normal, lightDir, _LightColor.xyz, viewDir, lightAtten);
 
 		return fragColor;
 	}
@@ -99,7 +99,7 @@ struct ForwardAdditionShader : Shader<Vertex, VaryingData>
 		InitLightArgs(input.worldPos, lightDir, lightAtten);
 
 		Vector3 viewDir = (_WorldSpaceCameraPos - input.worldPos).Normalize();
-		fragColor.rgb = ShaderF::LightingPhong(lightInput, input.normal, lightDir, _LightColor.xyz, viewDir, 1.f);
+		fragColor.rgb = ShaderF::LightingPhong(lightInput, input.normal, lightDir, _LightColor.xyz, viewDir, lightAtten);
 		return fragColor;
 	}
 };
@@ -122,7 +122,7 @@ void MainLoop()
 
 		auto camera = CameraPtr(new Camera());
 		camera->SetPerspective(60.f, 1.33333f, 0.3f, 2000.f);
-		cameraTrans.position = Vector3(0.f, 0.f, 2.f);
+		cameraTrans.position = Vector3(0.f, 0.f, -2.f);
 		camera->SetLookAt(cameraTrans);
 		Rasterizer::camera = camera;
 
@@ -130,26 +130,28 @@ void MainLoop()
 		lightRed->type = Light::LightType_Point;
 		lightRed->color = Color::red;
 		lightRed->position = Vector3(-0.5f, 0.5f, 0.f);
+		lightRed->direction = Vector3(0.f, -1.f, 0.f).Normalize();
+		lightRed->intensity = 2.f;
 		lightRed->range = 2.f;
 		lightRed->atten0 = 0.1f;
 		lightRed->atten1 = 5.0f;
 		lightRed->atten2 = 2.0f;
 		lightRed->theta = 30.f;
 		lightRed->phi = 45.f;
-		lightRed->direction = Vector3(0.f, -1.f, 0.f).Normalize();
 		lightRed->Initilize();
 
 		lightBlue = LightPtr(new Light());
 		lightBlue->type = Light::LightType_Point;
 		lightBlue->color = Color::blue;
 		lightBlue->position = Vector3(0.5f, 0.5f, 0.f);
+		lightBlue->direction = Vector3(0.f, -1.f, 0.f).Normalize();
+		lightBlue->intensity = 3.f;
 		lightBlue->range = 2.f;
 		lightBlue->atten0 = 0.1f;
 		lightBlue->atten1 = 5.0f;
 		lightBlue->atten2 = 2.0f;
 		lightBlue->theta = 30.f;
 		lightBlue->phi = 45.f;
-		lightBlue->direction = Vector3(0.f, -1.f, 0.f).Normalize();
 		lightBlue->Initilize();
 
 		auto shader0 = std::make_shared<ForwardBaseShader>();

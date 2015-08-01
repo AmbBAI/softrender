@@ -16,10 +16,10 @@ const Vector2 Vector2::one = Vector2(1.f, 1.f);
     
 const Vector3 Vector3::zero = Vector3(0.f, 0.f, 0.f);
 const Vector3 Vector3::one = Vector3(1.f, 1.f, 1.f);
-const Vector3 Vector3::front = Vector3(0.f, 0.f, -1.f);
+const Vector3 Vector3::front = Vector3(0.f, 0.f, 1.f);
 const Vector3 Vector3::up = Vector3(0.f, 1.f, 0.f);
 const Vector3 Vector3::right = Vector3(1.f, 0.f, 0.f);
-const Vector3 Vector3::back = Vector3(0.f, 0.f, 1.f);
+const Vector3 Vector3::back = Vector3(0.f, 0.f, -1.f);
 const Vector3 Vector3::down = Vector3(0.f, -1.f, 0.f);
 const Vector3 Vector3::left = Vector3(-1.f, 0.f, 0.f);
 

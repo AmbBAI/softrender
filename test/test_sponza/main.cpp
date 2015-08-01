@@ -152,15 +152,16 @@ void MainLoop()
 
 		auto camera = CameraPtr(new Camera());
 		camera->SetPerspective(60.f, 1.33333f, 0.3f, 4000.f);
+		//camera->SetOrthographic(-200.f, 200.f, -200.f, 200.f, 0.3f, 4000.f);
 		cameraTrans.position = Vector3(800.f, 400.f, 0.f);
-		cameraTrans.rotation = Quaternion(Vector3(0.f, 90.f, 0.f));
+		cameraTrans.rotation = Quaternion(Vector3(0.f, -90.f, 0.f));
 		camera->SetLookAt(cameraTrans);
 		Rasterizer::camera = camera;
 
 		LightPtr light = LightPtr(new Light());
 		light->type = Light::LightType_Directional;
 		light->position = Vector3(0, 300, 0);
-		light->direction = Vector3(-1.f, -1.f, -1.f).Normalize();
+		light->direction = Vector3(-1.f, -1.f, 1.f).Normalize();
 		light->range = 1000.f;
 		light->atten0 = 2.f;
 		light->atten1 = 2.f;
