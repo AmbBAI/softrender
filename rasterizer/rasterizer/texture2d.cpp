@@ -55,44 +55,18 @@ void Texture2D::Finalize()
 	FreeImage_DeInitialise();
 }
 
-std::map<std::string, Texture2DPtr> Texture2D::texturePool;
-Texture2DPtr Texture2D::CreateTexture(const char* file)
+Texture2DPtr Texture2D::CreateWithBitmap(BitmapPtr bitmap)
 {
-	FREE_IMAGE_FORMAT imageFormat = FreeImage_GetFileType(file);
-	FIBITMAP* fiBitmap = FreeImage_Load(imageFormat, file);
-	if (fiBitmap == nullptr)
-	{
-		printf("%s FAILED!\n", file);
-		return nullptr;
-	}
-
-	int width = (int)FreeImage_GetWidth(fiBitmap);
-	int height = (int)FreeImage_GetHeight(fiBitmap);
-	int pitch = (int)FreeImage_GetPitch(fiBitmap);
-	FREE_IMAGE_TYPE imageType = FreeImage_GetImageType(fiBitmap);
-	int bpp = (int)(FreeImage_GetBPP(fiBitmap) >> 3);
-	rawptr_t bytes = (rawptr_t)FreeImage_GetBits(fiBitmap);
-
-	if (imageType != FIT_BITMAP)
-	{
-		printf("%s (imageType %d)\n", file, imageType);
-		FreeImage_Unload(fiBitmap);
-		fiBitmap = nullptr;
-		return nullptr;
-	}
-
-	//TexturePtr tex = std::make_shared<Texture>();
+	if (bitmap == nullptr) return nullptr;
 	Texture2DPtr tex = Texture2DPtr(new Texture2D());
-	tex->file = file;
-	tex->width = width;
-	tex->height = height;
-	tex->mainTex = UnparkColor(bytes, width, height, pitch, bpp);
-	if (tex->mainTex == nullptr) tex = nullptr;
-
-	FreeImage_Unload(fiBitmap);
+	tex->mainTex = bitmap;
+	tex->width = bitmap->GetWidth();
+	tex->height = bitmap->GetHeight();
 	return tex;
 }
 
+
+std::map<std::string, Texture2DPtr> Texture2D::texturePool;
 Texture2DPtr Texture2D::LoadTexture(const char* file)
 {
 	std::map<std::string, Texture2DPtr>::iterator itor;
@@ -103,61 +77,15 @@ Texture2DPtr Texture2D::LoadTexture(const char* file)
 	}
 	else
 	{
-		Texture2DPtr tex = CreateTexture(file);
-		if (tex != nullptr) texturePool[file] = tex;
+		BitmapPtr bitmap = Bitmap::LoadFromFile(file);
+		Texture2DPtr tex = CreateWithBitmap(bitmap);
+		if (tex != nullptr)
+		{
+			tex->file = file;
+			texturePool[file] = tex;
+		}
 		return tex;
 	}
-}
-
-BitmapPtr Texture2D::UnparkColor(rawptr_t bytes, int width, int height, int pitch, int bpp)
-{
-	if (bytes == nullptr) return nullptr;
-	if (width <= 0 || height <= 0) return nullptr;
-
-	Bitmap::BitmapType pixelType = Bitmap::BitmapType_Unknown;
-	switch (bpp)
-	{
-	case 1:
-		pixelType = Bitmap::BitmapType_Alpha8;
-		break;
-	case 3:
-		pixelType = Bitmap::BitmapType_RGB24;
-		break;
-	case 4:
-		pixelType = Bitmap::BitmapType_RGBA32;
-		break;
-	default:
-		return nullptr;
-	}
-
-	BitmapPtr bitmap = std::make_shared<Bitmap>(width, height, pixelType);
-	rawptr_t bmpLine = bitmap->GetBytes();
-	int bmpPitch = width * bpp;
-
-	rawptr_t imgLine = bytes;
-	for (int y = 0; y < height; ++y)
-	{
-		if (bpp == 1)
-		{
-			memcpy(bmpLine, imgLine, sizeof(uint8_t) * bmpPitch);
-		}
-		else
-		{
-			for (int x = 0; x < width; ++x)
-			{
-				rawptr_t imgByte = imgLine + x * bpp;
-				rawptr_t bmpByte = bmpLine + x * bpp;
-				*(bmpByte + 2) = *(imgByte + 0);
-				*(bmpByte + 1) = *(imgByte + 1);
-				*(bmpByte + 0) = *(imgByte + 2);
-				if (bpp == 4) *(bmpByte + 3) = *(imgByte + 3);
-			}
-		}
-
-		bmpLine += bmpPitch;
-		imgLine += pitch;
-	}
-	return bitmap;
 }
 
 void Texture2D::ConvertBumpToNormal(float strength/* = 10.f*/)

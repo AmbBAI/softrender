@@ -167,9 +167,6 @@ void Rasterizer::RasterizerTriangle(
 				_mm_store_ps(info.wx, _mm_mul_ps(mf_tmp0, mf_invSum));
 				_mm_store_ps(info.wy, _mm_mul_ps(mf_tmp1, mf_invSum));
 				_mm_store_ps(info.wz, _mm_mul_ps(mf_tmp2, mf_invSum));
-
-				__m128 mf_depth = _mm_mul_ps(_mm_add_ps(mf_w0, _mm_add_ps(mf_w1, mf_w2)), mf_invSum);
-				_mm_store_ps(info.depth, mf_depth);
                 
                 for (int i = 0; i < 4; ++i)
                 {
@@ -199,11 +196,9 @@ void Rasterizer::RasterizerTriangle(
 					float f_invSum = 1.f / (info.wx[i] + info.wy[i] + info.wz[i]);
 					info.wx[i] *= f_invSum;
 					info.wy[i] *= f_invSum;
-					info.wz[i] *= f_invSum;
-
-					info.depth[i] = (f_w0 + f_w1 + f_w2) * f_invSum;
+					info.wz[i] *= f_invSum;					
 #endif
-					info.depth[i] = camera->GetLinearDepth(info.depth[i]);
+					info.depth[i] = Mathf::TriangleInterp(p0.z, p1.z, p2.z, info.wx[i], info.wy[i], info.wz[i]);
 				}
 
 				info.x = x;
@@ -304,6 +299,13 @@ void Rasterizer::Submit(int startIndex/* = 0*/, int primitiveCount/* = 0*/)
 				break;
 			default:
 				break;
+			}
+
+			if (camera->projectionMode() == Camera::ProjectionMode_Perspective)
+			{
+				projection.v0.z = camera->GetLinearDepth(projection.v0.z);
+				projection.v1.z = camera->GetLinearDepth(projection.v1.z);
+				projection.v2.z = camera->GetLinearDepth(projection.v2.z);
 			}
 
 			varyingDataBuffer.ResetPixelVaryingData();

@@ -1,4 +1,5 @@
 #include "bitmap.h"
+#include "../thirdpart/freeimage/FreeImage.h"
 using namespace rasterizer;
 
 Bitmap::Bitmap(int width, int height, BitmapType type)
@@ -218,5 +219,146 @@ void Bitmap::Fill(const Color& color)
 		break;
 	}
 }
+
+BitmapPtr Bitmap::LoadFromFile(const char* file)
+{
+	FREE_IMAGE_FORMAT imageFormat = FreeImage_GetFileType(file);
+	FIBITMAP* fiBitmap = FreeImage_Load(imageFormat, file);
+	if (fiBitmap == nullptr)
+	{
+		printf("%s FAILED!\n", file);
+		return nullptr;
+	}
+
+	int width = (int)FreeImage_GetWidth(fiBitmap);
+	int height = (int)FreeImage_GetHeight(fiBitmap);
+	int pitch = (int)FreeImage_GetPitch(fiBitmap);
+	FREE_IMAGE_TYPE imageType = FreeImage_GetImageType(fiBitmap);
+	int bpp = (int)(FreeImage_GetBPP(fiBitmap) >> 3);
+	rawptr_t imageBytes = (rawptr_t)FreeImage_GetBits(fiBitmap);
+
+	if (imageType != FIT_BITMAP)
+	{
+		printf("%s (imageType %d)\n", file, imageType);
+		FreeImage_Unload(fiBitmap);
+		fiBitmap = nullptr;
+		return nullptr;
+	}
+
+	Bitmap::BitmapType pixelType = Bitmap::BitmapType_Unknown;
+	switch (bpp)
+	{
+	case 1:
+		pixelType = Bitmap::BitmapType_Alpha8;
+		break;
+	case 3:
+		pixelType = Bitmap::BitmapType_RGB24;
+		break;
+	case 4:
+		pixelType = Bitmap::BitmapType_RGBA32;
+		break;
+	default:
+		return nullptr;
+	}
+
+	BitmapPtr bitmap = std::make_shared<Bitmap>(width, height, pixelType);
+	assert(pitch == bpp * width);
+	memcpy(bitmap->bytes, imageBytes, bpp * width * height);
+	FreeImage_Unload(fiBitmap);
+
+	switch (bitmap->type)
+	{
+	case rasterizer::Bitmap::BitmapType_RGB24:
+	{
+		rawptr_t bitmapPtr = bitmap->bytes;
+		for (int i = 0; i < width * height; ++i)
+		{
+			FlipRGB(bitmapPtr);
+			bitmapPtr += 3;
+		}
+	}
+	break;
+	case rasterizer::Bitmap::BitmapType_RGBA32:
+	{
+		rawptr_t bitmapPtr = bitmap->bytes;
+		for (int i = 0; i < width * height; ++i)
+		{
+			FlipRGB(bitmapPtr);
+			bitmapPtr += 4;
+		}
+	}
+	break;
+	default:
+		break;
+	}
+	return bitmap;
+}
+
+bool Bitmap::SaveToFile(const char* file)
+{
+	switch (type)
+	{
+	case rasterizer::Bitmap::BitmapType_Unknown:
+		return false;
+	case rasterizer::Bitmap::BitmapType_Alpha8:
+	{
+		FIBITMAP* fiBitmap = FreeImage_AllocateT(FIT_BITMAP, width, height, 8);
+		if (fiBitmap == nullptr) return false;
+		rawptr_t ptr = FreeImage_GetBits(fiBitmap);
+		memcpy(ptr, bytes, width * height);
+		bool ret = !!FreeImage_Save(FIF_PNG, fiBitmap, file);
+		FreeImage_Unload(fiBitmap);
+		fiBitmap = nullptr;
+		return ret;
+	}
+	case rasterizer::Bitmap::BitmapType_RGB24:
+	{
+		FIBITMAP* fiBitmap = FreeImage_AllocateT(FIT_BITMAP, width, height, 24);
+		if (fiBitmap == nullptr) return false;
+		rawptr_t imagePtr = FreeImage_GetBits(fiBitmap);
+		memcpy(imagePtr, bytes, width * height * 3);
+		for (int i = 0; i < width * height; ++i)
+		{
+			FlipRGB(imagePtr);
+			imagePtr += 3;
+		}
+		bool ret = !!FreeImage_Save(FIF_PNG, fiBitmap, file);
+		FreeImage_Unload(fiBitmap);
+		fiBitmap = nullptr;
+		return ret;
+	}
+	case rasterizer::Bitmap::BitmapType_RGBA32:
+	{
+		FIBITMAP* fiBitmap = FreeImage_AllocateT(FIT_BITMAP, width, height, 32);
+		if (fiBitmap == nullptr) return false;
+		rawptr_t imagePtr = FreeImage_GetBits(fiBitmap);
+		memcpy(imagePtr, bytes, width * height * 4);
+		for (int i = 0; i < width * height; ++i)
+		{
+			FlipRGB(imagePtr);
+			imagePtr += 4;
+		}
+		bool ret = !!FreeImage_Save(FIF_PNG, fiBitmap, file);
+		FreeImage_Unload(fiBitmap);
+		fiBitmap = nullptr;
+		return ret;
+	}
+	case rasterizer::Bitmap::BitmapType_AlphaFloat:
+	{
+		FIBITMAP* fiBitmap = FreeImage_AllocateT(FIT_FLOAT, width, height, 32);
+		if (fiBitmap == nullptr) return false;
+		rawptr_t ptr = FreeImage_GetBits(fiBitmap);
+		memcpy(ptr, bytes, width * height * sizeof(float));
+		bool ret = !!FreeImage_Save(FIF_TIFF, fiBitmap, file);
+		FreeImage_Unload(fiBitmap);
+		fiBitmap = nullptr;
+		return ret;
+	}
+	default:
+		break;
+	}
+	return false;
+}
+
 
 

@@ -15,6 +15,12 @@ typedef std::shared_ptr<Camera> CameraPtr;
 struct Camera
 {
 public:
+	enum ProjectionMode
+	{
+		ProjectionMode_Perspective,
+		ProjectionMode_Orthographic
+	};
+
 	void SetLookAt(const Vector3& eye, const Vector3& target, const Vector3& up);
 	void SetLookAt(const Transform& trans);
 	const Matrix4x4* GetViewMatrix() const;
@@ -26,9 +32,12 @@ public:
     
     const Vector3 GetPosition() const { return position; }
     const Vector3 GetDirection() const { return direction; }
-	float GetLinearDepth(float viewZ) const { return (viewZ - zNear) / (zFar - zNear);}
+	float GetLinearDepth(float projectionZ) const { return zNear / (projectionZ * (zNear - zFar) + zFar); }
+
+	ProjectionMode projectionMode() { return projectionMode_; }
 
 protected:
+	ProjectionMode projectionMode_;
 	Matrix4x4 viewMatrix;
 	Matrix4x4 projectionMatrix;
 

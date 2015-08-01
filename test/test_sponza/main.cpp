@@ -152,9 +152,11 @@ void MainLoop()
 
 		auto camera = CameraPtr(new Camera());
 		camera->SetPerspective(60.f, 1.33333f, 0.3f, 4000.f);
-		//camera->SetOrthographic(-200.f, 200.f, -200.f, 200.f, 0.3f, 4000.f);
 		cameraTrans.position = Vector3(800.f, 400.f, 0.f);
 		cameraTrans.rotation = Quaternion(Vector3(0.f, -90.f, 0.f));
+		//camera->SetOrthographic(-800.f, 800.f, -600.f, 600.f, 0.3f, 4000.f);
+		//cameraTrans.position = Vector3(0.f, 400.f, 0.f);
+		//cameraTrans.rotation = Quaternion(Vector3(0.f, -90.f, 0.f));
 		camera->SetLookAt(cameraTrans);
 		Rasterizer::camera = camera;
 
@@ -235,9 +237,9 @@ void MainLoop()
 
 			Rasterizer::Submit(startIndex, primitiveCount);
 		}
-
-
 	}
 
     Rasterizer::Present();
+	Rasterizer::GetRenderTarget()->GetDepthBuffer()->SaveToFile("depth.tiff");
+	//Rasterizer::GetRenderTarget()->GetColorBuffer()->SaveToFile("color.png");
 }

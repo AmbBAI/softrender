@@ -33,6 +33,7 @@ bool Camera::SetPerspective(float fov, float aspect, float zNear, float zFar)
 {
 	this->zFar = zFar;
 	this->zNear = zNear;
+	projectionMode_ = ProjectionMode_Perspective;
 	projectionMatrix = Matrix4x4::PerspectiveFov(fov, aspect, zNear, zFar);
 	return true;
 }
@@ -41,6 +42,7 @@ bool Camera::SetOrthographic(float left, float right, float bottom, float top, f
 {
 	this->zFar = zFar;
 	this->zNear = zNear;
+	projectionMode_ = ProjectionMode_Orthographic;
 	projectionMatrix = Matrix4x4::Orthographic(left, right, bottom, top, zNear, zFar);
 	return true;
 }

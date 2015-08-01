@@ -15,6 +15,7 @@ struct Projection
 {
 	int x = 0;
 	int y = 0;
+	float z = 0.f;
 	float invW = 1.0f;
 
 	static Projection CalculateViewProjection(const Vector4& position, uint32_t width, uint32_t height)
@@ -26,6 +27,7 @@ struct Projection
 		Projection point;
 		point.x = Mathf::RoundToInt(((position.x * invW) + 1.f) / 2.f * width);
 		point.y = Mathf::RoundToInt(((position.y * invW) + 1.f) / 2.f * height);
+		point.z = position.z * invW;
 		point.invW = invW;
 		return point;
 	}

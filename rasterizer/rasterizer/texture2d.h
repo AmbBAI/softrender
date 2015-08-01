@@ -34,7 +34,7 @@ public:
 	static void Initialize();
 	static void Finalize();
 
-	static Texture2DPtr CreateTexture(const char* file);
+	static Texture2DPtr CreateWithBitmap(BitmapPtr bitmap);
     static Texture2DPtr LoadTexture(const char* file);
 	static std::map<std::string, Texture2DPtr> texturePool;
 

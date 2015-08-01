@@ -31,12 +31,14 @@ public:
 	Bitmap(int width, int height, BitmapType type);
 	virtual ~Bitmap();
 
+	static BitmapPtr LoadFromFile(const char* file);
+	bool SaveToFile(const char* file);
+
 	Color GetPixel(int x, int y) const;
 	void SetPixel(int x, int y, const Color& color);
 	float GetAlpha(int x, int y) const;
 	void SetAlpha(int x, int y, float alpha);
 	void Fill(const Color& color);
-
 
 	rawptr_t GetBytes() { return bytes; }
 	int GetWidth() const { return width; }
