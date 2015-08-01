@@ -10,6 +10,10 @@ Copy `FreeImage.dll` to your workspace
 `./premake5 xcode4` for MacOSX XCode  
   
 [Resources Download](http://graphics.cs.williams.edu/data/meshes.xml)
+
+![](https://github.com/AmbBAI/rasterizer/raw/master/screenshot0.png)
+
+![](https://github.com/AmbBAI/rasterizer/raw/master/screenshot1.png)
   
 ![](https://github.com/AmbBAI/rasterizer/raw/master/screenshot.png)
 

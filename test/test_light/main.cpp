@@ -129,10 +129,10 @@ void MainLoop()
 		lightRed = LightPtr(new Light());
 		lightRed->type = Light::LightType_Point;
 		lightRed->color = Color::red;
-		lightRed->position = Vector3(-0.5f, 0.5f, 0.f);
+		lightRed->position = Vector3(-0.5f, 1.f, 0.f);
 		lightRed->direction = Vector3(0.f, -1.f, 0.f).Normalize();
 		lightRed->intensity = 2.f;
-		lightRed->range = 2.f;
+		lightRed->range = 5.f;
 		lightRed->atten0 = 0.1f;
 		lightRed->atten1 = 5.0f;
 		lightRed->atten2 = 2.0f;
@@ -143,10 +143,10 @@ void MainLoop()
 		lightBlue = LightPtr(new Light());
 		lightBlue->type = Light::LightType_Point;
 		lightBlue->color = Color::blue;
-		lightBlue->position = Vector3(0.5f, 0.5f, 0.f);
+		lightBlue->position = Vector3(0.5f, 1.f, 0.f);
 		lightBlue->direction = Vector3(0.f, -1.f, 0.f).Normalize();
 		lightBlue->intensity = 3.f;
-		lightBlue->range = 2.f;
+		lightBlue->range = 5.f;
 		lightBlue->atten0 = 0.1f;
 		lightBlue->atten1 = 5.0f;
 		lightBlue->atten2 = 2.0f;
@@ -161,7 +161,7 @@ void MainLoop()
 
 		std::vector<MeshPtr> meshes;
 		meshes.push_back(CreatePlane());
-		objectTrans.position.y = -0.5f;
+		objectTrans.position.y = 0.f;
 
 		meshW.vertices.clear();
 		meshW.indices.clear();

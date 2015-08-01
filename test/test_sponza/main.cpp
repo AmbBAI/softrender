@@ -240,6 +240,6 @@ void MainLoop()
 	}
 
     Rasterizer::Present();
-	Rasterizer::GetRenderTarget()->GetDepthBuffer()->SaveToFile("depth.tiff");
+	//Rasterizer::GetRenderTarget()->GetDepthBuffer()->SaveToFile("depth.tiff");
 	//Rasterizer::GetRenderTarget()->GetColorBuffer()->SaveToFile("color.png");
 }
