@@ -60,7 +60,7 @@ struct Rasterizer
 	using Render2x2Func = std::function<void(const Type&, const Rasterizer2x2Info&)>;
 
 	static void Initialize(int width, int height);
-	static void SetRenderTarget(RenderTexturePtr& target);
+	static void SetRenderTarget(RenderTexturePtr target);
 	static RenderTexturePtr GetRenderTarget();
 	static void SetShader(ShaderPtr shader);
 

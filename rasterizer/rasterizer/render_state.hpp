@@ -9,6 +9,15 @@ namespace rasterizer
 
 struct RenderState
 {
+	enum RenderType
+	{
+		RenderType_Point,
+		RenderType_WireFrame,
+		RenderType_Stardand,
+		RenderType_ShadowPrePass
+	};
+	RenderType renderType = RenderType_Stardand;
+
 	bool alphaBlend = false;
 	enum BlendFactor
 	{

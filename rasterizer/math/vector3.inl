@@ -42,10 +42,21 @@ const Vector3 Vector3::Cross(const Vector3& v) const
                    );
 }
 
-const float Vector3::Dot(const Vector3& a, const Vector3& b) { return a.Dot(b); }
-const Vector3 Vector3::Cross(const Vector3& a, const Vector3& b) { return a.Cross(b); }
+float Vector3::Dot(const Vector3& a, const Vector3& b) { return a.Dot(b); }
+Vector3 Vector3::Cross(const Vector3& a, const Vector3& b) { return a.Cross(b); }
 
-const Vector3 Vector3::LinearInterp(const Vector3& a, const Vector3& b, float t)
+Vector3 Vector3::Min(const Vector3& a, const Vector3& b)
+{
+	return Vector3(Mathf::Min(a.x, b.x), Mathf::Min(a.y, b.y), Mathf::Min(a.z, b.z));
+}
+
+Vector3 Vector3::Max(const Vector3& a, const Vector3& b)
+{
+	return Vector3(Mathf::Max(a.x, b.x), Mathf::Max(a.y, b.y), Mathf::Max(a.z, b.z));
+}
+
+
+Vector3 Vector3::LinearInterp(const Vector3& a, const Vector3& b, float t)
 {
 	return Vector3(
 		Mathf::Lerp(a.x, b.x, t),
@@ -53,7 +64,7 @@ const Vector3 Vector3::LinearInterp(const Vector3& a, const Vector3& b, float t)
 		Mathf::Lerp(a.z, b.z, t));
 }
 
-const Vector3 Vector3::TriangleInterp(const Vector3& a, const Vector3& b, const Vector3& c, float t0, float t1, float t2)
+Vector3 Vector3::TriangleInterp(const Vector3& a, const Vector3& b, const Vector3& c, float t0, float t1, float t2)
 {
 	return Vector3(
 		Mathf::Terp(a.x, b.x, c.x, t0, t1, t2),

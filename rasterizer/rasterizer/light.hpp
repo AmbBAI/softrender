@@ -44,6 +44,39 @@ struct Light
         }
     }
 
+	Matrix4x4 CalcShadowMapMatrix(const CameraPtr& camera)
+	{
+		Matrix4x4 viewMatrix = camera->viewMatrix();
+		Matrix4x4 projectionMatrix = camera->projectionMatrix();
+		Matrix4x4 VPIM = projectionMatrix.Multiply(viewMatrix).Inverse();
+		Matrix4x4 LVM = transform.worldToLocalMatrix();
+
+		static Vector3 frustumCornerProjection[8] =
+		{
+			Vector3(-1.f, -1.f, 0.f), Vector3(-1.f, -1.f, 1.f),
+			Vector3(-1.f, 1.f, 0.f), Vector3(-1.f, 1.f, 1.f),
+			Vector3(1.f, -1.f, 0.f), Vector3(1.f, -1.f, 1.f),
+			Vector3(1.f, 1.f, 0.f), Vector3(1.f, 1.f, 1.f)
+		};
+
+		Vector3 minPos, maxPos;
+		for (int i = 0; i < 8; ++i)
+		{
+			Vector4 fcWorldPos = VPIM.MultiplyPoint(frustumCornerProjection[i]);
+			Vector3 fcLightPos = LVM.MultiplyPoint3x4(fcWorldPos.xyz / fcWorldPos.w);
+			//printf("wp %f %f %f %f\n", fcWorldPos.x, fcWorldPos.y, fcWorldPos.z, fcWorldPos.w);
+			//printf("lp %f %f %f\n", fcLightPos.x, fcLightPos.y, fcLightPos.z);
+			if (i == 0) minPos = maxPos = fcLightPos;
+			else
+			{
+				minPos = Vector3::Min(minPos, fcLightPos);
+				maxPos = Vector3::Max(maxPos, fcLightPos);
+			}
+		}
+
+		return Matrix4x4::Orthographic(minPos.x, maxPos.x, minPos.y, maxPos.y, minPos.z, maxPos.z);
+	}
+
 #if _NOCRASH_ && defined(_MSC_VER)
 	MEMALIGN_NEW_OPERATOR_OVERRIDE(16)
 	MEMALIGN_DELETE_OPERATOR_OVERRIDE

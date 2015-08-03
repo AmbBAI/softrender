@@ -11,6 +11,8 @@ RenderTexturePtr Rasterizer::renderTarget = nullptr;
 BitmapPtr Rasterizer::colorBuffer = nullptr;
 BitmapPtr Rasterizer::depthBuffer = nullptr;
 Matrix4x4 Rasterizer::modelMatrix;
+Matrix4x4 Rasterizer::viewMatrix;
+Matrix4x4 Rasterizer::projectionMatrix;
 RenderState Rasterizer::renderState;
 RenderData Rasterizer::renderData;
 VaryingDataBuffer Rasterizer::varyingDataBuffer;
@@ -24,7 +26,7 @@ void Rasterizer::Initialize(int width, int height)
 	SetRenderTarget(defaultRenderTarget);
 }
 
-void Rasterizer::SetRenderTarget(RenderTexturePtr& target)
+void Rasterizer::SetRenderTarget(RenderTexturePtr target)
 {
 	if (target == nullptr) renderTarget = defaultRenderTarget;
 	else renderTarget = target;
@@ -225,6 +227,8 @@ void Rasterizer::Submit(int startIndex/* = 0*/, int primitiveCount/* = 0*/)
 	int width = renderTarget->GetWidth();
 	int height = renderTarget->GetHeight();
 
+	//shader->_MATRIX_V = viewMatrix;
+	//shader->_MATRIX_P = projectionMatrix;
 	shader->_MATRIX_V = camera->viewMatrix();
 	shader->_MATRIX_P = camera->projectionMatrix();
 	shader->_MATRIX_VP = shader->_MATRIX_P.Multiply(shader->_MATRIX_V);
