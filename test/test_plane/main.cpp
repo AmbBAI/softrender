@@ -88,7 +88,6 @@ void MainLoop()
 {
 	static bool isInitilized = false;
 	static Transform objectTrans;
-	static Transform cameraTrans;
 	static TransformController objectCtrl;
 	static MeshWrapper<Vertex> meshW;
 	static std::shared_ptr<ObjShader> objectShader;
@@ -99,10 +98,9 @@ void MainLoop()
 
 		auto camera = CameraPtr(new Camera());
 		camera->SetPerspective(60.f, 1.33333f, 0.3f, 2000.f);
-		cameraTrans.position = Vector3(0.f, 0.f, -2.f);
+		camera->transform.position = Vector3(0.f, 0.f, -2.f);
 		//camera->SetOrthographic(-2.f, 2.f, -1.5f, 1.5f, 0.f, 4.f);
-		//cameraTrans.position = Vector3(0.f, 1.f, 0.f);
-		camera->SetLookAt(cameraTrans);
+		//camera->transform.position = Vector3(0.f, 1.f, 0.f);
 		Rasterizer::camera = camera;
 
 		MaterialPtr material = MaterialPtr(new Material());
@@ -131,7 +129,7 @@ void MainLoop()
 	Rasterizer::Clear(true, true, Color(1.f, 0.19f, 0.3f, 0.47f));
 
 	objectCtrl.MouseRotate(objectTrans, false);
-	Rasterizer::modelMatrix = objectTrans.GetMatrix();
+	Rasterizer::modelMatrix = objectTrans.localToWorldMatrix();
 	Rasterizer::renderData.AssignVertexBuffer(meshW.vertices);
 	Rasterizer::renderData.AssignIndexBuffer(meshW.indices);
 	Rasterizer::SetShader(objectShader);

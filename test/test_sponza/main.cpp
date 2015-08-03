@@ -140,30 +140,29 @@ struct SceneShader : Shader<Vertex, VaryingData>
 void MainLoop()
 {
 	static bool isInitilized = false;
+	static CameraPtr camera;
 	static std::vector<MeshWrapper<Vertex> > meshData;
 	static std::shared_ptr<SceneShader> sceneShader;
 	static Transform sceneTrans;
-	static Transform cameraTrans;
 	static TransformController transCtrl;
 
 	if (!isInitilized)
     {
 		isInitilized = true;
 
-		auto camera = CameraPtr(new Camera());
+		camera = CameraPtr(new Camera());
 		camera->SetPerspective(60.f, 1.33333f, 0.3f, 4000.f);
-		cameraTrans.position = Vector3(800.f, 400.f, 0.f);
-		cameraTrans.rotation = Quaternion(Vector3(0.f, -90.f, 0.f));
+		camera->transform.position = Vector3(800.f, 400.f, 0.f);
+		camera->transform.rotation = Quaternion(Vector3(0.f, -90.f, 0.f));
 		//camera->SetOrthographic(-800.f, 800.f, -600.f, 600.f, 0.3f, 4000.f);
-		//cameraTrans.position = Vector3(0.f, 400.f, 0.f);
-		//cameraTrans.rotation = Quaternion(Vector3(0.f, -90.f, 0.f));
-		camera->SetLookAt(cameraTrans);
+		//camera->transform = Vector3(0.f, 400.f, 0.f);
+		//camera->transform = Quaternion(Vector3(0.f, -90.f, 0.f));
 		Rasterizer::camera = camera;
 
 		LightPtr light = LightPtr(new Light());
 		light->type = Light::LightType_Directional;
-		light->position = Vector3(0, 300, 0);
-		light->direction = Vector3(-1.f, -1.f, 1.f).Normalize();
+		light->transform.position = Vector3(0, 300, 0);
+		light->transform.rotation = Quaternion(Vector3(30.f, -45.f, 0.f));
 		light->range = 1000.f;
 		light->atten0 = 2.f;
 		light->atten1 = 2.f;
@@ -203,18 +202,16 @@ void MainLoop()
 			meshData.push_back(meshWapper);
 		}
 
-		Rasterizer::modelMatrix = sceneTrans.GetMatrix();
+		Rasterizer::modelMatrix = sceneTrans.localToWorldMatrix();
     }
 
 	static char title[32];
 	sprintf(title, "sponza - %f", app->GetDeltaTime());
 	app->SetTitle(title);
 
-	if (transCtrl.MouseRotate(cameraTrans)
-		|| transCtrl.KeyMove(cameraTrans))
-	{
-		Rasterizer::camera->SetLookAt(cameraTrans);
-	}
+	transCtrl.MouseRotate(camera->transform);
+	transCtrl.KeyMove(camera->transform);
+
 
 	Rasterizer::Clear(true, true, Color(1.f, 0.19f, 0.3f, 0.47f));
 

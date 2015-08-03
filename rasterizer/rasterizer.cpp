@@ -225,15 +225,15 @@ void Rasterizer::Submit(int startIndex/* = 0*/, int primitiveCount/* = 0*/)
 	int width = renderTarget->GetWidth();
 	int height = renderTarget->GetHeight();
 
-	shader->_MATRIX_V = *camera->GetViewMatrix();
-	shader->_MATRIX_P = *camera->GetProjectionMatrix();
+	shader->_MATRIX_V = camera->viewMatrix();
+	shader->_MATRIX_P = camera->projectionMatrix();
 	shader->_MATRIX_VP = shader->_MATRIX_P.Multiply(shader->_MATRIX_V);
 	shader->_Object2World = modelMatrix;
 	shader->_World2Object = modelMatrix.Inverse();
 	shader->_MATRIX_MV = shader->_MATRIX_V.Multiply(modelMatrix);
 	shader->_MATRIX_MVP = shader->_MATRIX_VP.Multiply(modelMatrix);
 
-	shader->_WorldSpaceCameraPos = camera->GetPosition();
+	shader->_WorldSpaceCameraPos = camera->transform.position;
 	shader->_ScreenParams = Vector4((float)width, (float)height, 1.f + 1.f / (float)width, 1.f + 1.f / (float)height);
 
 	InitShaderLightParams(shader, light);
@@ -422,14 +422,14 @@ bool Rasterizer::InitShaderLightParams(ShaderPtr shader, const LightPtr& light)
 	light->Initilize();
 	if (light->type == Light::LightType_Directional)
 	{
-		shader->_WorldSpaceLightPos = Vector4(light->direction.Normalize(), 0.f);
+		shader->_WorldSpaceLightPos = Vector4(light->transform.forward(), 0.f);
 	}
 	else
 	{
-		shader->_WorldSpaceLightPos = Vector4(light->position, 1.f);
+		shader->_WorldSpaceLightPos = Vector4(light->transform.position, 1.f);
 		if (light->type == Light::LightType_Spot)
 		{
-			shader->_SpotLightDir = Vector3(light->direction.Normalize());
+			shader->_SpotLightDir = Vector3(light->transform.forward());
 			shader->_SpotLightParams = Vector3(light->cosHalfPhi, light->cosHalfTheta, light->falloff);
 		}
 		else

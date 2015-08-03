@@ -122,15 +122,14 @@ void MainLoop()
 
 		auto camera = CameraPtr(new Camera());
 		camera->SetPerspective(60.f, 1.33333f, 0.3f, 2000.f);
-		cameraTrans.position = Vector3(0.f, 0.f, -2.f);
-		camera->SetLookAt(cameraTrans);
+		camera->transform.position = Vector3(0.f, 0.f, -2.f);
 		Rasterizer::camera = camera;
 
 		lightRed = LightPtr(new Light());
 		lightRed->type = Light::LightType_Point;
 		lightRed->color = Color::red;
-		lightRed->position = Vector3(-0.5f, 1.f, 0.f);
-		lightRed->direction = Vector3(0.f, -1.f, 0.f).Normalize();
+		lightRed->transform.position = Vector3(-0.5f, 1.f, 0.f);
+		lightRed->transform.rotation = Quaternion(Vector3(90.f,0.f, 0.f));
 		lightRed->intensity = 2.f;
 		lightRed->range = 5.f;
 		lightRed->atten0 = 0.1f;
@@ -143,8 +142,8 @@ void MainLoop()
 		lightBlue = LightPtr(new Light());
 		lightBlue->type = Light::LightType_Point;
 		lightBlue->color = Color::blue;
-		lightBlue->position = Vector3(0.5f, 1.f, 0.f);
-		lightBlue->direction = Vector3(0.f, -1.f, 0.f).Normalize();
+		lightRed->transform.position = Vector3(0.5f, 1.f, 0.f);
+		lightRed->transform.rotation = Quaternion(Vector3(90.f, 0.f, 0.f));
 		lightBlue->intensity = 3.f;
 		lightBlue->range = 5.f;
 		lightBlue->atten0 = 0.1f;
@@ -185,7 +184,7 @@ void MainLoop()
 	Rasterizer::Clear(true, true, Color(1.f, 0.19f, 0.3f, 0.47f));
 
 	objectCtrl.MouseRotate(objectTrans, false);
-	Rasterizer::modelMatrix = objectTrans.GetMatrix();
+	Rasterizer::modelMatrix = objectTrans.localToWorldMatrix();
 	Rasterizer::renderData.AssignVertexBuffer(meshW.vertices);
 	Rasterizer::renderData.AssignIndexBuffer(meshW.indices);
 

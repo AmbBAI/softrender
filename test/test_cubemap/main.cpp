@@ -107,8 +107,8 @@ struct ObjShader : Shader<Vertex, VaryingData>
 void MainLoop()
 {
 	static bool isInitilized = false;
-	static Transform cameraTrans;
 	static TransformController transCtrl;
+	static CameraPtr camera;
 	static MeshWrapper<Vertex> meshW;
 	static std::shared_ptr<ObjShader> objShader;
 	static std::shared_ptr<SkyShader> skyShader;
@@ -117,10 +117,9 @@ void MainLoop()
     {
 		isInitilized = true;
 
-		auto camera = CameraPtr(new Camera());
+		camera = CameraPtr(new Camera());
 		camera->SetPerspective(60.f, 1.33333f, 0.3f, 2000.f);
-		cameraTrans.position = Vector3(0.f, 0.f, -2.f);
-		camera->SetLookAt(cameraTrans);
+		camera->transform.position = Vector3(0.f, 0.f, -2.f);
 		Rasterizer::camera = camera;
 
 		MaterialPtr material = MaterialPtr(new Material());
@@ -156,11 +155,8 @@ void MainLoop()
 		for (auto idx : mesh->indices) meshW.indices.emplace_back(idx);
     }
 
-	if (transCtrl.MouseRotate(cameraTrans)
-		|| transCtrl.KeyMove(cameraTrans, 1.f))
-	{
-		Rasterizer::camera->SetLookAt(cameraTrans);
-	}
+	transCtrl.MouseRotate(camera->transform);
+	transCtrl.KeyMove(camera->transform, 1.f);
 
 	Rasterizer::Clear(true, true, Color(1.f, 0.19f, 0.3f, 0.47f));
 
@@ -168,14 +164,14 @@ void MainLoop()
 	Rasterizer::renderData.AssignIndexBuffer(meshW.indices);
 	
 	Transform objTrans;
-	Rasterizer::modelMatrix = objTrans.GetMatrix();
+	Rasterizer::modelMatrix = objTrans.localToWorldMatrix();
 	Rasterizer::SetShader(objShader);
 	Rasterizer::renderState.cull = RenderState::CullType_Back;
 	Rasterizer::Submit();
 
 	Transform skyTrans;
 	skyTrans.scale = Vector3::one * 1000.f;
-	Rasterizer::modelMatrix = skyTrans.GetMatrix();
+	Rasterizer::modelMatrix = skyTrans.localToWorldMatrix();
 	Rasterizer::SetShader(skyShader);
 	Rasterizer::renderState.cull = RenderState::CullType_Front;
 	Rasterizer::Submit();

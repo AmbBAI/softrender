@@ -21,31 +21,24 @@ public:
 		ProjectionMode_Orthographic
 	};
 
-	void SetLookAt(const Vector3& eye, const Vector3& target, const Vector3& up);
-	void SetLookAt(const Transform& trans);
-	const Matrix4x4* GetViewMatrix() const;
+	Transform transform;
+
+	Matrix4x4 viewMatrix() const;
 
 	bool SetPerspective(float fov, float aspect, float zNear, float zFar);
 	bool SetOrthographic(float left, float right, float bottom, float top, float zNear, float zFar);
-	const Matrix4x4* GetProjectionMatrix() const;
-    
-    
-    const Vector3 GetPosition() const { return position; }
-    const Vector3 GetDirection() const { return direction; }
+	Matrix4x4 projectionMatrix() const;
+        
 	float GetLinearDepth(float projectionZ) const { return zNear / (projectionZ * (zNear - zFar) + zFar); }
 
 	ProjectionMode projectionMode() { return projectionMode_; }
 
 protected:
 	ProjectionMode projectionMode_;
-	Matrix4x4 viewMatrix;
-	Matrix4x4 projectionMatrix;
+	Matrix4x4 projectionMatrix_;
 
 	float zNear = 0;
 	float zFar = 0;
-    
-    Vector3 position;
-    Vector3 direction;
 };
 
 }

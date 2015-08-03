@@ -24,8 +24,8 @@ void Quaternion::SetEulerAngle(float _x, float _y, float _z)
 	float sin_z_2 = Mathf::Sin(rad_z_2);
 
 	x = sin_x_2 * cos_y_2 * cos_z_2 + cos_x_2 * sin_y_2 * sin_z_2;
-	y = cos_x_2 * sin_y_2 * cos_z_2 + sin_x_2 * cos_y_2 * sin_z_2;
-	z = cos_x_2 * cos_y_2 * sin_z_2 + sin_x_2 * sin_y_2 * cos_z_2;
+	y = cos_x_2 * sin_y_2 * cos_z_2 - sin_x_2 * cos_y_2 * sin_z_2;
+	z = cos_x_2 * cos_y_2 * sin_z_2 - sin_x_2 * sin_y_2 * cos_z_2;
 	w = cos_x_2 * cos_y_2 * cos_z_2 + sin_x_2 * sin_y_2 * sin_z_2;
 }
 

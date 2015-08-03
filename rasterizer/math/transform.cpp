@@ -2,9 +2,14 @@
 
 using namespace rasterizer;
 
-const Matrix4x4 Transform::GetMatrix() const
+Matrix4x4 Transform::localToWorldMatrix() const
 {
     return Matrix4x4::TRS(position, Quaternion(rotation), scale);
+}
+
+Matrix4x4 Transform::worldToLocalMatrix() const
+{
+	return localToWorldMatrix().Inverse();
 }
 
 void Transform::GetAxis(Vector3& xAxis, Vector3& yAxis, Vector3& zAxis) const

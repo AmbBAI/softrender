@@ -23,8 +23,7 @@ struct Light
 	Color color = Color(1.f, 1.f, 1.f, 1.f);
     float intensity = 0.5f;
     
-    Vector3 position = Vector3(0.f, 0.f, 0.f);
-    Vector3 direction = Vector3(0.f, -1.f, 0.f);
+	Transform transform;
     float range = 10.f;
     float atten0 = 0.f;
     float atten1 = 0.f;
@@ -38,7 +37,6 @@ struct Light
     
     void Initilize()
     {
-		direction = direction.Normalize();
         if (type == LightType_Spot)
         {
             cosHalfPhi = Mathf::Cos(phi * Mathf::deg2rad / 2.f);

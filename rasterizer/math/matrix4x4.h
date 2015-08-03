@@ -31,7 +31,7 @@ struct Matrix4x4
 	const Vector3 MultiplyPoint3x4(const Vector3& p) const;
 	const Vector3 MultiplyVector(const Vector3& p) const;
 
-	static const Matrix4x4 TRS(const Vector3& p, const Quaternion& q, const Vector3& s);
+	static Matrix4x4 TRS(const Vector3& p, const Quaternion& q, const Vector3& s);
 	static const Matrix4x4 TBN(const Vector3& tangent, const Vector3& bitangent, const Vector3& normal);
 	static const Matrix4x4 Orthographic(float left, float right, float bottom, float top, float zNear, float zFar);
 	static const Matrix4x4 PerspectiveFov(float fov, float aspect, float zNear, float zFar);
