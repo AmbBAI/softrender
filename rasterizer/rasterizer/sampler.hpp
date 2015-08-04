@@ -98,6 +98,33 @@ struct LinearSampler
 	}
 };
 
+struct ProjectionSampler
+{
+	template<typename XAddresserType, typename YAddresserType>
+	static Vector4 Sample(const BitmapPtr bitmap, float u, float v)
+	{
+		int width = bitmap->GetWidth();
+		int height = bitmap->GetHeight();
+
+		float fx = XAddresserType::CalcAddress(u, width);
+		int x0 = Mathf::FloorToInt(fx);
+		float fy = YAddresserType::CalcAddress(v, height);
+		int y0 = Mathf::FloorToInt(fy);
+		float xFrac = fx - x0;
+		float yFrac = fy - y0;
+		x0 = XAddresserType::FixAddress(x0, width);
+		y0 = YAddresserType::FixAddress(y0, height);
+		int x1 = XAddresserType::FixAddress(x0 + 1, width);
+		int y1 = YAddresserType::FixAddress(y0 + 1, height);
+
+		float a = bitmap->GetAlpha(x0, y0);
+		float b = bitmap->GetAlpha(x1, y0);
+		float c = bitmap->GetAlpha(x0, y1);
+		float d = bitmap->GetAlpha(x1, y1);
+		return Vector4(a, b, c, d);
+	}
+};
+
 }
 
 #endif //! _BASE_TEXTURE_SAMPLER_HPP_

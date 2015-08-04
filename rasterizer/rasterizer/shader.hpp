@@ -78,6 +78,12 @@ struct IShader
 		return tex->Sample(uv, ddx, ddy);
 	}
 
+	static Vector4 Tex2DProj(const Texture2DPtr& tex, const Vector2& uv, float bias)
+	{
+		if (tex == nullptr) return Vector4(1.,1.,1.,1.);
+		return tex->SampleProj(uv, bias);
+	}
+
 	static Color TexCUBE(CubemapPtr& tex, const Vector3& s)
 	{
 		if (tex == nullptr) return Color::white;

@@ -10,7 +10,7 @@ void MainLoop();
 int main(int argc, char *argv[])
 {
 	app = Application::GetInstance();
-	app->CreateApplication("plane", 800, 600);
+	app->CreateApplication("shadow", 800, 600);
 	Rasterizer::Initialize(800, 600);
 	app->SetRunLoop(MainLoop);
 	app->RunLoop();
@@ -21,6 +21,19 @@ struct Vertex
 {
 	Vector3 position;
 	Vector3 normal;
+};
+
+struct SMVaryingData
+{
+	Vector4 position;
+	static std::vector<VaryingDataElement> GetDecl()
+	{
+		static std::vector<VaryingDataElement> decl = {
+			{ 0, VaryingDataDeclUsage_SVPOSITION, VaryingDataDeclFormat_Vector4 }
+		};
+
+		return decl;
+	}
 };
 
 struct VaryingData
@@ -41,10 +54,21 @@ struct VaryingData
 	}
 };
 
+struct ShadowMapPrePass : Shader<Vertex, SMVaryingData>
+{
+	SMVaryingData vert(const Vertex& input) override
+	{
+		SMVaryingData output;
+		output.position = _MATRIX_MVP.MultiplyPoint(input.position);
+		return output;
+	}
+};
+
 struct ObjShader : Shader<Vertex, VaryingData>
 {
 	Color ambientColor = Color(0.f, 0.1f, 0.1f, 0.1f);
 	Texture2DPtr shadowMap = nullptr;
+	Matrix4x4 lightVP;
 
 	VaryingData vert(const Vertex& input) override
 	{
@@ -59,11 +83,22 @@ struct ObjShader : Shader<Vertex, VaryingData>
 	{
 		Color color = Color::white;
 
+		Vector4 proj = lightVP.MultiplyPoint(input.worldPos);
+		Vector2 smuv = Vector2((proj.x / proj.w + 1.f) / 2.f, (proj.y / proj.w + 1.f) / 2.f);
+		float ld = proj.z / proj.w;
+		Vector4 smd = Tex2DProj(shadowMap, smuv, 0.01f);
+
+		float shadowDepth = 0.f;
+		if (smd.x < ld) shadowDepth += 0.25f;
+		if (smd.y < ld) shadowDepth += 0.25f;
+		if (smd.z < ld) shadowDepth += 0.25f;
+		if (smd.w < ld) shadowDepth += 0.25f;
+
 		Vector3 lightDir;
 		float lightAtten;
 		InitLightArgs(input.worldPos, lightDir, lightAtten);
 
-		color.rgb *= Mathf::Max(0.f, lightDir.Dot(input.normal)) * lightAtten;
+		color.rgb *= Mathf::Max(0.f, lightDir.Dot(input.normal)) * lightAtten * (1.f - shadowDepth);
 		return color + ambientColor;
 	}
 };
@@ -76,7 +111,8 @@ void MainLoop()
 	static TransformController objectCtrl;
 	static MeshWrapper<Vertex> objectMesh;
 	static MeshWrapper<Vertex> planeMesh;
-	static std::shared_ptr<ObjShader> objectShader;
+	static std::shared_ptr<ShadowMapPrePass> smPrePass = std::make_shared<ShadowMapPrePass>();
+	static std::shared_ptr<ObjShader> objectShader = std::make_shared<ObjShader>();
 	static LightPtr light;
 	static CameraPtr camera;
 	static RenderTexturePtr shadowMap;
@@ -97,9 +133,7 @@ void MainLoop()
 		light->Initilize();
 		Rasterizer::light = light;
 
-		shadowMap = std::make_shared<RenderTexture>(512, 512);
-
-		objectShader = std::make_shared<ObjShader>();
+		shadowMap = std::make_shared<RenderTexture>(2048.f, 2048.f);
 
 		planeTrans.position = Vector3(0.f, -1.f, 0.f);
 		planeTrans.rotation = Quaternion(Vector3(90.f, 0.f, 0.f));
@@ -125,15 +159,23 @@ void MainLoop()
 		for (auto idx : mesh->indices) objectMesh.indices.emplace_back((uint16_t)idx);
     }
 
+	objectCtrl.MouseRotate(objectTrans);
+
 	Rasterizer::SetRenderTarget(shadowMap);
 	Rasterizer::Clear(true, false, Color::black);
 
-	Rasterizer::viewMatrix = light->transform.worldToLocalMatrix();
-	Rasterizer::projectionMatrix = light->CalcShadowMapMatrix(camera);
-	Rasterizer::renderState.cull = RenderState::CullType_Off;
-	Rasterizer::renderState.renderType = RenderState::RenderType_ShadowPrePass;
+	Matrix4x4 cameraVM = camera->viewMatrix();
+	Matrix4x4 cameraPM = camera->projectionMatrix();
 
-	Rasterizer::SetShader(objectShader);
+	Matrix4x4 cameraVPIM = (cameraPM * cameraVM).Inverse();
+	CameraPtr lightCamera = light->BuildShadowMapVirtualCamera(cameraVPIM, Vector3::zero, Vector3::zero);
+	Matrix4x4 lightVM = lightCamera->viewMatrix();
+	Matrix4x4 lightPM = lightCamera->projectionMatrix();
+
+	Rasterizer::camera = lightCamera;
+	Rasterizer::SetShader(smPrePass);
+	Rasterizer::renderState.cull = RenderState::CullType_Off;
+	//Rasterizer::renderState.renderType = RenderState::RenderType_ShadowPrePass;
 	Rasterizer::modelMatrix = objectTrans.localToWorldMatrix();
 	Rasterizer::renderData.AssignVertexBuffer(objectMesh.vertices);
 	Rasterizer::renderData.AssignIndexBuffer(objectMesh.indices);
@@ -141,26 +183,25 @@ void MainLoop()
 
 	//shadowMap->GetDepthBuffer()->SaveToFile("depth.tiff");
 
-	//Rasterizer::SetRenderTarget(nullptr);
-	//Rasterizer::Clear(true, true, Color(1.f, 0.19f, 0.3f, 0.47f));
+	Rasterizer::SetRenderTarget(nullptr);
+	Rasterizer::Clear(true, true, Color(1.f, 0.19f, 0.3f, 0.47f));
 
-	//Rasterizer::viewMatrix = camera->viewMatrix();
-	//Rasterizer::projectionMatrix = camera->projectionMatrix();
-
-	//objectShader->shadowMap = Texture2D::CreateWithBitmap(shadowMap->GetDepthBuffer());
-	//Rasterizer::SetShader(objectShader);
-	//Rasterizer::renderState.cull = RenderState::CullType_Back;
+	Rasterizer::camera = camera;
+	objectShader->shadowMap = Texture2D::CreateWithBitmap(shadowMap->GetDepthBuffer());
+	objectShader->lightVP = lightPM * lightVM;
+	Rasterizer::SetShader(objectShader);
+	Rasterizer::renderState.cull = RenderState::CullType_Back;
 	//Rasterizer::renderState.renderType = RenderState::RenderType_Stardand;
 
-	//Rasterizer::modelMatrix = planeTrans.localToWorldMatrix();
-	//Rasterizer::renderData.AssignVertexBuffer(planeMesh.vertices);
-	//Rasterizer::renderData.AssignIndexBuffer(planeMesh.indices);
-	//Rasterizer::Submit();
+	Rasterizer::modelMatrix = planeTrans.localToWorldMatrix();
+	Rasterizer::renderData.AssignVertexBuffer(planeMesh.vertices);
+	Rasterizer::renderData.AssignIndexBuffer(planeMesh.indices);
+	Rasterizer::Submit();
 
-	//Rasterizer::modelMatrix = objectTrans.localToWorldMatrix();
-	//Rasterizer::renderData.AssignVertexBuffer(objectMesh.vertices);
-	//Rasterizer::renderData.AssignIndexBuffer(objectMesh.indices);
-	//Rasterizer::Submit();
+	Rasterizer::modelMatrix = objectTrans.localToWorldMatrix();
+	Rasterizer::renderData.AssignVertexBuffer(objectMesh.vertices);
+	Rasterizer::renderData.AssignIndexBuffer(objectMesh.indices);
+	Rasterizer::Submit();
 
     Rasterizer::Present();
 }

@@ -44,12 +44,9 @@ struct Light
         }
     }
 
-	Matrix4x4 CalcShadowMapMatrix(const CameraPtr& camera)
+	CameraPtr BuildShadowMapVirtualCamera(const Matrix4x4& cameraVPIM, const Vector3& sceneBoxMin, const Vector3& sceneBoxMax)
 	{
-		Matrix4x4 viewMatrix = camera->viewMatrix();
-		Matrix4x4 projectionMatrix = camera->projectionMatrix();
-		Matrix4x4 VPIM = projectionMatrix.Multiply(viewMatrix).Inverse();
-		Matrix4x4 LVM = transform.worldToLocalMatrix();
+		Matrix4x4 lightVM = transform.worldToLocalMatrix();
 
 		static Vector3 frustumCornerProjection[8] =
 		{
@@ -59,22 +56,25 @@ struct Light
 			Vector3(1.f, 1.f, 0.f), Vector3(1.f, 1.f, 1.f)
 		};
 
-		Vector3 minPos, maxPos;
+		Vector3 frustumMin, frustumMax;
 		for (int i = 0; i < 8; ++i)
 		{
-			Vector4 fcWorldPos = VPIM.MultiplyPoint(frustumCornerProjection[i]);
-			Vector3 fcLightPos = LVM.MultiplyPoint3x4(fcWorldPos.xyz / fcWorldPos.w);
+			Vector4 fcWorldPos = cameraVPIM.MultiplyPoint(frustumCornerProjection[i]);
+			Vector3 fcLightPos = lightVM.MultiplyPoint3x4(fcWorldPos.xyz / fcWorldPos.w);
 			//printf("wp %f %f %f %f\n", fcWorldPos.x, fcWorldPos.y, fcWorldPos.z, fcWorldPos.w);
 			//printf("lp %f %f %f\n", fcLightPos.x, fcLightPos.y, fcLightPos.z);
-			if (i == 0) minPos = maxPos = fcLightPos;
+			if (i == 0) frustumMin = frustumMax = fcLightPos;
 			else
 			{
-				minPos = Vector3::Min(minPos, fcLightPos);
-				maxPos = Vector3::Max(maxPos, fcLightPos);
+				frustumMin = Vector3::Min(frustumMin, fcLightPos);
+				frustumMax = Vector3::Max(frustumMax, fcLightPos);
 			}
 		}
 
-		return Matrix4x4::Orthographic(minPos.x, maxPos.x, minPos.y, maxPos.y, minPos.z, maxPos.z);
+		CameraPtr out = std::make_shared<Camera>();
+		out->transform = transform;
+		out->SetOrthographic(frustumMin.x, frustumMax.x, frustumMin.y, frustumMax.y, frustumMin.z, frustumMax.z);
+		return out;
 	}
 
 #if _NOCRASH_ && defined(_MSC_VER)

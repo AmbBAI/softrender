@@ -40,7 +40,7 @@ Texture2D::SampleFunc Texture2D::sampleFunc[2][AddressModeCount][AddressModeCoun
 			LinearSampler::Sample < ClampAddresser, MirrorAddresser >,
 			LinearSampler::Sample < ClampAddresser, ClampAddresser >
 		},
-	},
+	}
 };
 
 
@@ -246,6 +246,13 @@ float Texture2D::CalcLOD(const Vector2& ddx, const Vector2& ddy) const
 	float h2 = (float)height * height;
 	float delta = Mathf::Max(ddx.Dot(ddx) * w2, ddy.Dot(ddy) * h2);
 	return Mathf::Max(0.f, 0.5f * Mathf::Log2(delta));
+}
+
+const Vector4 Texture2D::SampleProj(const Vector2& uv, float bias/* = 0.f*/) const
+{
+	static ProjectionSampler projectionSampler;
+	Vector4 depth2x2 = projectionSampler.Sample<ClampAddresser, ClampAddresser>(mainTex, uv.x, uv.y);
+	return depth2x2 + Vector4(bias, bias, bias, bias);
 }
 
 }
