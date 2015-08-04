@@ -36,6 +36,16 @@ struct SMVaryingData
 	}
 };
 
+struct ShadowMapPrePass : Shader<Vertex, SMVaryingData>
+{
+	SMVaryingData vert(const Vertex& input) override
+	{
+		SMVaryingData output;
+		output.position = _MATRIX_MVP.MultiplyPoint(input.position);
+		return output;
+	}
+};
+
 struct VaryingData
 {
 	Vector4 position;
@@ -51,16 +61,6 @@ struct VaryingData
 		};
 
 		return decl;
-	}
-};
-
-struct ShadowMapPrePass : Shader<Vertex, SMVaryingData>
-{
-	SMVaryingData vert(const Vertex& input) override
-	{
-		SMVaryingData output;
-		output.position = _MATRIX_MVP.MultiplyPoint(input.position);
-		return output;
 	}
 };
 
@@ -106,20 +106,20 @@ void MainLoop()
 	static MeshWrapper<Vertex> planeMesh;
 	static std::shared_ptr<ShadowMapPrePass> smPrePass = std::make_shared<ShadowMapPrePass>();
 	static std::shared_ptr<ObjShader> objectShader = std::make_shared<ObjShader>();
-	static LightPtr light;
-	static CameraPtr camera;
-	static RenderTexturePtr shadowMap = std::make_shared<RenderTexture>(1024.f, 1024.f);
+	static LightPtr light = std::make_shared<Light>();
+	static CameraPtr camera = std::make_shared<Camera>();
+	static RenderTexturePtr shadowMap = std::make_shared<RenderTexture>(1024, 1024);
+	static std::vector<Vector3> sceneWorldBox;
+	static Matrix4x4 objectM;
 
 	if (!isInitilized)
     {
 		isInitilized = true;
 
-		camera = CameraPtr(new Camera());
 		camera->SetPerspective(60.f, 1.33333f, 0.3f, 20.f);
 		camera->transform.position = Vector3(0.f, 0.f, -2.f);
 		Rasterizer::camera = camera;
 
-		light = LightPtr(new Light());
 		light->type = Light::LightType_Directional;
 		light->transform.position = Vector3(0, 0, 0);
 		light->transform.rotation = Quaternion(Vector3(45.f, -45.f, 0.f));
@@ -148,19 +148,30 @@ void MainLoop()
 		for (int i = 0; i < vertexCount; ++i)
 			objectMesh.vertices.emplace_back(Vertex{ mesh->vertices[i], mesh->normals[i] });
 		for (auto idx : mesh->indices) objectMesh.indices.emplace_back((uint16_t)idx);
-    }
 
-	objectCtrl.MouseRotate(objectTrans);
+		objectM = objectTrans.localToWorldMatrix();
+		sceneWorldBox.emplace_back(-10.f, -10.f, 0.f);
+		sceneWorldBox.emplace_back(-10.f, -10.f, 20.f);
+		sceneWorldBox.emplace_back(-10.f, 10.f, 0.f);
+		sceneWorldBox.emplace_back(-10.f, 10.f, 20.f);
+		sceneWorldBox.emplace_back(10.f, -10.f, 0.f);
+		sceneWorldBox.emplace_back(10.f, -10.f, 20.f);
+		sceneWorldBox.emplace_back(10.f, 10.f, 0.f);
+		sceneWorldBox.emplace_back(10.f, 10.f, 20.f);
+	}
 
+	if (objectCtrl.MouseRotate(objectTrans))
+		objectM = objectTrans.localToWorldMatrix();
+	
 	//Render ShadowMap
 	Rasterizer::SetRenderTarget(shadowMap);
 	Rasterizer::Clear(true, false, Color::black);
 
 	Matrix4x4 cameraVM = camera->viewMatrix();
 	Matrix4x4 cameraPM = camera->projectionMatrix();
-
 	Matrix4x4 cameraVPIM = (cameraPM * cameraVM).Inverse();
-	CameraPtr lightCamera = light->BuildShadowMapVirtualCamera(cameraVPIM, Vector3::zero, Vector3::zero);
+
+	CameraPtr lightCamera = light->BuildShadowMapVirtualCamera(cameraVPIM, sceneWorldBox);
 	Matrix4x4 lightVM = lightCamera->viewMatrix();
 	Matrix4x4 lightPM = lightCamera->projectionMatrix();
 
@@ -168,7 +179,7 @@ void MainLoop()
 	Rasterizer::SetShader(smPrePass);
 	Rasterizer::renderState.cull = RenderState::CullType_Off;
 	//Rasterizer::renderState.renderType = RenderState::RenderType_ShadowPrePass;
-	Rasterizer::modelMatrix = objectTrans.localToWorldMatrix();
+	Rasterizer::modelMatrix = objectM;
 	Rasterizer::renderData.AssignVertexBuffer(objectMesh.vertices);
 	Rasterizer::renderData.AssignIndexBuffer(objectMesh.indices);
 	Rasterizer::Submit();

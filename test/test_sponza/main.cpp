@@ -40,6 +40,29 @@ struct Vertex
 	Vector4 tangent;
 };
 
+struct SMVaryingData
+{
+	Vector4 position;
+	static std::vector<VaryingDataElement> GetDecl()
+	{
+		static std::vector<VaryingDataElement> decl = {
+			{ 0, VaryingDataDeclUsage_SVPOSITION, VaryingDataDeclFormat_Vector4 }
+		};
+
+		return decl;
+	}
+};
+
+struct ShadowMapPrePass : Shader<Vertex, SMVaryingData>
+{
+	SMVaryingData vert(const Vertex& input) override
+	{
+		SMVaryingData output;
+		output.position = _MATRIX_MVP.MultiplyPoint(input.position);
+		return output;
+	}
+};
+
 struct VaryingData
 {
 	Vector4 position;
@@ -72,6 +95,9 @@ struct SceneShader : Shader<Vertex, VaryingData>
 	float shininess = 10.f;
 	Texture2DPtr alphaMaskTex;
 	Vector2 ddx, ddy;
+
+	Texture2DPtr shadowMap = nullptr;
+	Matrix4x4 lightVPM;
 
 	VaryingData vert(const Vertex& input) override
 	{
@@ -109,13 +135,18 @@ struct SceneShader : Shader<Vertex, VaryingData>
 			normal = UnpackNormal(Tex2D(normalTex, input.texcoord, ddx, ddy), tbn);
 		}
 
+		Vector4 proj = lightVPM.MultiplyPoint(input.worldPos);
+		Vector2 smuv = Vector2((proj.x / proj.w + 1.f) / 2.f, (proj.y / proj.w + 1.f) / 2.f);
+		float shadow = Tex2DProjInterpolated(shadowMap, smuv, proj.z / proj.w, 0.002f);
+
 		Vector3 lightDir;
 		float lightAtten;
 		InitLightArgs(input.worldPos, lightDir, lightAtten);
+		lightAtten *= (1.f - shadow);
 
 		LightInput lightInput;
 		lightInput.ambient = fragColor;
-		lightInput.ambient.rgb *= 0.2f;
+		lightInput.ambient.rgb *= 0.16f;
 		lightInput.diffuse = fragColor;
 		//lightInput.diffuse.rgb *= 0.9f;
 
@@ -140,17 +171,20 @@ struct SceneShader : Shader<Vertex, VaryingData>
 void MainLoop()
 {
 	static bool isInitilized = false;
-	static CameraPtr camera;
 	static std::vector<MeshWrapper<Vertex> > meshData;
-	static std::shared_ptr<SceneShader> sceneShader;
+	static std::shared_ptr<SceneShader> sceneShader = std::make_shared<SceneShader>();
+	static std::shared_ptr<ShadowMapPrePass> smPrePass = std::make_shared<ShadowMapPrePass>();
 	static Transform sceneTrans;
 	static TransformController transCtrl;
+	static CameraPtr camera = std::make_shared<Camera>();
+	static LightPtr light = std::make_shared<Light>();
+	static std::vector<Vector3> sceneWorldBox;
+	static RenderTexturePtr shadowMap = std::make_shared<RenderTexture>(1024, 1024);
 
 	if (!isInitilized)
     {
 		isInitilized = true;
 
-		camera = CameraPtr(new Camera());
 		camera->SetPerspective(60.f, 1.33333f, 0.3f, 4000.f);
 		camera->transform.position = Vector3(800.f, 400.f, 0.f);
 		camera->transform.rotation = Quaternion(Vector3(0.f, -90.f, 0.f));
@@ -159,10 +193,9 @@ void MainLoop()
 		//camera->transform = Quaternion(Vector3(0.f, -90.f, 0.f));
 		Rasterizer::camera = camera;
 
-		LightPtr light = LightPtr(new Light());
 		light->type = Light::LightType_Directional;
 		light->transform.position = Vector3(0, 300, 0);
-		light->transform.rotation = Quaternion(Vector3(30.f, -45.f, 0.f));
+		light->transform.rotation = Quaternion(Vector3(60.f, -45.f, 0.f));
 		light->range = 1000.f;
 		light->atten0 = 2.f;
 		light->atten1 = 2.f;
@@ -170,7 +203,6 @@ void MainLoop()
 		light->Initilize();
 		Rasterizer::light = light;
 
-		sceneShader = std::make_shared<SceneShader>();
 		Rasterizer::SetShader(sceneShader);
 
 		std::vector<MeshPtr> meshes;
@@ -203,6 +235,14 @@ void MainLoop()
 		}
 
 		Rasterizer::modelMatrix = sceneTrans.localToWorldMatrix();
+		sceneWorldBox.emplace_back(-1000.f, 0.f, -2000.f);
+		sceneWorldBox.emplace_back(-1000.f, 0.f, 2000.f);
+		sceneWorldBox.emplace_back(-1000.f, 1000.f, -2000.f);
+		sceneWorldBox.emplace_back(-1000.f, 1000.f, 2000.f);
+		sceneWorldBox.emplace_back(1000.f, 0.f, -2000.f);
+		sceneWorldBox.emplace_back(1000.f, 0.f, 2000.f);
+		sceneWorldBox.emplace_back(1000.f, 1000.f, -2000.f);
+		sceneWorldBox.emplace_back(1000.f, 1000.f, 2000.f);
     }
 
 	static char title[32];
@@ -212,8 +252,47 @@ void MainLoop()
 	transCtrl.MouseRotate(camera->transform);
 	transCtrl.KeyMove(camera->transform);
 
+	Matrix4x4 cameraVM = camera->viewMatrix();
+	Matrix4x4 cameraPM = camera->projectionMatrix();
 
+	Rasterizer::SetRenderTarget(shadowMap);
+	Rasterizer::Clear(true, false, Color::black);
+
+	Matrix4x4 cameraVPIM = (cameraPM * cameraVM).Inverse();
+	CameraPtr virtualCamera = light->BuildShadowMapVirtualCamera(cameraVPIM, sceneWorldBox);
+	Matrix4x4 lightVM = virtualCamera->viewMatrix();
+	Matrix4x4 lightPM = virtualCamera->projectionMatrix();
+
+	Rasterizer::camera = virtualCamera;
+	
+	Rasterizer::SetShader(smPrePass);
+	Rasterizer::renderState.cull = RenderState::CullType_Off;
+
+	for (auto& meshWapper : meshData)
+	{
+		Rasterizer::renderData.AssignVertexBuffer(meshWapper.vertices);
+		Rasterizer::renderData.AssignIndexBuffer(meshWapper.indices);
+
+		for (auto& materialTuple : meshWapper.materials)
+		{
+			MaterialPtr material = std::get<0>(materialTuple);
+			int startIndex = std::get<1>(materialTuple);
+			int primitiveCount = std::get<2>(materialTuple);
+
+			Rasterizer::Submit(startIndex, primitiveCount);
+		}
+	}
+
+
+	Rasterizer::SetRenderTarget(nullptr);
 	Rasterizer::Clear(true, true, Color(1.f, 0.19f, 0.3f, 0.47f));
+
+	Rasterizer::camera = camera;
+	Rasterizer::SetShader(sceneShader);
+	BitmapPtr bitmap = shadowMap->GetDepthBuffer();
+	sceneShader->shadowMap = Texture2D::CreateWithBitmap(bitmap);
+	sceneShader->lightVPM = lightPM * lightVM;
+	Rasterizer::renderState.cull = RenderState::CullType_Back;
 
 	for (auto& meshWapper : meshData)
 	{

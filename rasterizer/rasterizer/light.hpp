@@ -44,9 +44,21 @@ struct Light
         }
     }
 
-	CameraPtr BuildShadowMapVirtualCamera(const Matrix4x4& cameraVPIM, const Vector3& sceneBoxMin, const Vector3& sceneBoxMax)
+	CameraPtr BuildShadowMapVirtualCamera(const Matrix4x4& cameraVPIM, const std::vector<Vector3>& vertexWorldPos)
 	{
 		Matrix4x4 lightVM = transform.worldToLocalMatrix();
+
+		Vector3 sceneMin, sceneMax;
+		for (int i = 0; i < (int)vertexWorldPos.size(); ++i)
+		{
+			Vector3 lightSpacePos = lightVM.MultiplyPoint3x4(vertexWorldPos[i]);
+			if (i == 0) sceneMin = sceneMax = lightSpacePos;
+			else
+			{
+				sceneMin = Vector3::Min(sceneMin, lightSpacePos);
+				sceneMax = Vector3::Max(sceneMax, lightSpacePos);
+			}
+		}
 
 		static Vector3 frustumCornerProjection[8] =
 		{
@@ -68,11 +80,16 @@ struct Light
 				frustumMax = Vector3::Max(frustumMax, fcLightPos);
 			}
 		}
-		frustumMin.z = Mathf::Min(frustumMin.z, sceneBoxMin.z);
-		frustumMax.z = Mathf::Max(frustumMax.z, sceneBoxMax.z);
+
+		float zNear = sceneMin.z, zFar = sceneMax.z;
+		float left = Mathf::Max(frustumMin.x, sceneMin.x);
+		float right = Mathf::Min(frustumMax.x, sceneMax.x);
+		float bottom = Mathf::Max(frustumMin.y, sceneMin.y);
+		float top = Mathf::Min(frustumMax.y, sceneMax.y);
+
 		CameraPtr out = std::make_shared<Camera>();
 		out->transform = transform;
-		out->SetOrthographic(frustumMin.x, frustumMax.x, frustumMin.y, frustumMax.y, frustumMin.z, frustumMax.z);
+		out->SetOrthographic(left, right, bottom, top, zNear, zFar);
 		return out;
 	}
 
