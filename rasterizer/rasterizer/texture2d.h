@@ -34,12 +34,12 @@ public:
 	static void Initialize();
 	static void Finalize();
 
-	static Texture2DPtr CreateWithBitmap(BitmapPtr bitmap);
+	static Texture2DPtr CreateWithBitmap(BitmapPtr& bitmap);
     static Texture2DPtr LoadTexture(const char* file);
 	static std::map<std::string, Texture2DPtr> texturePool;
 
 protected:
-	typedef Color(*SampleFunc)(const BitmapPtr bitmap, float u, float v);
+	typedef Color(*SampleFunc)(const BitmapPtr& bitmap, float u, float v);
 	static SampleFunc sampleFunc[2][AddressModeCount][AddressModeCount];
 
 	Texture2D() = default;

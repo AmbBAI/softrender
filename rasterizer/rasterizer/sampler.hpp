@@ -56,7 +56,7 @@ struct MirrorAddresser
 struct PointSampler
 {
 	template<typename XAddresserType, typename YAddresserType>
-	static Color Sample(const BitmapPtr bitmap, float u, float v)
+	static Color Sample(const BitmapPtr& bitmap, float u, float v)
 	{
 		int width = bitmap->GetWidth();
 		int height = bitmap->GetHeight();
@@ -73,7 +73,7 @@ struct PointSampler
 struct LinearSampler
 {
 	template<typename XAddresserType, typename YAddresserType>
-	static Color Sample(const BitmapPtr bitmap, float u, float v)
+	static Color Sample(const BitmapPtr& bitmap, float u, float v)
 	{
 		int width = bitmap->GetWidth();
 		int height = bitmap->GetHeight();
@@ -101,7 +101,7 @@ struct LinearSampler
 struct ProjectionSampler
 {
 	template<typename XAddresserType, typename YAddresserType>
-	static float Sample(const BitmapPtr bitmap, float u, float v, float value, float bias)
+	static float Sample(const BitmapPtr& bitmap, float u, float v, float value, float bias)
 	{
 		int width = bitmap->GetWidth();
 		int height = bitmap->GetHeight();

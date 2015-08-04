@@ -55,7 +55,7 @@ void Texture2D::Finalize()
 	FreeImage_DeInitialise();
 }
 
-Texture2DPtr Texture2D::CreateWithBitmap(BitmapPtr bitmap)
+Texture2DPtr Texture2D::CreateWithBitmap(BitmapPtr& bitmap)
 {
 	if (bitmap == nullptr) return nullptr;
 	Texture2DPtr tex = Texture2DPtr(new Texture2D());
