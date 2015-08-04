@@ -151,7 +151,7 @@ const Color Texture2D::Sample(const Vector2& uv, float lod/* = 0.f*/) const
             
             const BitmapPtr bmp = GetBitmap(miplv);
             assert(bmp != nullptr);
-            return sampleFunc[0][xAddressMode][xAddressMode](bmp, uv.x, uv.y);
+            return sampleFunc[0][xAddressMode][xAddressMode](*bmp, uv.x, uv.y);
         }
 	case FilterMode_Bilinear:
         {
@@ -159,7 +159,7 @@ const Color Texture2D::Sample(const Vector2& uv, float lod/* = 0.f*/) const
             
 			const BitmapPtr bmp = GetBitmap(miplv);
 			assert(bmp != nullptr);
-            return sampleFunc[1][xAddressMode][xAddressMode](bmp, uv.x, uv.y);
+            return sampleFunc[1][xAddressMode][xAddressMode](*bmp, uv.x, uv.y);
         }
 	case FilterMode_Trilinear:
         {
@@ -169,11 +169,11 @@ const Color Texture2D::Sample(const Vector2& uv, float lod/* = 0.f*/) const
             
 			const BitmapPtr bmp1 = GetBitmap(miplv1);
             assert(bmp1 != nullptr);
-            Color color1 = sampleFunc[1][xAddressMode][xAddressMode](bmp1, uv.x, uv.y);
+            Color color1 = sampleFunc[1][xAddressMode][xAddressMode](*bmp1, uv.x, uv.y);
             
 			const BitmapPtr bmp2 = GetBitmap(miplv2);
             if (bmp2 == bmp1) return color1;
-            Color color2 = sampleFunc[1][xAddressMode][xAddressMode](bmp2, uv.x, uv.y);
+            Color color2 = sampleFunc[1][xAddressMode][xAddressMode](*bmp2, uv.x, uv.y);
             return Color::Lerp(color1, color2, frac);
         }
 	}
@@ -251,7 +251,7 @@ float Texture2D::CalcLOD(const Vector2& ddx, const Vector2& ddy) const
 float Texture2D::SampleProj(const Vector2& uv, float value, float bias/* =0.f*/) const
 {
 	static ProjectionSampler projectionSampler;
-	return projectionSampler.Sample<ClampAddresser, ClampAddresser>(mainTex, uv.x, uv.y, value, bias);
+	return projectionSampler.Sample<ClampAddresser, ClampAddresser>(*mainTex, uv.x, uv.y, value, bias);
 }
 
 }

@@ -178,7 +178,8 @@ void MainLoop()
 	Rasterizer::Clear(true, true, Color(1.f, 0.19f, 0.3f, 0.47f));
 
 	Rasterizer::camera = camera;
-	objectShader->shadowMap = Texture2D::CreateWithBitmap(shadowMap->GetDepthBuffer());
+	BitmapPtr bitmap = shadowMap->GetDepthBuffer();
+	objectShader->shadowMap = Texture2D::CreateWithBitmap(bitmap);
 	objectShader->lightVPM = lightPM * lightVM;
 	Rasterizer::SetShader(objectShader);
 	Rasterizer::renderState.cull = RenderState::CullType_Back;

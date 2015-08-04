@@ -39,7 +39,7 @@ public:
 	static std::map<std::string, Texture2DPtr> texturePool;
 
 protected:
-	typedef Color(*SampleFunc)(const BitmapPtr& bitmap, float u, float v);
+	typedef Color(*SampleFunc)(const Bitmap& bitmap, float u, float v);
 	static SampleFunc sampleFunc[2][AddressModeCount][AddressModeCount];
 
 	Texture2D() = default;

@@ -56,27 +56,27 @@ struct MirrorAddresser
 struct PointSampler
 {
 	template<typename XAddresserType, typename YAddresserType>
-	static Color Sample(const BitmapPtr& bitmap, float u, float v)
+	static Color Sample(const Bitmap& bitmap, float u, float v)
 	{
-		int width = bitmap->GetWidth();
-		int height = bitmap->GetHeight();
+		int width = bitmap.GetWidth();
+		int height = bitmap.GetHeight();
 
 		float fx = XAddresserType::CalcAddress(u, width);
 		int x = XAddresserType::FixAddress(Mathf::RoundToInt(fx), width);
 		float fy = YAddresserType::CalcAddress(v, height);
 		int y = YAddresserType::FixAddress(Mathf::RoundToInt(fy), height);
 
-		return bitmap->GetPixel(x, y);
+		return bitmap.GetPixel(x, y);
 	}
 };
 
 struct LinearSampler
 {
 	template<typename XAddresserType, typename YAddresserType>
-	static Color Sample(const BitmapPtr& bitmap, float u, float v)
+	static Color Sample(const Bitmap& bitmap, float u, float v)
 	{
-		int width = bitmap->GetWidth();
-		int height = bitmap->GetHeight();
+		int width = bitmap.GetWidth();
+		int height = bitmap.GetHeight();
 
 		float fx = XAddresserType::CalcAddress(u, width);
 		int x0 = Mathf::FloorToInt(fx);
@@ -89,10 +89,10 @@ struct LinearSampler
 		int x1 = XAddresserType::FixAddress(x0 + 1, width);
 		int y1 = YAddresserType::FixAddress(y0 + 1, height);
 
-		Color c0 = bitmap->GetPixel(x0, y0);
-		Color c1 = bitmap->GetPixel(x1, y0);
-		Color c2 = bitmap->GetPixel(x0, y1);
-		Color c3 = bitmap->GetPixel(x1, y1);
+		Color c0 = bitmap.GetPixel(x0, y0);
+		Color c1 = bitmap.GetPixel(x1, y0);
+		Color c2 = bitmap.GetPixel(x0, y1);
+		Color c3 = bitmap.GetPixel(x1, y1);
 
 		return Color::Lerp(c0, c1, c2, c3, xFrac, yFrac);
 	}
@@ -101,10 +101,10 @@ struct LinearSampler
 struct ProjectionSampler
 {
 	template<typename XAddresserType, typename YAddresserType>
-	static float Sample(const BitmapPtr& bitmap, float u, float v, float value, float bias)
+	static float Sample(const Bitmap& bitmap, float u, float v, float value, float bias)
 	{
-		int width = bitmap->GetWidth();
-		int height = bitmap->GetHeight();
+		int width = bitmap.GetWidth();
+		int height = bitmap.GetHeight();
 
 		float fx = XAddresserType::CalcAddress(u, width);
 		int x0 = Mathf::FloorToInt(fx);
@@ -117,10 +117,10 @@ struct ProjectionSampler
 		int x1 = XAddresserType::FixAddress(x0 + 1, width);
 		int y1 = YAddresserType::FixAddress(y0 + 1, height);
 
-		float a = bitmap->GetAlpha(x0, y0) + bias < value ? 1.f : 0.f;
-		float b = bitmap->GetAlpha(x1, y0) + bias < value ? 1.f : 0.f;
-		float c = bitmap->GetAlpha(x0, y1) + bias < value ? 1.f : 0.f;
-		float d = bitmap->GetAlpha(x1, y1) + bias < value ? 1.f : 0.f;
+		float a = bitmap.GetAlpha(x0, y0) + bias < value ? 1.f : 0.f;
+		float b = bitmap.GetAlpha(x1, y0) + bias < value ? 1.f : 0.f;
+		float c = bitmap.GetAlpha(x0, y1) + bias < value ? 1.f : 0.f;
+		float d = bitmap.GetAlpha(x1, y1) + bias < value ? 1.f : 0.f;
 		return Mathf::BLerp(a, b, c, d, xFrac, yFrac);
 	}
 };
