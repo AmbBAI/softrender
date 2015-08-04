@@ -137,7 +137,7 @@ struct SceneShader : Shader<Vertex, VaryingData>
 
 		Vector4 proj = lightVPM.MultiplyPoint(input.worldPos);
 		Vector2 smuv = Vector2((proj.x / proj.w + 1.f) / 2.f, (proj.y / proj.w + 1.f) / 2.f);
-		float shadow = Tex2DProjInterpolated(shadowMap, smuv, proj.z / proj.w, 0.002f);
+		float shadow = Tex2DProjInterpolated(shadowMap, smuv, proj.z / proj.w, 0.0025f);
 
 		Vector3 lightDir;
 		float lightAtten;
@@ -146,7 +146,7 @@ struct SceneShader : Shader<Vertex, VaryingData>
 
 		LightInput lightInput;
 		lightInput.ambient = fragColor;
-		lightInput.ambient.rgb *= 0.16f;
+		lightInput.ambient.rgb *= 0.25f;
 		lightInput.diffuse = fragColor;
 		//lightInput.diffuse.rgb *= 0.9f;
 
