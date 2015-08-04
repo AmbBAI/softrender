@@ -78,10 +78,26 @@ struct IShader
 		return tex->Sample(uv, ddx, ddy);
 	}
 
-	static Vector4 Tex2DProj(const Texture2DPtr& tex, const Vector2& uv, float bias)
+	static float Tex2DProj(const Texture2DPtr& tex, const Vector2& uv, float depth, float bias)
 	{
-		if (tex == nullptr) return Vector4(1.,1.,1.,1.);
-		return tex->SampleProj(uv, bias);
+		if (tex == nullptr) return 0.f;
+		return tex->SampleProj(uv, depth, bias);
+	}
+
+	static float Tex2DProjInterpolated(const Texture2DPtr& tex, const Vector2& uv, float depth, float bias)
+	{
+		if (tex == nullptr) return 0.f;
+		float invW = 1.f / tex->GetWidth();
+		float invH = 1.f / tex->GetHeight();
+		float ret = 0.f;
+		for (int xoff = -1; xoff <= 1; ++xoff)
+		{
+			for (int yoff = -1; yoff <= 1; ++yoff)
+			{
+				ret += tex->SampleProj(uv + Vector2(xoff * invW, yoff * invH), depth, bias);
+			}
+		}
+		return ret / 9.f;
 	}
 
 	static Color TexCUBE(CubemapPtr& tex, const Vector3& s)

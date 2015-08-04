@@ -56,7 +56,7 @@ public:
 	const Color Sample(const Vector2& uv, float lod = 0.f) const;
 	const Color Sample(const Vector2& uv, const Vector2& ddx, const Vector2& ddy) const { return Sample(uv, CalcLOD(ddx, ddy)); }
 
-	const Vector4 SampleProj(const Vector2& uv, float bias = 0.f) const;
+	float SampleProj(const Vector2& uv, float value, float bias/*=0*/) const;
 
 protected:
 	static BitmapPtr UnparkColor(rawptr_t bytes, int width, int height, int pitch, int bpp);

@@ -101,7 +101,7 @@ struct LinearSampler
 struct ProjectionSampler
 {
 	template<typename XAddresserType, typename YAddresserType>
-	static Vector4 Sample(const BitmapPtr bitmap, float u, float v)
+	static float Sample(const BitmapPtr bitmap, float u, float v, float value, float bias)
 	{
 		int width = bitmap->GetWidth();
 		int height = bitmap->GetHeight();
@@ -117,11 +117,11 @@ struct ProjectionSampler
 		int x1 = XAddresserType::FixAddress(x0 + 1, width);
 		int y1 = YAddresserType::FixAddress(y0 + 1, height);
 
-		float a = bitmap->GetAlpha(x0, y0);
-		float b = bitmap->GetAlpha(x1, y0);
-		float c = bitmap->GetAlpha(x0, y1);
-		float d = bitmap->GetAlpha(x1, y1);
-		return Vector4(a, b, c, d);
+		float a = bitmap->GetAlpha(x0, y0) + bias < value ? 1.f : 0.f;
+		float b = bitmap->GetAlpha(x1, y0) + bias < value ? 1.f : 0.f;
+		float c = bitmap->GetAlpha(x0, y1) + bias < value ? 1.f : 0.f;
+		float d = bitmap->GetAlpha(x1, y1) + bias < value ? 1.f : 0.f;
+		return Mathf::BLerp(a, b, c, d, xFrac, yFrac);
 	}
 };
 

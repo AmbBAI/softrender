@@ -248,11 +248,10 @@ float Texture2D::CalcLOD(const Vector2& ddx, const Vector2& ddy) const
 	return Mathf::Max(0.f, 0.5f * Mathf::Log2(delta));
 }
 
-const Vector4 Texture2D::SampleProj(const Vector2& uv, float bias/* = 0.f*/) const
+float Texture2D::SampleProj(const Vector2& uv, float value, float bias/* =0.f*/) const
 {
 	static ProjectionSampler projectionSampler;
-	Vector4 depth2x2 = projectionSampler.Sample<ClampAddresser, ClampAddresser>(mainTex, uv.x, uv.y);
-	return depth2x2 + Vector4(bias, bias, bias, bias);
+	return projectionSampler.Sample<ClampAddresser, ClampAddresser>(mainTex, uv.x, uv.y, value, bias);
 }
 
 }

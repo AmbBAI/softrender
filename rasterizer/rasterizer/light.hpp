@@ -61,8 +61,6 @@ struct Light
 		{
 			Vector4 fcWorldPos = cameraVPIM.MultiplyPoint(frustumCornerProjection[i]);
 			Vector3 fcLightPos = lightVM.MultiplyPoint3x4(fcWorldPos.xyz / fcWorldPos.w);
-			//printf("wp %f %f %f %f\n", fcWorldPos.x, fcWorldPos.y, fcWorldPos.z, fcWorldPos.w);
-			//printf("lp %f %f %f\n", fcLightPos.x, fcLightPos.y, fcLightPos.z);
 			if (i == 0) frustumMin = frustumMax = fcLightPos;
 			else
 			{
@@ -70,7 +68,8 @@ struct Light
 				frustumMax = Vector3::Max(frustumMax, fcLightPos);
 			}
 		}
-
+		frustumMin.z = Mathf::Min(frustumMin.z, sceneBoxMin.z);
+		frustumMax.z = Mathf::Max(frustumMax.z, sceneBoxMax.z);
 		CameraPtr out = std::make_shared<Camera>();
 		out->transform = transform;
 		out->SetOrthographic(frustumMin.x, frustumMax.x, frustumMin.y, frustumMax.y, frustumMin.z, frustumMax.z);

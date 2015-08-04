@@ -68,7 +68,7 @@ struct ObjShader : Shader<Vertex, VaryingData>
 {
 	Color ambientColor = Color(0.f, 0.1f, 0.1f, 0.1f);
 	Texture2DPtr shadowMap = nullptr;
-	Matrix4x4 lightVP;
+	Matrix4x4 lightVPM;
 
 	VaryingData vert(const Vertex& input) override
 	{
@@ -83,22 +83,15 @@ struct ObjShader : Shader<Vertex, VaryingData>
 	{
 		Color color = Color::white;
 
-		Vector4 proj = lightVP.MultiplyPoint(input.worldPos);
+		Vector4 proj = lightVPM.MultiplyPoint(input.worldPos);
 		Vector2 smuv = Vector2((proj.x / proj.w + 1.f) / 2.f, (proj.y / proj.w + 1.f) / 2.f);
-		float ld = proj.z / proj.w;
-		Vector4 smd = Tex2DProj(shadowMap, smuv, 0.01f);
-
-		float shadowDepth = 0.f;
-		if (smd.x < ld) shadowDepth += 0.25f;
-		if (smd.y < ld) shadowDepth += 0.25f;
-		if (smd.z < ld) shadowDepth += 0.25f;
-		if (smd.w < ld) shadowDepth += 0.25f;
+		float shadow = Tex2DProjInterpolated(shadowMap, smuv, proj.z / proj.w, 0.005f);
 
 		Vector3 lightDir;
 		float lightAtten;
 		InitLightArgs(input.worldPos, lightDir, lightAtten);
 
-		color.rgb *= Mathf::Max(0.f, lightDir.Dot(input.normal)) * lightAtten * (1.f - shadowDepth);
+		color.rgb *= Mathf::Max(0.f, lightDir.Dot(input.normal)) * lightAtten * (1.f - shadow);
 		return color + ambientColor;
 	}
 };
@@ -115,7 +108,7 @@ void MainLoop()
 	static std::shared_ptr<ObjShader> objectShader = std::make_shared<ObjShader>();
 	static LightPtr light;
 	static CameraPtr camera;
-	static RenderTexturePtr shadowMap;
+	static RenderTexturePtr shadowMap = std::make_shared<RenderTexture>(1024.f, 1024.f);
 
 	if (!isInitilized)
     {
@@ -129,11 +122,9 @@ void MainLoop()
 		light = LightPtr(new Light());
 		light->type = Light::LightType_Directional;
 		light->transform.position = Vector3(0, 0, 0);
-		light->transform.rotation = Quaternion(Vector3(30.f, -45.f, 0.f));
+		light->transform.rotation = Quaternion(Vector3(45.f, -45.f, 0.f));
 		light->Initilize();
 		Rasterizer::light = light;
-
-		shadowMap = std::make_shared<RenderTexture>(2048.f, 2048.f);
 
 		planeTrans.position = Vector3(0.f, -1.f, 0.f);
 		planeTrans.rotation = Quaternion(Vector3(90.f, 0.f, 0.f));
@@ -146,10 +137,10 @@ void MainLoop()
 			planeMesh.vertices.emplace_back(Vertex{ mesh->vertices[i], mesh->normals[i] });
 		for (auto idx : mesh->indices) planeMesh.indices.emplace_back((uint16_t)idx);
 
-		objectTrans.position = Vector3(0.f, 0.f, 0.f);
-		objectTrans.scale = Vector3::one * 0.8f;
+		objectTrans.position = Vector3(0.f, 0.f, 2.f);
 		std::vector<MeshPtr> meshes;
 		Mesh::LoadMesh(meshes, "resources/knot.obj");
+		//Mesh::LoadMesh(meshes, "resources/cube/cube.obj");
 		mesh = meshes[0];
 		objectMesh.vertices.clear();
 		objectMesh.indices.clear();
@@ -161,6 +152,7 @@ void MainLoop()
 
 	objectCtrl.MouseRotate(objectTrans);
 
+	//Render ShadowMap
 	Rasterizer::SetRenderTarget(shadowMap);
 	Rasterizer::Clear(true, false, Color::black);
 
@@ -181,14 +173,13 @@ void MainLoop()
 	Rasterizer::renderData.AssignIndexBuffer(objectMesh.indices);
 	Rasterizer::Submit();
 
-	//shadowMap->GetDepthBuffer()->SaveToFile("depth.tiff");
-
+	//Render Scene
 	Rasterizer::SetRenderTarget(nullptr);
 	Rasterizer::Clear(true, true, Color(1.f, 0.19f, 0.3f, 0.47f));
 
 	Rasterizer::camera = camera;
 	objectShader->shadowMap = Texture2D::CreateWithBitmap(shadowMap->GetDepthBuffer());
-	objectShader->lightVP = lightPM * lightVM;
+	objectShader->lightVPM = lightPM * lightVM;
 	Rasterizer::SetShader(objectShader);
 	Rasterizer::renderState.cull = RenderState::CullType_Back;
 	//Rasterizer::renderState.renderType = RenderState::RenderType_Stardand;
