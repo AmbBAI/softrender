@@ -1,5 +1,5 @@
-#ifndef _RASTERIZER_SHADER_H_
-#define _RASTERIZER_SHADER_H_
+#ifndef _RASTERIZER_SHADER_HPP_
+#define _RASTERIZER_SHADER_HPP_
 
 #include "base/header.h"
 #include "math/vector3.h"
@@ -203,4 +203,4 @@ struct Shader : IShader
 
 } // namespace rasterizer
 
-#endif //! _RASTERIZER_SHADER_H_
+#endif //! _RASTERIZER_SHADER_HPP_

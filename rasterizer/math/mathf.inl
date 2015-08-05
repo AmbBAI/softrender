@@ -1,5 +1,5 @@
-#ifndef _MATH_INLINE_
-#define _MATH_INLINE_
+#ifndef _MATH_MATHF_INLINE_
+#define _MATH_MATHF_INLINE_
 
 namespace rasterizer
 {
@@ -305,4 +305,4 @@ float Mathf::Terp(float a, float b, float c, float x, float y, float z)
 
 } // namespace rasterizer
 
-#endif // !_MATH_INLINE_
+#endif // !_MATH_MATHF_INLINE_

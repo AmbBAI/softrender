@@ -3,7 +3,7 @@
 
 #include "base/header.h"
 #include "rasterizer/bitmap.h"
-#include "base/color.h"
+#include "math/color.h"
 #include "math/vector2.h"
 
 namespace rasterizer

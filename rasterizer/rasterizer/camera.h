@@ -1,5 +1,5 @@
-#ifndef _BASE_CAMERA_H_
-#define _BASE_CAMERA_H_
+#ifndef _RASTERIZER_CAMERA_H_
+#define _RASTERIZER_CAMERA_H_
 
 #include "base/header.h"
 #include "math/vector3.h"
@@ -43,4 +43,4 @@ protected:
 
 }
 
-#endif //!_BASE_CAMERA_H_
+#endif //!_RASTERIZER_CAMERA_H_

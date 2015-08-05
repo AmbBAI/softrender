@@ -1,5 +1,5 @@
-#ifndef _BASE_QUATERNION_H_
-#define _BASE_QUATERNION_H_
+#ifndef _MATH_QUATERNION_H_
+#define _MATH_QUATERNION_H_
 
 #include "base/header.h"
 #include "math/vector3.h"
@@ -36,4 +36,4 @@ struct Quaternion
 };
 }
 
-#endif //_BASE_QUATERNION_H_
+#endif //_MATH_QUATERNION_H_

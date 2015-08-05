@@ -2,7 +2,7 @@
 #define _RASTERIZER_MATERIAL_HPP_
 
 #include "base/header.h"
-#include "base/color.h"
+#include "math/color.h"
 #include "rasterizer/texture2d.h"
 #include "tinyobjloader/tiny_obj_loader.h"
 

@@ -1,5 +1,5 @@
-#ifndef _BASE_TEXTURE_CUBE_H_
-#define _BASE_TEXTURE_CUBE_H_
+#ifndef _RASTERIZER_CUBEMAP_H_
+#define _RASTERIZER_CUBEMAP_H_
 
 #include "base/header.h"
 #include "rasterizer/texture2d.h"
@@ -39,4 +39,4 @@ private:
 
 }
 
-#endif //! _BASE_TEXTURE_CUBE_H_
+#endif //! _RASTERIZER_CUBEMAP_H_

@@ -1,8 +1,8 @@
-#ifndef _BASE_BITMAP_H_
-#define _BASE_BITMAP_H_
+#ifndef _RASTERIZER_BITMAP_H_
+#define _RASTERIZER_BITMAP_H_
 
 #include "base/header.h"
-#include "base/color.h"
+#include "math/color.h"
 #include "math/vector3.h"
 
 namespace rasterizer
@@ -66,4 +66,4 @@ private:
 
 }
 
-#endif //! _BASE_BITMAP_H_
+#endif //! _RASTERIZER_BITMAP_H_

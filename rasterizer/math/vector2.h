@@ -1,5 +1,5 @@
-#ifndef _BASE_VECTOR2_H_
-#define _BASE_VECTOR2_H_
+#ifndef _MATH_VECTOR2_H_
+#define _MATH_VECTOR2_H_
 
 #include "base/header.h"
 
@@ -20,7 +20,6 @@ struct Vector2
 	inline float Length() const;
 	inline float SqrLength() const;
 	inline Vector2 Normalize() const;
-	inline Vector2 Negate() const;
 	inline float Dot(const Vector2& v) const;
 
 	inline Vector2 operator +() const { return *this; }
@@ -43,4 +42,4 @@ struct Vector2
 
 #include "vector2.inl"
 
-#endif //!_BASE_VECTOR2_H_
+#endif //!_MATH_VECTOR2_H_

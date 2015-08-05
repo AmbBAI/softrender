@@ -4,10 +4,11 @@
 #include "base/header.h"
 #include "base/application.h"
 #include "base/input.h"
-#include "base/camera.h"
+
 #include "math/mathf.h"
 #include "math/transform.h"
 
+#include "rasterizer/camera.h"
 #include "rasterizer/mesh.h"
 #include "rasterizer/material.h"
 #include "rasterizer/texture2d.h"
@@ -51,8 +52,8 @@ struct Rasterizer
 	static RenderData renderData;
 
 	static Matrix4x4 modelMatrix;
-	static Matrix4x4 viewMatrix;
-	static Matrix4x4 projectionMatrix;
+	//static Matrix4x4 viewMatrix;
+	//static Matrix4x4 projectionMatrix;
 	static CameraPtr camera;
     static LightPtr light;
 

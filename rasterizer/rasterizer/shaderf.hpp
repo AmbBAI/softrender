@@ -1,8 +1,8 @@
-#ifndef _RASTERIZER_SHADER_FUNCTION_H_
-#define _RASTERIZER_SHADER_FUNCTION_H_
+#ifndef _RASTERIZER_SHADERF_H_
+#define _RASTERIZER_SHADERF_H_
 
 #include "base/header.h"
-#include "base/color.h"
+#include "math/color.h"
 #include "math/vector3.h"
 #include "math/vector4.h"
 #include "math/mathf.h"
@@ -64,4 +64,4 @@ struct ShaderF
 
 } // namespace rasterizer
 
-#endif //! _RASTERIZER_SHADER_FUNCTION_H_
+#endif //! _RASTERIZER_SHADERF_H_

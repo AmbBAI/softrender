@@ -1,5 +1,5 @@
-#ifndef _BASE_VECTOR4_H_
-#define _BASE_VECTOR4_H_
+#ifndef _MATH_VECTOR4_H_
+#define _MATH_VECTOR4_H_
 
 #include "base/header.h"
 #include "math/vector3.h"
@@ -51,4 +51,4 @@ struct Vector4
 
 #include "vector4.inl"
 
-#endif //!_BASE_VECTOR4_H_
+#endif //!_MATH_VECTOR4_H_

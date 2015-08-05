@@ -1,5 +1,5 @@
-#ifndef _BASE_MATRIX4X4_H_
-#define _BASE_MATRIX4X4_H_
+#ifndef _MATH_MATRIX4X4_H_
+#define _MATH_MATRIX4X4_H_
 
 #include "base/header.h"
 #include "math/vector3.h"
@@ -54,4 +54,4 @@ protected:
 
 }
 
-#endif //_BASE_MATRIX4X4_H_
+#endif //_MATH_MATRIX4X4_H_

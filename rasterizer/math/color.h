@@ -1,7 +1,7 @@
-#ifndef _BASE_COLOR_H_
-#define _BASE_COLOR_H_
+#ifndef _MATH_COLOR_H_
+#define _MATH_COLOR_H_
 
-#include "header.h"
+#include "base/header.h"
 #include "math/mathf.h"
 #include "math/vector3.h"
 #include "math/vector4.h"
@@ -115,4 +115,4 @@ struct Color32
 
 #include "color.inl"
 
-#endif //!_BASE_COLOR_H_
+#endif //!_MATH_COLOR_H_

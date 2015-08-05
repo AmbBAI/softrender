@@ -9,7 +9,6 @@ namespace rasterizer
 float Vector2::Length() const { return Mathf::Sqrt(x * x + y * y); }
 float Vector2::SqrLength() const { return (x * x + y * y); }
 Vector2 Vector2::Normalize() const { return (*this) * Mathf::InvSqrt(Length()); }
-Vector2 Vector2::Negate() const { return Vector2(-x, -y); }
 
 float Vector2::Dot(const Vector2& v) const { return x * v.x + y * v.y; }
 float Vector2::Dot(const Vector2& a, const Vector2& b) { return a.x * b.x + a.y * b.y; }

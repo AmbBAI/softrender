@@ -1,5 +1,5 @@
-#ifndef _BASE_VECTOR3_H_
-#define _BASE_VECTOR3_H_
+#ifndef _MATH_VECTOR3_H_
+#define _MATH_VECTOR3_H_
 
 #include "base/header.h"
 
@@ -57,4 +57,4 @@ struct Vector3
 
 #include "vector3.inl"
 
-#endif //!_BASE_VECTOR3_H_
+#endif //!_MATH_VECTOR3_H_

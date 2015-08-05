@@ -2,7 +2,7 @@
 #define _RASTERIZER_RENDER_STATE_H_
 
 #include "base/header.h"
-#include "base/color.h"
+#include "math/color.h"
 
 namespace rasterizer
 {

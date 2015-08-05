@@ -2,7 +2,7 @@
 #define _RASTERIZER_LIGHT_HPP_
 
 #include "base/header.h"
-#include "base/color.h"
+#include "math/color.h"
 #include "math/vector3.h"
 
 namespace rasterizer

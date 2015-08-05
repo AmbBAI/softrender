@@ -1,5 +1,5 @@
-#ifndef _BASE_MATHF_H_
-#define _BASE_MATHF_H_
+#ifndef _MATH_MATHF_H_
+#define _MATH_MATHF_H_
 
 #include "base/header.h"
 
@@ -42,12 +42,12 @@ public:
 		return Type::TriangleInterp(a, b, c, t0, t1, t2);
 	}
 
-	static inline const float LinearInterp(float a, float b, float t)
+	static inline float LinearInterp(float a, float b, float t)
 	{
 		return a * (1.f - t) + b * t;
 	}
 
-	static inline const float TriangleInterp(float a, float b, float c, float t0, float t1, float t2)
+	static inline float TriangleInterp(float a, float b, float c, float t0, float t1, float t2)
 	{
 		return a * t0 + b * t1 + c * t2;
 	}
@@ -104,4 +104,4 @@ public:
 
 #include "mathf.inl"
 
-#endif //!_BASE_MATHF_H_
+#endif //!_MATH_MATHF_H_

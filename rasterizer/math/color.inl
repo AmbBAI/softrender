@@ -1,5 +1,5 @@
-#ifndef _BASE_COLOR_INLINE_
-#define _BASE_COLOR_INLINE_
+#ifndef _MATH_COLOR_INLINE_
+#define _MATH_COLOR_INLINE_
 
 #include "math/mathf.h"
 
@@ -132,4 +132,4 @@ Color32::operator Color() const
 
 }
 
-#endif // !_BASE_COLOR_INLINE_
+#endif // !_MATH_COLOR_INLINE_

@@ -1,5 +1,5 @@
-#ifndef _BASE_BUFFER_H_
-#define _BASE_BUFFER_H_
+#ifndef _RASTERIZER_BUFFER_H_
+#define _RASTERIZER_BUFFER_H_
 
 #include "base/header.h"
 
@@ -89,4 +89,4 @@ bool Buffer::Assign(const std::vector<BlockType>& datas)
 
 }
 
-#endif //! _BASE_BUFFER_H_
+#endif //! _RASTERIZER_BUFFER_H_
