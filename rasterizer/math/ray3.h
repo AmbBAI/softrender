@@ -15,7 +15,7 @@ struct Ray3
 	Ray3() = default;
 	Ray3(const Vector3& _origin, const Vector3& _direction);
 
-	const Vector3 GetPoint(float t) const;
+	Vector3 GetPoint(float t) const;
 };
 
 

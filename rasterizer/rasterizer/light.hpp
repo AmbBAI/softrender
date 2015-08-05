@@ -21,7 +21,7 @@ struct Light
     };
     LightType type = LightType_Directional;
 	Color color = Color(1.f, 1.f, 1.f, 1.f);
-    float intensity = 0.5f;
+    float intensity = 1.f;
     
 	Transform transform;
     float range = 10.f;

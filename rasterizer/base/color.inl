@@ -6,12 +6,12 @@
 namespace rasterizer
 {
     
-const ColorRGB ColorRGB::operator +(const ColorRGB& v) const { return ColorRGB(r + v.r, g + v.g, b + v.b); }
-const ColorRGB ColorRGB::operator += (const ColorRGB& v) { return (*this) = (*this) + v; }
-const ColorRGB ColorRGB::operator *(float f) const { return ColorRGB(r * f, g * f, b * f); }
-const ColorRGB ColorRGB::operator *(const ColorRGB& v) const { return ColorRGB(r * v.r, g * v.g, b * v.b); }
-const ColorRGB ColorRGB::operator *= (float f) { return (*this) = (*this) * f; }
-const ColorRGB ColorRGB::operator *= (const ColorRGB& v) { return (*this) = (*this) * v; }
+ColorRGB ColorRGB::operator +(const ColorRGB& v) const { return ColorRGB(r + v.r, g + v.g, b + v.b); }
+ColorRGB ColorRGB::operator += (const ColorRGB& v) { return (*this) = (*this) + v; }
+ColorRGB ColorRGB::operator *(float f) const { return ColorRGB(r * f, g * f, b * f); }
+ColorRGB ColorRGB::operator *(const ColorRGB& v) const { return ColorRGB(r * v.r, g * v.g, b * v.b); }
+ColorRGB ColorRGB::operator *= (float f) { return (*this) = (*this) * f; }
+ColorRGB ColorRGB::operator *= (const ColorRGB& v) { return (*this) = (*this) * v; }
 
 ColorRGB::operator Vector3() const
 {
@@ -19,19 +19,19 @@ ColorRGB::operator Vector3() const
 }
 
 #if _NOCRASH_
-const Color Color::operator +(const Color& v) const { return Color(_mm_add_ps(m, v.m)); }
-const Color Color::operator *(float f) const { return Color(_mm_mul_ps(m, _mm_set1_ps(s))); }
-const Color Color::operator *(const Color& v) const { return Color(_mm_mul_ps(m, v.m)); }
+Color Color::operator +(const Color& v) const { return Color(_mm_add_ps(m, v.m)); }
+Color Color::operator *(float f) const { return Color(_mm_mul_ps(m, _mm_set1_ps(s))); }
+Color Color::operator *(const Color& v) const { return Color(_mm_mul_ps(m, v.m)); }
 #else
-const Color Color::operator +(const Color& v) const { return Color(a + v.a, r + v.r, g + v.g, b + v.b); }
-const Color Color::operator *(float f) const { return Color(a * f, r * f, g * f, b * f); }
-const Color Color::operator *(const Color& v) const { return Color(a * v.a, r * v.r, g * v.g, b * v.b); }
+Color Color::operator +(const Color& v) const { return Color(a + v.a, r + v.r, g + v.g, b + v.b); }
+Color Color::operator *(float f) const { return Color(a * f, r * f, g * f, b * f); }
+Color Color::operator *(const Color& v) const { return Color(a * v.a, r * v.r, g * v.g, b * v.b); }
 #endif
-const Color Color::operator += (const Color& v) { return (*this) = (*this) + v; }
-const Color Color::operator *= (float f) { return (*this) = (*this) * f; }
-const Color Color::operator *= (const Color& v) { return (*this) = (*this) * v; }
+Color Color::operator += (const Color& v) { return (*this) = (*this) + v; }
+Color Color::operator *= (float f) { return (*this) = (*this) * f; }
+Color Color::operator *= (const Color& v) { return (*this) = (*this) * v; }
 
-const Color Color::Lerp(const Color& a, const Color& b, float t)
+Color Color::Lerp(const Color& a, const Color& b, float t)
 {
 	Color color;
 #if _NOCRASH_
@@ -49,7 +49,7 @@ const Color Color::Lerp(const Color& a, const Color& b, float t)
 }
 
 
-const Color Color::Lerp(const Color& a, const Color& b, const Color& c, const Color& d, float t1, float t2)
+Color Color::Lerp(const Color& a, const Color& b, const Color& c, const Color& d, float t1, float t2)
 {
 #if _NOCRASH_
 	static __m128 _ps1 = _mm_set1_ps(1.f);

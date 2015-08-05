@@ -142,8 +142,8 @@ void MainLoop()
 		lightBlue = LightPtr(new Light());
 		lightBlue->type = Light::LightType_Point;
 		lightBlue->color = Color::blue;
-		lightRed->transform.position = Vector3(0.5f, 1.f, 0.f);
-		lightRed->transform.rotation = Quaternion(Vector3(90.f, 0.f, 0.f));
+		lightBlue->transform.position = Vector3(0.5f, 1.f, 0.f);
+		lightBlue->transform.rotation = Quaternion(Vector3(90.f, 0.f, 0.f));
 		lightBlue->intensity = 3.f;
 		lightBlue->range = 5.f;
 		lightBlue->atten0 = 0.1f;

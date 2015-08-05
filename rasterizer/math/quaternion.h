@@ -23,14 +23,14 @@ struct Quaternion
 	Quaternion(const Vector3& _xyz, float _w) : xyz(_xyz), w(_w) {}
 	Quaternion(float _x, float _y, float _z, float _w) : x(_x), y(_y), z(_z), w(_w) {}
 
-	const Quaternion Inverse() const;
-	const Quaternion Conjugate() const;
-	const Quaternion Multiply(const Quaternion& q) const;
-	const Vector3 Rotate(const Vector3& v) const;
+	Quaternion Inverse() const;
+	Quaternion Conjugate() const;
+	Quaternion Multiply(const Quaternion& q) const;
+	Vector3 Rotate(const Vector3& v) const;
 
 	void SetEulerAngle(float _x, float _y, float _z);
 	void SetEulerAngle(const Vector3& eulerAngle);
-	const Vector3 GetEulerAngle();
+	//Vector3 GetEulerAngle();
 
 	static const Quaternion identity;
 };

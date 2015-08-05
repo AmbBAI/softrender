@@ -4,7 +4,7 @@
 namespace rasterizer
 {
 
-const Quaternion Quaternion::identity = Quaternion();
+const Quaternion Quaternion::identity = Quaternion(0.f, 0.f, 0.f, 1.f);
 
 Quaternion::Quaternion(const Vector3& eulerAngle)
 {
@@ -34,29 +34,30 @@ void Quaternion::SetEulerAngle(const Vector3& euler_angle)
 	SetEulerAngle(euler_angle.x, euler_angle.y, euler_angle.z);
 }
 
-const Vector3 Quaternion::GetEulerAngle()
-{
-	float radx = Mathf::Atan2(2.f * (w * x + y * z), 1.f - 2.f * (x * x + y * y));
-	float rady = Mathf::Asin(2.f * (w * y + x * z));
-	float radz = Mathf::Atan2(2.f * (w * z + x * y), 1.f - 2.f * (y * y + z * z));
+// TODO
+//Vector3 Quaternion::GetEulerAngle()
+//{
+//	float radx = Mathf::Atan2(2.f * (w * x + y * z), 1.f - 2.f * (x * x + y * y));
+//	float rady = Mathf::Asin(2.f * (w * y + x * z));
+//	float radz = Mathf::Atan2(2.f * (w * z + x * y), 1.f - 2.f * (y * y + z * z));
+//
+//	return Vector3(
+//		radx * Mathf::rad2deg,
+//		rady * Mathf::rad2deg,
+//		radz * Mathf::rad2deg);
+//}
 
-	return Vector3(
-		radx * Mathf::rad2deg,
-		rady * Mathf::rad2deg,
-		radz * Mathf::rad2deg);
-}
-
-const Quaternion Quaternion::Multiply(const Quaternion& q) const
+Quaternion Quaternion::Multiply(const Quaternion& q) const
 {;
 	return Quaternion(q.xyz * w + xyz * q.w + xyz.Cross(q.xyz), w * q.w - xyz.Dot(q.xyz));
 }
 
-const Vector3 Quaternion::Rotate(const Vector3& v) const
+Vector3 Quaternion::Rotate(const Vector3& v) const
 {
 	return v + xyz.Cross(xyz.Cross(v) + v * w) * 2.f;
 }
 
-const Quaternion Quaternion::Inverse() const
+Quaternion Quaternion::Inverse() const
 {
 	float invSqrtLen = 1.f / (x * x + y * y + z * z + w * w);
 	Quaternion ret = Conjugate();
@@ -65,7 +66,7 @@ const Quaternion Quaternion::Inverse() const
 	return ret;
 }
 
-const Quaternion Quaternion::Conjugate() const
+Quaternion Quaternion::Conjugate() const
 {
 	return Quaternion(-xyz, w);
 }

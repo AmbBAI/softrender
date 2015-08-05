@@ -106,18 +106,18 @@ struct IShader
 		return tex->Sample(s);
 	}
 
-	static const Matrix4x4 TangentSpaceRotation(const Vector3& tangent, const Vector3& binormal, const Vector3& normal)
+	static Matrix4x4 TangentSpaceRotation(const Vector3& tangent, const Vector3& binormal, const Vector3& normal)
 	{
 		return Matrix4x4::TBN(tangent, binormal, normal);
 	}
 
-	static const Vector3 UnpackNormal(const Color& color, const Matrix4x4& tbn)
+	static Vector3 UnpackNormal(const Color& color, const Matrix4x4& tbn)
 	{
 		Vector3 normal = Vector3(color.r * 2.f - 1.f, color.g * 2.f - 1.f, color.b * 2.f - 1.f);
 		return tbn.MultiplyVector(normal).Normalize();
 	}
 	
-	static const Vector3 Reflect(const Vector3& inDir, const Vector3& normal)
+	static Vector3 Reflect(const Vector3& inDir, const Vector3& normal)
 	{
 		return inDir - normal * (normal.Dot(inDir) * 2.f);
 	}

@@ -38,7 +38,7 @@ bool Matrix4x4::IsIdentity()
 	return (memcmp(Matrix4x4::identity.m, m, sizeof(float) * 16) == 0);
 }
 
-const Matrix4x4 Matrix4x4::Multiply(const Matrix4x4& mat) const
+Matrix4x4 Matrix4x4::Multiply(const Matrix4x4& mat) const
 {
 	Matrix4x4 ret;
 	ret.m[0] = m[0] * mat.m[0] + m[4] * mat.m[1] + m[8] * mat.m[2] + m[12] * mat.m[3];
@@ -64,7 +64,7 @@ const Matrix4x4 Matrix4x4::Multiply(const Matrix4x4& mat) const
 	return ret;
 }
 
-const Matrix4x4 Matrix4x4::operator*(const Matrix4x4& mat) const
+Matrix4x4 Matrix4x4::operator*(const Matrix4x4& mat) const
 {
 	return Matrix4x4::Multiply(mat);
 }
@@ -224,7 +224,7 @@ void Matrix4x4::AssignTranslation(const Vector3& translation)
 	m[15] = 1.0f;
 }
 
-const Matrix4x4 Matrix4x4::Inverse() const
+Matrix4x4 Matrix4x4::Inverse() const
 {
 	Matrix4x4 mat;
 	float det;
@@ -352,7 +352,7 @@ const Matrix4x4 Matrix4x4::Inverse() const
 	return mat;
 }
 
-const Matrix4x4 Matrix4x4::Transpose() const
+Matrix4x4 Matrix4x4::Transpose() const
 {
 	int x, z;
 	Matrix4x4 mat;
@@ -366,7 +366,7 @@ const Matrix4x4 Matrix4x4::Transpose() const
 	return mat;
 }
 
-const Vector4 Matrix4x4::MultiplyPoint(const Vector3& p) const
+Vector4 Matrix4x4::MultiplyPoint(const Vector3& p) const
 {
 	Vector4 ret = Vector4(
 		m[0] * p.x + m[4] * p.y + m[8] * p.z + m[12],
@@ -376,7 +376,7 @@ const Vector4 Matrix4x4::MultiplyPoint(const Vector3& p) const
 	return ret;
 }
 
-const Vector3 Matrix4x4::MultiplyPoint3x4(const Vector3& p) const
+Vector3 Matrix4x4::MultiplyPoint3x4(const Vector3& p) const
 {
 	return Vector3(
 		m[0] * p.x + m[4] * p.y + m[8] * p.z + m[12],
@@ -384,7 +384,7 @@ const Vector3 Matrix4x4::MultiplyPoint3x4(const Vector3& p) const
 		m[2] * p.x + m[6] * p.y + m[10] * p.z + m[14]);
 }
 
-const Vector3 Matrix4x4::MultiplyVector(const Vector3& p) const
+Vector3 Matrix4x4::MultiplyVector(const Vector3& p) const
 {
 	return Vector3(
 		m[0] * p.x + m[4] * p.y + m[8] * p.z,
@@ -392,7 +392,7 @@ const Vector3 Matrix4x4::MultiplyVector(const Vector3& p) const
 		m[2] * p.x + m[6] * p.y + m[10] * p.z);
 }
 
-const Matrix4x4 Matrix4x4::TBN(const Vector3& tangent, const Vector3& bitangent, const Vector3& normal)
+Matrix4x4 Matrix4x4::TBN(const Vector3& tangent, const Vector3& bitangent, const Vector3& normal)
 {
 	Matrix4x4 mat = Matrix4x4::identity;
 	mat.m[0] = tangent.x; mat.m[4] = bitangent.x; mat.m[8] = normal.x;
@@ -401,7 +401,7 @@ const Matrix4x4 Matrix4x4::TBN(const Vector3& tangent, const Vector3& bitangent,
 	return mat;
 }
 
-const Matrix4x4 Matrix4x4::Orthographic(float left, float right, float bottom, float top, float zNear, float zFar)
+Matrix4x4 Matrix4x4::Orthographic(float left, float right, float bottom, float top, float zNear, float zFar)
 {
 	float deltaX = right - left;
 	float deltaY = top - bottom;
@@ -423,7 +423,7 @@ const Matrix4x4 Matrix4x4::Orthographic(float left, float right, float bottom, f
 	return mat;
 }
 
-const Matrix4x4 Matrix4x4::PerspectiveFov(float fov, float aspect, float zNear, float zFar)
+Matrix4x4 Matrix4x4::PerspectiveFov(float fov, float aspect, float zNear, float zFar)
 {
 	float r = (fov / 2.f) * Mathf::deg2rad;
 	float zDelta = zFar - zNear;
@@ -447,7 +447,7 @@ const Matrix4x4 Matrix4x4::PerspectiveFov(float fov, float aspect, float zNear, 
 	return mat;
 }
 
-const Matrix4x4 Matrix4x4::LookAt(const Vector3& eye, const Vector3& target, const Vector3& up)
+Matrix4x4 Matrix4x4::LookAt(const Vector3& eye, const Vector3& target, const Vector3& up)
 {
 	Vector3 zAxis = (target - eye).Normalize();
 	Vector3 xAxis = up.Cross(zAxis).Normalize();

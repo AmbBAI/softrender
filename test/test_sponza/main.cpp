@@ -196,10 +196,6 @@ void MainLoop()
 		light->type = Light::LightType_Directional;
 		light->transform.position = Vector3(0, 300, 0);
 		light->transform.rotation = Quaternion(Vector3(60.f, -45.f, 0.f));
-		light->range = 1000.f;
-		light->atten0 = 2.f;
-		light->atten1 = 2.f;
-		light->atten2 = 1.f;
 		light->Initilize();
 		Rasterizer::light = light;
 

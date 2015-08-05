@@ -19,27 +19,21 @@ struct Vector3
 
     inline float Length() const;
     inline float SqrLength() const;
-    inline const Vector3 Normalize() const;
-    inline const Vector3 Negate() const;
-    inline const Vector3 Add(const Vector3& v) const;
-    inline const Vector3 Subtract(const Vector3& v) const;
-    inline const Vector3 Multiply(float f) const;
-    inline const Vector3 Multiply(const Vector3& v) const;
-    inline const Vector3 Divide(float f) const;
+    inline Vector3 Normalize() const;
     inline float Dot(const Vector3& v) const;
-    inline const Vector3 Cross(const Vector3& v) const;
+    inline Vector3 Cross(const Vector3& v) const;
 
-    inline const Vector3 operator +() const;
-    inline const Vector3 operator -() const;
-    inline const Vector3 operator +(const Vector3& v) const;
-    inline const Vector3 operator -(const Vector3& v) const;
-    inline const Vector3 operator *(float f) const;
-    inline const Vector3 operator *(const Vector3& v) const;
-    inline const Vector3 operator /(float f) const;
-    inline const Vector3 operator += (const Vector3& v);
-    inline const Vector3 operator -= (const Vector3& v);
-    inline const Vector3 operator *= (float f);
-    inline const Vector3 operator /= (float f);
+    inline Vector3 operator +() const;
+    inline Vector3 operator -() const;
+    inline Vector3 operator +(const Vector3& v) const;
+    inline Vector3 operator -(const Vector3& v) const;
+    inline Vector3 operator *(float f) const;
+    inline Vector3 operator *(const Vector3& v) const;
+    inline Vector3 operator /(float f) const;
+    inline Vector3 operator += (const Vector3& v);
+    inline Vector3 operator -= (const Vector3& v);
+    inline Vector3 operator *= (float f);
+    inline Vector3 operator /= (float f);
 
 	static inline float Dot(const Vector3& a, const Vector3& b);
 	static inline Vector3 Cross(const Vector3& a, const Vector3& b);
