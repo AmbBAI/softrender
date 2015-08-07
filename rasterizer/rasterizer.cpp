@@ -148,7 +148,7 @@ void Rasterizer::RasterizerTriangle(
 			__m128i mi_w2 = _mm_add_epi32(_mm_set1_epi32(w2), mi_w2_delta);
             
             __m128i mi_or_w = _mm_or_si128(_mm_or_si128(mi_w0, mi_w1), mi_w2);
-			static SIMD_ALIGN int or_w[4];
+			SIMD_ALIGN static int or_w[4];
 			_mm_store_si128((__m128i*)or_w, mi_or_w);
 			if (or_w[0] > 0) info.maskCode |= 0x1;
 			if (or_w[1] > 0) info.maskCode |= 0x2;
