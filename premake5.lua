@@ -39,7 +39,7 @@ solution "rasterizer"
     flags { "Symbols"}
     targetsuffix "_d"
 
-  configuration "Release"
+  configuration "Release or Release_SIMD"
     defines { "NDEBUG" }
     flags { "Optimize"}
 
