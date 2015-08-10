@@ -2,12 +2,12 @@
 #define _RASTERIZER_RENDER_DATA_HPP_
 
 #include "base/header.h"
-#include "rasterizer/vertex.hpp"
+#include "softrender/vertex.hpp"
 #include "math/vector2.h"
 #include "math/vector3.h"
 #include "math/vector4.h"
 #include "math/matrix4x4.h"
-#include "rasterizer/buffer.h"
+#include "softrender/buffer.h"
 
 namespace sr
 {

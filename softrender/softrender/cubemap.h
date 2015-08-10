@@ -2,7 +2,7 @@
 #define _RASTERIZER_CUBEMAP_H_
 
 #include "base/header.h"
-#include "rasterizer/texture2d.h"
+#include "softrender/texture2d.h"
 #include "math/vector2.h"
 #include "math/vector3.h"
 

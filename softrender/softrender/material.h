@@ -3,7 +3,7 @@
 
 #include "base/header.h"
 #include "math/color.h"
-#include "rasterizer/texture2d.h"
+#include "softrender/texture2d.h"
 #include "tinyobjloader/tiny_obj_loader.h"
 
 

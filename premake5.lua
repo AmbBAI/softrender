@@ -5,7 +5,7 @@ function createTestProject(_name)
     debugdir "bin/"
     targetdir "bin/"
     includedirs {
-      "rasterizer/",
+      "softrender/",
       "thirdpart/",
       "test/common/",
       path.join("test", "test_" .. _name),
@@ -18,7 +18,7 @@ function createTestProject(_name)
 
     libdirs {"lib/", "thirdpart/freeimage/"}
 
-    links {"common", "rasterizer", "glfw", "tinyobjloader", "freeimage"}
+    links {"common", "softrender", "glfw", "tinyobjloader", "freeimage"}
     configuration "windows"
       defines { "_CRT_SECURE_NO_WARNINGS" }
       links { "opengl32.lib" }
@@ -29,7 +29,7 @@ function createTestProject(_name)
 end
 
 location "build"
-solution "rasterizer"
+solution "softrender"
   configurations {"Debug", "Debug_SIMD", "Release", "Release_SIMD"}
   language "C++"
   startproject "test_hello"
@@ -56,7 +56,7 @@ solution "rasterizer"
     kind "StaticLib"
     targetdir "lib/"
     includedirs {
-      "rasterizer/",
+      "softrender/",
       "thirdpart/",
       "test/common/",
     }
@@ -79,16 +79,16 @@ solution "rasterizer"
   dofile "thirdpart.lua"
 
   group ""
-  project "rasterizer"
+  project "softrender"
     kind "StaticLib"
     targetdir "lib/"
-    includedirs { "rasterizer/", "thirdpart/"}
+    includedirs { "softrender/", "thirdpart/"}
     libdirs {"lib/", "thirdpart/freeimage/"}
     files {
-      "rasterizer/**.h",
-      "rasterizer/**.cpp",
-      "rasterizer/**.hpp",
-      "rasterizer/**.inl",
+      "softrender/**.h",
+      "softrender/**.cpp",
+      "softrender/**.hpp",
+      "softrender/**.inl",
     }
 
     configuration "Debug_SIMD or Release_SIMD"

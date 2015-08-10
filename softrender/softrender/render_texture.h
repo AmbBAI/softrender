@@ -2,7 +2,7 @@
 #define _RASTERIZER_RENDER_TEXTURE_H_
 
 #include "base/header.h"
-#include "rasterizer/bitmap.h"
+#include "softrender/bitmap.h"
 #include "math/color.h"
 #include "math/vector2.h"
 

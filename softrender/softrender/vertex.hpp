@@ -6,7 +6,7 @@
 #include "math/vector3.h"
 #include "math/vector4.h"
 #include "math/mathf.h"
-#include "rasterizer/clipper.hpp"
+#include "softrender/clipper.hpp"
 
 namespace sr
 {
