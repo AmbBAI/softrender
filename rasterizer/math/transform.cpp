@@ -1,6 +1,6 @@
 #include "transform.h"
 
-using namespace rasterizer;
+using namespace sr;
 
 Matrix4x4 Transform::localToWorldMatrix() const
 {

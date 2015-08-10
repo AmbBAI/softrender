@@ -7,7 +7,7 @@
 #include "math/mathf.h"
 //#include "rasterizer/vertex.hpp"
 
-namespace rasterizer
+namespace sr
 {
 
 template <typename Type> struct Line;

@@ -1,6 +1,6 @@
 #include "clipper.hpp"
 
-namespace rasterizer
+namespace sr
 {
 
 Clipper::Plane Clipper::viewFrustumPlanes[6] = {

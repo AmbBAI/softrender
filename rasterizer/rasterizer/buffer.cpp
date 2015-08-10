@@ -1,5 +1,5 @@
 #include "buffer.h"
-using namespace rasterizer;
+using namespace sr;
 
 const int Buffer::PAGE_SIZE_MAX = (1 << 20);
 

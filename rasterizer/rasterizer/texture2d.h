@@ -6,7 +6,7 @@
 #include "math/color.h"
 #include "math/vector2.h"
 
-namespace rasterizer
+namespace sr
 {
 
 class Texture2D;

@@ -3,7 +3,7 @@
 
 #include "header.h"
 
-namespace rasterizer
+namespace sr
 {
 
 class Input;

@@ -6,7 +6,7 @@
 #include "math/vector4.h"
 #include "math/mathf.h"
 
-namespace rasterizer
+namespace sr
 {
 
 struct LightInput

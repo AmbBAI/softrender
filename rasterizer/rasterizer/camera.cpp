@@ -1,7 +1,7 @@
 #include "camera.h"
 #include "math/mathf.h"
 
-namespace rasterizer
+namespace sr
 {
 
 //void Camera::SetLookAt(const Vector3& eye, const Vector3& target, const Vector3& up)

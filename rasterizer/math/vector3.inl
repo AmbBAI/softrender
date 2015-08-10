@@ -3,7 +3,7 @@
 
 #include "mathf.h"
 
-namespace rasterizer
+namespace sr
 {
 
 float Vector3::Length() const { return Mathf::Sqrt(SqrLength()); }

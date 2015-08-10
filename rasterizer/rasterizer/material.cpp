@@ -1,6 +1,6 @@
 #include "material.h"
 
-namespace rasterizer {
+namespace sr {
 
 void Material::LoadMaterial(std::vector<MaterialPtr>& materials, const std::vector<tinyobj::material_t>& objMaterials, const char* fileDir)
 {

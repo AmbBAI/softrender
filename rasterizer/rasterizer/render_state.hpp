@@ -4,7 +4,7 @@
 #include "base/header.h"
 #include "math/color.h"
 
-namespace rasterizer
+namespace sr
 {
 
 struct RenderState

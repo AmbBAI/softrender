@@ -1,6 +1,6 @@
 #include "cubemap.h"
 
-using namespace rasterizer;
+using namespace sr;
 
 Color Cubemap::Sample(const Vector3& s)
 {

@@ -4,7 +4,7 @@
 #include "vector3.h"
 #include "vector4.h"
 
-namespace rasterizer {
+namespace sr {
     
 const float Mathf::epsilon = FLT_EPSILON;
 const float Mathf::inifinity = FLT_MAX;

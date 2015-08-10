@@ -4,7 +4,7 @@
 #include "base/header.h"
 #include "math/vector3.h"
 
-namespace rasterizer
+namespace sr
 {
 
 struct Vector4

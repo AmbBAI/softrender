@@ -3,7 +3,7 @@
 
 #include "math/mathf.h"
 
-namespace rasterizer
+namespace sr
 {
     
 ColorRGB ColorRGB::operator +(const ColorRGB& v) const { return ColorRGB(r + v.r, g + v.g, b + v.b); }

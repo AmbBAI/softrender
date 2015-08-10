@@ -1,5 +1,5 @@
 #include "object_utilities.h"
-using namespace rasterizer;
+using namespace sr;
 
 MeshPtr CreatePlane()
 {

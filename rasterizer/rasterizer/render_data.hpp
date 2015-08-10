@@ -9,7 +9,7 @@
 #include "math/matrix4x4.h"
 #include "rasterizer/buffer.h"
 
-namespace rasterizer
+namespace sr
 {
 
 class RenderData

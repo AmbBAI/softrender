@@ -1,6 +1,6 @@
 #include "input.h"
 
-namespace rasterizer
+namespace sr
 {
 
 Input::Input(GLFWwindow* window)

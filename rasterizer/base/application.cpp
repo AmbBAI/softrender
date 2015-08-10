@@ -1,7 +1,7 @@
 #include "application.h"
 #include "input.h"
 
-namespace rasterizer
+namespace sr
 {
 
 Application* Application::GetInstance()

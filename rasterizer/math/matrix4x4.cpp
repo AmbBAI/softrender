@@ -1,7 +1,7 @@
 #include "matrix4x4.h"
 #include "math/mathf.h"
 
-namespace rasterizer
+namespace sr
 {
 
 const Matrix4x4 Matrix4x4::identity = Matrix4x4(Vector3(0.f, 0.f, 0.f), Quaternion(0.f, 0.f, 0.f, 1.f), Vector3(1.f, 1.f, 1.f));

@@ -1,5 +1,5 @@
-#include "rasterizer.h"
-using namespace rasterizer;
+#include "softrender.h"
+using namespace sr;
 
 Application* app;
 
@@ -20,17 +20,17 @@ void TestColor(BitmapPtr& canvas)
 
 void MainLoop()
 {
-	Rasterizer::Clear(false, true, Color(1.f, 0.19f, 0.3f, 0.47f));
-	auto& canvas = Rasterizer::GetRenderTarget()->GetColorBuffer();
+	SoftRender::Clear(false, true, Color(1.f, 0.19f, 0.3f, 0.47f));
+	auto& canvas = SoftRender::GetRenderTarget()->GetColorBuffer();
 	TestColor(canvas);
-	Rasterizer::Present();
+	SoftRender::Present();
 }
 
 int main(int argc, char *argv[])
 {
 	app = Application::GetInstance();
 	app->CreateApplication("hello", 512, 512);
-	Rasterizer::Initialize(512, 512);
+	SoftRender::Initialize(512, 512);
 	app->SetRunLoop(MainLoop);
 	app->RunLoop();
 	return 0;

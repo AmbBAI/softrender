@@ -1,5 +1,5 @@
-#include "rasterizer.h"
-using namespace rasterizer;
+#include "softrender.h"
+using namespace sr;
 
 Application* app;
 
@@ -40,18 +40,18 @@ void MainLoop()
 		// tex->GenerateMipmaps();
 	}
 
-	Rasterizer::Clear(false, false, Color(1.f, 0.19f, 0.3f, 0.47f));
+	SoftRender::Clear(false, false, Color(1.f, 0.19f, 0.3f, 0.47f));
 
-	auto& canvas = Rasterizer::GetRenderTarget()->GetColorBuffer();
+	auto& canvas = SoftRender::GetRenderTarget()->GetColorBuffer();
 	DrawTexture(canvas, Vector4(0, 0, 512, 512), *tex, 0);
-	Rasterizer::Present();
+	SoftRender::Present();
 }
 
 int main(int argc, char *argv[])
 {
 	app = Application::GetInstance();
 	app->CreateApplication("image", 512, 512);
-	Rasterizer::Initialize(512, 512);
+	SoftRender::Initialize(512, 512);
 	app->SetRunLoop(MainLoop);
 	app->RunLoop();
 	return 0;

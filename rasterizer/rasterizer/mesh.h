@@ -9,7 +9,7 @@
 
 #include "tinyobjloader/tiny_obj_loader.h"
 
-namespace rasterizer
+namespace sr
 {
 
 struct Mesh;

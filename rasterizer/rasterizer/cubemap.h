@@ -6,7 +6,7 @@
 #include "math/vector2.h"
 #include "math/vector3.h"
 
-namespace rasterizer
+namespace sr
 {
 
 class Cubemap;

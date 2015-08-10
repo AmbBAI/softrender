@@ -1,6 +1,6 @@
 #include "bitmap.h"
 #include "../thirdpart/freeimage/FreeImage.h"
-using namespace rasterizer;
+using namespace sr;
 
 Bitmap::Bitmap(int width, int height, BitmapType type)
 {
@@ -110,13 +110,13 @@ float Bitmap::GetAlpha(int x, int y) const
 
 	switch (type)
 	{
-	case rasterizer::Bitmap::BitmapType_Alpha8:
+	case sr::Bitmap::BitmapType_Alpha8:
 		return GetPixel_Alpha8(x, y) / 255.f;
-	case rasterizer::Bitmap::BitmapType_RGB24:
+	case sr::Bitmap::BitmapType_RGB24:
 		return 1.f;
-	case rasterizer::Bitmap::BitmapType_RGBA32:
+	case sr::Bitmap::BitmapType_RGBA32:
 		return *(uint8_t*)(bytes + (y * width + x) * 4 + 3) / 255.f;
-	case rasterizer::Bitmap::BitmapType_AlphaFloat:
+	case sr::Bitmap::BitmapType_AlphaFloat:
 		return GetPixel_AlphaFloat(x, y);
 	default:
 		return 1.f;
@@ -148,16 +148,16 @@ void Bitmap::SetPixel(int x, int y, const Color& color)
 	assert(y >= 0 && y < height);
 	switch (type)
 	{
-	case rasterizer::Bitmap::BitmapType_Alpha8:
+	case sr::Bitmap::BitmapType_Alpha8:
 		SetPixel_Alpha8(x, y, Color32(color).a);
 		break;
-	case rasterizer::Bitmap::BitmapType_RGB24:
+	case sr::Bitmap::BitmapType_RGB24:
 		SetPixel_RGB24(x, y, color);
 		break;
-	case rasterizer::Bitmap::BitmapType_RGBA32:
+	case sr::Bitmap::BitmapType_RGBA32:
 		SetPixel_RGBA32(x, y, color);
 		break;
-	case rasterizer::Bitmap::BitmapType_AlphaFloat:
+	case sr::Bitmap::BitmapType_AlphaFloat:
 		SetPixel_AlphaFloat(x, y, color.a);
 		break;
 	default:
@@ -171,15 +171,15 @@ void Bitmap::SetAlpha(int x, int y, float alpha)
 	assert(y >= 0 && y < height);
 	switch (type)
 	{
-	case rasterizer::Bitmap::BitmapType_Alpha8:
+	case sr::Bitmap::BitmapType_Alpha8:
 		SetPixel_Alpha8(x, y, (uint8_t)(Mathf::Clamp01(alpha) * 255.f));
 		break;
-	case rasterizer::Bitmap::BitmapType_RGB24:
+	case sr::Bitmap::BitmapType_RGB24:
 		break;
-	case rasterizer::Bitmap::BitmapType_RGBA32:
+	case sr::Bitmap::BitmapType_RGBA32:
 		*(uint8_t*)(bytes + (y * width + x) * 4 + 3) = (uint8_t)(Mathf::Clamp01(alpha) * 255.f);
 		break;
-	case rasterizer::Bitmap::BitmapType_AlphaFloat:
+	case sr::Bitmap::BitmapType_AlphaFloat:
 		SetPixel_AlphaFloat(x, y, alpha);
 		break;
 	default:
@@ -193,11 +193,11 @@ void Bitmap::Fill(const Color& color)
 
 	switch (type)
 	{
-	case rasterizer::Bitmap::BitmapType_Alpha8:
+	case sr::Bitmap::BitmapType_Alpha8:
 		std::memset(bytes, Color32(color).a, width * height);
 		//std::fill_n((uint8_t*)bytes, width * height, Color32(color).a);
 		break;
-	case rasterizer::Bitmap::BitmapType_RGB24:
+	case sr::Bitmap::BitmapType_RGB24:
 		{
 			Color32 c32 = color;
 			for (int i = 0; i < width * height; ++i)
@@ -209,10 +209,10 @@ void Bitmap::Fill(const Color& color)
 			}
 		}
 		break;
-	case rasterizer::Bitmap::BitmapType_RGBA32:
+	case sr::Bitmap::BitmapType_RGBA32:
 		std::fill_n((uint32_t*)bytes, width * height, Color32(color).rgba);
 		break;
-	case rasterizer::Bitmap::BitmapType_AlphaFloat:
+	case sr::Bitmap::BitmapType_AlphaFloat:
 		std::fill_n((float*)bytes, width * height, color.a);
 		break;
 	default:
@@ -268,7 +268,7 @@ BitmapPtr Bitmap::LoadFromFile(const char* file)
 
 	switch (bitmap->type)
 	{
-	case rasterizer::Bitmap::BitmapType_RGB24:
+	case sr::Bitmap::BitmapType_RGB24:
 	{
 		rawptr_t bitmapPtr = bitmap->bytes;
 		for (int i = 0; i < width * height; ++i)
@@ -278,7 +278,7 @@ BitmapPtr Bitmap::LoadFromFile(const char* file)
 		}
 	}
 	break;
-	case rasterizer::Bitmap::BitmapType_RGBA32:
+	case sr::Bitmap::BitmapType_RGBA32:
 	{
 		rawptr_t bitmapPtr = bitmap->bytes;
 		for (int i = 0; i < width * height; ++i)
@@ -298,9 +298,9 @@ bool Bitmap::SaveToFile(const char* file)
 {
 	switch (type)
 	{
-	case rasterizer::Bitmap::BitmapType_Unknown:
+	case sr::Bitmap::BitmapType_Unknown:
 		return false;
-	case rasterizer::Bitmap::BitmapType_Alpha8:
+	case sr::Bitmap::BitmapType_Alpha8:
 	{
 		FIBITMAP* fiBitmap = FreeImage_AllocateT(FIT_BITMAP, width, height, 8);
 		if (fiBitmap == nullptr) return false;
@@ -311,7 +311,7 @@ bool Bitmap::SaveToFile(const char* file)
 		fiBitmap = nullptr;
 		return ret;
 	}
-	case rasterizer::Bitmap::BitmapType_RGB24:
+	case sr::Bitmap::BitmapType_RGB24:
 	{
 		FIBITMAP* fiBitmap = FreeImage_AllocateT(FIT_BITMAP, width, height, 24);
 		if (fiBitmap == nullptr) return false;
@@ -327,7 +327,7 @@ bool Bitmap::SaveToFile(const char* file)
 		fiBitmap = nullptr;
 		return ret;
 	}
-	case rasterizer::Bitmap::BitmapType_RGBA32:
+	case sr::Bitmap::BitmapType_RGBA32:
 	{
 		FIBITMAP* fiBitmap = FreeImage_AllocateT(FIT_BITMAP, width, height, 32);
 		if (fiBitmap == nullptr) return false;
@@ -343,7 +343,7 @@ bool Bitmap::SaveToFile(const char* file)
 		fiBitmap = nullptr;
 		return ret;
 	}
-	case rasterizer::Bitmap::BitmapType_AlphaFloat:
+	case sr::Bitmap::BitmapType_AlphaFloat:
 	{
 		FIBITMAP* fiBitmap = FreeImage_AllocateT(FIT_FLOAT, width, height, 32);
 		if (fiBitmap == nullptr) return false;

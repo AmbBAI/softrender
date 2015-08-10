@@ -1,7 +1,7 @@
-#include "rasterizer.h"
+#include "softrender.h"
 #include "transform_controller.hpp"
 #include "object_utilities.h"
-using namespace rasterizer;
+using namespace sr;
 
 Application* app;
 
@@ -11,7 +11,7 @@ int main(int argc, char *argv[])
 {
 	app = Application::GetInstance();
 	app->CreateApplication("plane", 800, 600);
-	Rasterizer::Initialize(800, 600);
+	SoftRender::Initialize(800, 600);
 	app->SetRunLoop(MainLoop);
 	app->RunLoop();
 	return 0;
@@ -101,7 +101,7 @@ void MainLoop()
 		camera->transform.position = Vector3(0.f, 0.f, -2.f);
 		//camera->SetOrthographic(-2.f, 2.f, -1.5f, 1.5f, 0.f, 4.f);
 		//camera->transform.position = Vector3(0.f, 1.f, 0.f);
-		Rasterizer::camera = camera;
+		SoftRender::camera = camera;
 
 		MaterialPtr material = MaterialPtr(new Material());
 		material->diffuseTexture = Texture2D::LoadTexture("resources/crytek-sponza/textures/spnza_bricks_a_diff.tga");
@@ -126,14 +126,14 @@ void MainLoop()
 		for (auto idx : mesh->indices) meshW.indices.emplace_back((uint16_t)idx);
     }
 
-	Rasterizer::Clear(true, true, Color(1.f, 0.19f, 0.3f, 0.47f));
+	SoftRender::Clear(true, true, Color(1.f, 0.19f, 0.3f, 0.47f));
 
 	objectCtrl.MouseRotate(objectTrans, false);
-	Rasterizer::modelMatrix = objectTrans.localToWorldMatrix();
-	Rasterizer::renderData.AssignVertexBuffer(meshW.vertices);
-	Rasterizer::renderData.AssignIndexBuffer(meshW.indices);
-	Rasterizer::SetShader(objectShader);
-	Rasterizer::Submit();
+	SoftRender::modelMatrix = objectTrans.localToWorldMatrix();
+	SoftRender::renderData.AssignVertexBuffer(meshW.vertices);
+	SoftRender::renderData.AssignIndexBuffer(meshW.indices);
+	SoftRender::SetShader(objectShader);
+	SoftRender::Submit();
 
-    Rasterizer::Present();
+    SoftRender::Present();
 }

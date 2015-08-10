@@ -23,7 +23,7 @@
 #include "rasterizer/shader.hpp"
 #include "rasterizer/shaderf.hpp"
 
-namespace rasterizer
+namespace sr
 {
 
 struct RasterizerInfo
@@ -46,7 +46,7 @@ struct Rasterizer2x2Info
 #endif
 };
 
-struct Rasterizer
+struct SoftRender
 {
 	static RenderState renderState;
 	static RenderData renderData;

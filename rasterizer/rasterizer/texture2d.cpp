@@ -3,7 +3,7 @@
 #include "freeimage/FreeImage.h"
 #include "sampler.hpp"
 
-namespace rasterizer
+namespace sr
 {
 
 Texture2D::SampleFunc Texture2D::sampleFunc[2][AddressModeCount][AddressModeCount] = {

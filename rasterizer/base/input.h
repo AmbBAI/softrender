@@ -5,7 +5,7 @@
 #include "application.h"
 #include "math/vector2.h"
 
-namespace rasterizer
+namespace sr
 {
 
 class Input

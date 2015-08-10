@@ -1,7 +1,7 @@
 #include "render_texture.h"
 #include "math/mathf.h"
 #include "freeimage/FreeImage.h"
-using namespace rasterizer;
+using namespace sr;
 
 
 RenderTexture::RenderTexture(int width, int height)

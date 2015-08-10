@@ -1,7 +1,7 @@
-#include "rasterizer.h"
+#include "softrender.h"
 #include "transform_controller.hpp"
 #include "object_utilities.h"
-using namespace rasterizer;
+using namespace sr;
 
 Application* app;
 
@@ -11,7 +11,7 @@ int main(int argc, char *argv[])
 {
 	app = Application::GetInstance();
 	app->CreateApplication("sponza", 800, 600);
-	Rasterizer::Initialize(800, 600);
+	SoftRender::Initialize(800, 600);
 	app->SetRunLoop(MainLoop);
 	app->RunLoop();
 	return 0;
@@ -191,15 +191,15 @@ void MainLoop()
 		//camera->SetOrthographic(-800.f, 800.f, -600.f, 600.f, 0.3f, 4000.f);
 		//camera->transform = Vector3(0.f, 400.f, 0.f);
 		//camera->transform = Quaternion(Vector3(0.f, -90.f, 0.f));
-		Rasterizer::camera = camera;
+		SoftRender::camera = camera;
 
 		light->type = Light::LightType_Directional;
 		light->transform.position = Vector3(0, 300, 0);
 		light->transform.rotation = Quaternion(Vector3(60.f, -45.f, 0.f));
 		light->Initilize();
-		Rasterizer::light = light;
+		SoftRender::light = light;
 
-		Rasterizer::SetShader(sceneShader);
+		SoftRender::SetShader(sceneShader);
 
 		std::vector<MeshPtr> meshes;
         LoadSponzaMesh(meshes, sceneTrans);
@@ -230,7 +230,7 @@ void MainLoop()
 			meshData.push_back(meshWapper);
 		}
 
-		Rasterizer::modelMatrix = sceneTrans.localToWorldMatrix();
+		SoftRender::modelMatrix = sceneTrans.localToWorldMatrix();
 		sceneWorldBox.emplace_back(-1000.f, 0.f, -2000.f);
 		sceneWorldBox.emplace_back(-1000.f, 0.f, 2000.f);
 		sceneWorldBox.emplace_back(-1000.f, 1000.f, -2000.f);
@@ -251,23 +251,23 @@ void MainLoop()
 	Matrix4x4 cameraVM = camera->viewMatrix();
 	Matrix4x4 cameraPM = camera->projectionMatrix();
 
-	Rasterizer::SetRenderTarget(shadowMap);
-	Rasterizer::Clear(true, false, Color::black);
+	SoftRender::SetRenderTarget(shadowMap);
+	SoftRender::Clear(true, false, Color::black);
 
 	Matrix4x4 cameraVPIM = (cameraPM * cameraVM).Inverse();
 	CameraPtr virtualCamera = light->BuildShadowMapVirtualCamera(cameraVPIM, sceneWorldBox);
 	Matrix4x4 lightVM = virtualCamera->viewMatrix();
 	Matrix4x4 lightPM = virtualCamera->projectionMatrix();
 
-	Rasterizer::camera = virtualCamera;
+	SoftRender::camera = virtualCamera;
 	
-	Rasterizer::SetShader(smPrePass);
-	Rasterizer::renderState.cull = RenderState::CullType_Off;
+	SoftRender::SetShader(smPrePass);
+	SoftRender::renderState.cull = RenderState::CullType_Off;
 
 	for (auto& meshWapper : meshData)
 	{
-		Rasterizer::renderData.AssignVertexBuffer(meshWapper.vertices);
-		Rasterizer::renderData.AssignIndexBuffer(meshWapper.indices);
+		SoftRender::renderData.AssignVertexBuffer(meshWapper.vertices);
+		SoftRender::renderData.AssignIndexBuffer(meshWapper.indices);
 
 		for (auto& materialTuple : meshWapper.materials)
 		{
@@ -275,25 +275,25 @@ void MainLoop()
 			int startIndex = std::get<1>(materialTuple);
 			int primitiveCount = std::get<2>(materialTuple);
 
-			Rasterizer::Submit(startIndex, primitiveCount);
+			SoftRender::Submit(startIndex, primitiveCount);
 		}
 	}
 
 
-	Rasterizer::SetRenderTarget(nullptr);
-	Rasterizer::Clear(true, true, Color(1.f, 0.19f, 0.3f, 0.47f));
+	SoftRender::SetRenderTarget(nullptr);
+	SoftRender::Clear(true, true, Color(1.f, 0.19f, 0.3f, 0.47f));
 
-	Rasterizer::camera = camera;
-	Rasterizer::SetShader(sceneShader);
+	SoftRender::camera = camera;
+	SoftRender::SetShader(sceneShader);
 	BitmapPtr bitmap = shadowMap->GetDepthBuffer();
 	sceneShader->shadowMap = Texture2D::CreateWithBitmap(bitmap);
 	sceneShader->lightVPM = lightPM * lightVM;
-	Rasterizer::renderState.cull = RenderState::CullType_Back;
+	SoftRender::renderState.cull = RenderState::CullType_Back;
 
 	for (auto& meshWapper : meshData)
 	{
-		Rasterizer::renderData.AssignVertexBuffer(meshWapper.vertices);
-		Rasterizer::renderData.AssignIndexBuffer(meshWapper.indices);
+		SoftRender::renderData.AssignVertexBuffer(meshWapper.vertices);
+		SoftRender::renderData.AssignIndexBuffer(meshWapper.indices);
 
 		for (auto& materialTuple : meshWapper.materials)
 		{
@@ -307,11 +307,11 @@ void MainLoop()
 			sceneShader->shininess = sceneShader->shininess;
 			sceneShader->alphaMaskTex = material->alphaMaskTexture;
 
-			Rasterizer::Submit(startIndex, primitiveCount);
+			SoftRender::Submit(startIndex, primitiveCount);
 		}
 	}
 
-    Rasterizer::Present();
+    SoftRender::Present();
 	//Rasterizer::GetRenderTarget()->GetDepthBuffer()->SaveToFile("depth.tiff");
 	//Rasterizer::GetRenderTarget()->GetColorBuffer()->SaveToFile("color.png");
 }

@@ -1,5 +1,5 @@
 #include "varying_data.h"
-using namespace rasterizer;
+using namespace sr;
 
 void VaryingDataBuffer::InitVerticesVaryingData(int vertexCount)
 {

@@ -3,7 +3,7 @@
 
 #include "base/header.h"
 
-namespace rasterizer
+namespace sr
 {
 
 struct Vector2

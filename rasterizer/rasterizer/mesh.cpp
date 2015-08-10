@@ -1,7 +1,7 @@
 #include "mesh.h"
 
 
-namespace rasterizer
+namespace sr
 {
 
 bool Mesh::LoadMesh(std::vector<MeshPtr>& meshes, const char* file)

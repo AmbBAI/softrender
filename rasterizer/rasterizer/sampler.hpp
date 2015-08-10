@@ -6,7 +6,7 @@
 #include "math/mathf.h"
 #include "rasterizer/texture2d.h"
 
-namespace rasterizer
+namespace sr
 {
 
 struct WarpAddresser

@@ -1,7 +1,7 @@
 #ifndef _MATH_MATHF_INLINE_
 #define _MATH_MATHF_INLINE_
 
-namespace rasterizer
+namespace sr
 {
 
 float Mathf::Abs(float f)

@@ -3,7 +3,7 @@
 
 #include "math/mathf.h"
 
-namespace rasterizer
+namespace sr
 {
 
 float Vector2::Length() const { return Mathf::Sqrt(x * x + y * y); }

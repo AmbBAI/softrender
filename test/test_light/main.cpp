@@ -1,7 +1,7 @@
-#include "rasterizer.h"
+#include "softrender.h"
 #include "transform_controller.hpp"
 #include "object_utilities.h"
-using namespace rasterizer;
+using namespace sr;
 
 Application* app;
 
@@ -11,7 +11,7 @@ int main(int argc, char *argv[])
 {
 	app = Application::GetInstance();
 	app->CreateApplication("light", 800, 600);
-	Rasterizer::Initialize(800, 600);
+	SoftRender::Initialize(800, 600);
 	app->SetRunLoop(MainLoop);
 	app->RunLoop();
 	return 0;
@@ -123,7 +123,7 @@ void MainLoop()
 		auto camera = CameraPtr(new Camera());
 		camera->SetPerspective(60.f, 1.33333f, 0.3f, 2000.f);
 		camera->transform.position = Vector3(0.f, 0.f, -2.f);
-		Rasterizer::camera = camera;
+		SoftRender::camera = camera;
 
 		lightRed = LightPtr(new Light());
 		lightRed->type = Light::LightType_Point;
@@ -181,24 +181,24 @@ void MainLoop()
 		}
     }
 
-	Rasterizer::Clear(true, true, Color(1.f, 0.19f, 0.3f, 0.47f));
+	SoftRender::Clear(true, true, Color(1.f, 0.19f, 0.3f, 0.47f));
 
 	objectCtrl.MouseRotate(objectTrans, false);
-	Rasterizer::modelMatrix = objectTrans.localToWorldMatrix();
-	Rasterizer::renderData.AssignVertexBuffer(meshW.vertices);
-	Rasterizer::renderData.AssignIndexBuffer(meshW.indices);
+	SoftRender::modelMatrix = objectTrans.localToWorldMatrix();
+	SoftRender::renderData.AssignVertexBuffer(meshW.vertices);
+	SoftRender::renderData.AssignIndexBuffer(meshW.indices);
 
-	Rasterizer::light = lightRed;
-	Rasterizer::renderState.alphaBlend = false;
-	Rasterizer::SetShader(forwardBaseShader);
-	Rasterizer::Submit();
+	SoftRender::light = lightRed;
+	SoftRender::renderState.alphaBlend = false;
+	SoftRender::SetShader(forwardBaseShader);
+	SoftRender::Submit();
 
-	Rasterizer::light = lightBlue;
-	Rasterizer::renderState.alphaBlend = true;
-	Rasterizer::renderState.srcFactor = RenderState::BlendFactor_One;
-	Rasterizer::renderState.dstFactor = RenderState::BlendFactor_One;
-	Rasterizer::SetShader(forwardAdditionShader);
-	Rasterizer::Submit();
+	SoftRender::light = lightBlue;
+	SoftRender::renderState.alphaBlend = true;
+	SoftRender::renderState.srcFactor = RenderState::BlendFactor_One;
+	SoftRender::renderState.dstFactor = RenderState::BlendFactor_One;
+	SoftRender::SetShader(forwardAdditionShader);
+	SoftRender::Submit();
 
-    Rasterizer::Present();
+    SoftRender::Present();
 }

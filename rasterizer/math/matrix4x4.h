@@ -6,7 +6,7 @@
 #include "math/vector4.h"
 #include "math/quaternion.h"
 
-namespace rasterizer
+namespace sr
 {
 struct Matrix4x4
 {

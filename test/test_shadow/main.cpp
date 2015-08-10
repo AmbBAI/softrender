@@ -1,7 +1,7 @@
-#include "rasterizer.h"
+#include "softrender.h"
 #include "transform_controller.hpp"
 #include "object_utilities.h"
-using namespace rasterizer;
+using namespace sr;
 
 Application* app;
 
@@ -11,7 +11,7 @@ int main(int argc, char *argv[])
 {
 	app = Application::GetInstance();
 	app->CreateApplication("shadow", 800, 600);
-	Rasterizer::Initialize(800, 600);
+	SoftRender::Initialize(800, 600);
 	app->SetRunLoop(MainLoop);
 	app->RunLoop();
 	return 0;
@@ -118,13 +118,13 @@ void MainLoop()
 
 		camera->SetPerspective(60.f, 1.33333f, 0.3f, 20.f);
 		camera->transform.position = Vector3(0.f, 0.f, -2.f);
-		Rasterizer::camera = camera;
+		SoftRender::camera = camera;
 
 		light->type = Light::LightType_Directional;
 		light->transform.position = Vector3(0, 0, 0);
 		light->transform.rotation = Quaternion(Vector3(45.f, -45.f, 0.f));
 		light->Initilize();
-		Rasterizer::light = light;
+		SoftRender::light = light;
 
 		planeTrans.position = Vector3(0.f, -1.f, 0.f);
 		planeTrans.rotation = Quaternion(Vector3(90.f, 0.f, 0.f));
@@ -164,8 +164,8 @@ void MainLoop()
 		objectM = objectTrans.localToWorldMatrix();
 	
 	//Render ShadowMap
-	Rasterizer::SetRenderTarget(shadowMap);
-	Rasterizer::Clear(true, false, Color::black);
+	SoftRender::SetRenderTarget(shadowMap);
+	SoftRender::Clear(true, false, Color::black);
 
 	Matrix4x4 cameraVM = camera->viewMatrix();
 	Matrix4x4 cameraPM = camera->projectionMatrix();
@@ -175,36 +175,36 @@ void MainLoop()
 	Matrix4x4 lightVM = lightCamera->viewMatrix();
 	Matrix4x4 lightPM = lightCamera->projectionMatrix();
 
-	Rasterizer::camera = lightCamera;
-	Rasterizer::SetShader(smPrePass);
-	Rasterizer::renderState.cull = RenderState::CullType_Off;
+	SoftRender::camera = lightCamera;
+	SoftRender::SetShader(smPrePass);
+	SoftRender::renderState.cull = RenderState::CullType_Off;
 	//Rasterizer::renderState.renderType = RenderState::RenderType_ShadowPrePass;
-	Rasterizer::modelMatrix = objectM;
-	Rasterizer::renderData.AssignVertexBuffer(objectMesh.vertices);
-	Rasterizer::renderData.AssignIndexBuffer(objectMesh.indices);
-	Rasterizer::Submit();
+	SoftRender::modelMatrix = objectM;
+	SoftRender::renderData.AssignVertexBuffer(objectMesh.vertices);
+	SoftRender::renderData.AssignIndexBuffer(objectMesh.indices);
+	SoftRender::Submit();
 
 	//Render Scene
-	Rasterizer::SetRenderTarget(nullptr);
-	Rasterizer::Clear(true, true, Color(1.f, 0.19f, 0.3f, 0.47f));
+	SoftRender::SetRenderTarget(nullptr);
+	SoftRender::Clear(true, true, Color(1.f, 0.19f, 0.3f, 0.47f));
 
-	Rasterizer::camera = camera;
+	SoftRender::camera = camera;
 	BitmapPtr bitmap = shadowMap->GetDepthBuffer();
 	objectShader->shadowMap = Texture2D::CreateWithBitmap(bitmap);
 	objectShader->lightVPM = lightPM * lightVM;
-	Rasterizer::SetShader(objectShader);
-	Rasterizer::renderState.cull = RenderState::CullType_Back;
+	SoftRender::SetShader(objectShader);
+	SoftRender::renderState.cull = RenderState::CullType_Back;
 	//Rasterizer::renderState.renderType = RenderState::RenderType_Stardand;
 
-	Rasterizer::modelMatrix = planeTrans.localToWorldMatrix();
-	Rasterizer::renderData.AssignVertexBuffer(planeMesh.vertices);
-	Rasterizer::renderData.AssignIndexBuffer(planeMesh.indices);
-	Rasterizer::Submit();
+	SoftRender::modelMatrix = planeTrans.localToWorldMatrix();
+	SoftRender::renderData.AssignVertexBuffer(planeMesh.vertices);
+	SoftRender::renderData.AssignIndexBuffer(planeMesh.indices);
+	SoftRender::Submit();
 
-	Rasterizer::modelMatrix = objectTrans.localToWorldMatrix();
-	Rasterizer::renderData.AssignVertexBuffer(objectMesh.vertices);
-	Rasterizer::renderData.AssignIndexBuffer(objectMesh.indices);
-	Rasterizer::Submit();
+	SoftRender::modelMatrix = objectTrans.localToWorldMatrix();
+	SoftRender::renderData.AssignVertexBuffer(objectMesh.vertices);
+	SoftRender::renderData.AssignIndexBuffer(objectMesh.indices);
+	SoftRender::Submit();
 
-    Rasterizer::Present();
+    SoftRender::Present();
 }

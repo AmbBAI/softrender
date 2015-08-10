@@ -6,7 +6,7 @@
 #include "math/transform.h"
 #include "math/matrix4x4.h"
 
-namespace rasterizer
+namespace sr
 {
 
 struct Camera;

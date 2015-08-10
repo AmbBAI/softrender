@@ -8,7 +8,7 @@
 #include "math/mathf.h"
 #include "shader.hpp"
 
-namespace rasterizer
+namespace sr
 {
 
 struct ShaderF

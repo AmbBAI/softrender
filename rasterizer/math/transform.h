@@ -6,7 +6,7 @@
 #include "math/vector3.h"
 #include "math/quaternion.h"
 
-namespace rasterizer {
+namespace sr {
 
 struct Transform
 {

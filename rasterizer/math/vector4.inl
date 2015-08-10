@@ -3,7 +3,7 @@
 
 #include "math/mathf.h"
 
-namespace rasterizer
+namespace sr
 {
 
 Vector4 Vector4::operator +() const { return *this; }

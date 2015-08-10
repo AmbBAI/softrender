@@ -5,7 +5,7 @@
 #include "math/color.h"
 #include "math/vector3.h"
 
-namespace rasterizer
+namespace sr
 {
 
 struct Light;

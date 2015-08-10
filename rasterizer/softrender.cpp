@@ -1,24 +1,24 @@
-#include "rasterizer.h"
+#include "softrender.h"
 
-namespace rasterizer
+namespace sr
 {
 
-CameraPtr Rasterizer::camera = nullptr;
-LightPtr Rasterizer::light = nullptr;
-ShaderPtr Rasterizer::shader = nullptr;
-RenderTexturePtr Rasterizer::defaultRenderTarget = nullptr;
-RenderTexturePtr Rasterizer::renderTarget = nullptr;
-BitmapPtr Rasterizer::colorBuffer = nullptr;
-BitmapPtr Rasterizer::depthBuffer = nullptr;
-Matrix4x4 Rasterizer::modelMatrix;
+CameraPtr SoftRender::camera = nullptr;
+LightPtr SoftRender::light = nullptr;
+ShaderPtr SoftRender::shader = nullptr;
+RenderTexturePtr SoftRender::defaultRenderTarget = nullptr;
+RenderTexturePtr SoftRender::renderTarget = nullptr;
+BitmapPtr SoftRender::colorBuffer = nullptr;
+BitmapPtr SoftRender::depthBuffer = nullptr;
+Matrix4x4 SoftRender::modelMatrix;
 //Matrix4x4 Rasterizer::viewMatrix;
 //Matrix4x4 Rasterizer::projectionMatrix;
-RenderState Rasterizer::renderState;
-RenderData Rasterizer::renderData;
-VaryingDataBuffer Rasterizer::varyingDataBuffer;
+RenderState SoftRender::renderState;
+RenderData SoftRender::renderData;
+VaryingDataBuffer SoftRender::varyingDataBuffer;
 
 
-void Rasterizer::Initialize(int width, int height)
+void SoftRender::Initialize(int width, int height)
 {
     Texture2D::Initialize();
 
@@ -26,7 +26,7 @@ void Rasterizer::Initialize(int width, int height)
 	SetRenderTarget(defaultRenderTarget);
 }
 
-void Rasterizer::SetRenderTarget(RenderTexturePtr target)
+void SoftRender::SetRenderTarget(RenderTexturePtr target)
 {
 	if (target == nullptr) renderTarget = defaultRenderTarget;
 	else renderTarget = target;
@@ -35,12 +35,12 @@ void Rasterizer::SetRenderTarget(RenderTexturePtr target)
 	depthBuffer = renderTarget->GetDepthBuffer();
 }
 
-RenderTexturePtr Rasterizer::GetRenderTarget()
+RenderTexturePtr SoftRender::GetRenderTarget()
 {
 	return renderTarget;
 }
 
-void Rasterizer::DrawLine(int x0, int x1, int y0, int y1, const Color32& color)
+void SoftRender::DrawLine(int x0, int x1, int y0, int y1, const Color32& color)
 {
 	bool steep = Mathf::Abs(y1 - y0) > Mathf::Abs(x1 - x0);
 	if (steep)
@@ -78,7 +78,7 @@ int Orient2D(int x0, int y0, int x1, int y1, int x2, int y2)
 }
 
 template<typename DrawDataType>
-void Rasterizer::RasterizerTriangle(
+void SoftRender::RasterizerTriangle(
 	Triangle<Projection> projection, Render2x2Func<DrawDataType> renderFunc, const DrawDataType& renderData)
 {
 	const Projection& p0 = projection.v0;
@@ -222,7 +222,7 @@ void Rasterizer::RasterizerTriangle(
 	}
 }
 
-void Rasterizer::Submit(int startIndex/* = 0*/, int primitiveCount/* = 0*/)
+void SoftRender::Submit(int startIndex/* = 0*/, int primitiveCount/* = 0*/)
 {
 	assert(camera != nullptr);
 
@@ -349,15 +349,15 @@ void Rasterizer::Submit(int startIndex/* = 0*/, int primitiveCount/* = 0*/)
 	*/
 }
 
-void Rasterizer::SetShader(ShaderPtr shader)
+void SoftRender::SetShader(ShaderPtr shader)
 {
 	assert(shader != nullptr);
-	Rasterizer::shader = shader;
+	SoftRender::shader = shader;
 
 	varyingDataBuffer.SetVaryingDataDecl(shader->varyingDataDecl, shader->varyingDataSize);
 }
 
-void Rasterizer::RasterizerRenderFunc(const VertexVaryingData& data, const RasterizerInfo& info)
+void SoftRender::RasterizerRenderFunc(const VertexVaryingData& data, const RasterizerInfo& info)
 {
 	int x = info.x;
 	int y = info.y;
@@ -379,7 +379,7 @@ void Rasterizer::RasterizerRenderFunc(const VertexVaryingData& data, const Raste
 	}
 }
 
-void Rasterizer::Rasterizer2x2RenderFunc(const Triangle<VertexVaryingData>& data, const Rasterizer2x2Info& quad)
+void SoftRender::Rasterizer2x2RenderFunc(const Triangle<VertexVaryingData>& data, const Rasterizer2x2Info& quad)
 {
 	static int quadX[4] = { 0, 1, 0, 1 };
 	static int quadY[4] = { 0, 0, 1, 1 };
@@ -416,7 +416,7 @@ void Rasterizer::Rasterizer2x2RenderFunc(const Triangle<VertexVaryingData>& data
 	}
 }
 
-bool Rasterizer::InitShaderLightParams(ShaderPtr shader, const LightPtr& light)
+bool SoftRender::InitShaderLightParams(ShaderPtr shader, const LightPtr& light)
 {
 	if (light == nullptr)
 	{
@@ -449,13 +449,13 @@ bool Rasterizer::InitShaderLightParams(ShaderPtr shader, const LightPtr& light)
 	return true;
 }
 
-void Rasterizer::Clear(bool clearDepth, bool clearColor, const Color& backgroundColor, float depth /*= 1.0f*/)
+void SoftRender::Clear(bool clearDepth, bool clearColor, const Color& backgroundColor, float depth /*= 1.0f*/)
 {
 	if (clearColor) colorBuffer->Fill(backgroundColor);
 	if (clearDepth) depthBuffer->Fill(Color(depth, 0.f, 0.f, 0.f));
 }
 
-void Rasterizer::Present()
+void SoftRender::Present()
 {
 	int width = colorBuffer->GetWidth();
 	int height = colorBuffer->GetHeight();

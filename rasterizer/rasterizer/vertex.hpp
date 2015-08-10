@@ -8,7 +8,7 @@
 #include "math/mathf.h"
 #include "rasterizer/clipper.hpp"
 
-namespace rasterizer
+namespace sr
 {
 
 struct Projection
