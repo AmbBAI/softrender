@@ -53,7 +53,7 @@ struct Vector3
 	static const Vector3 left;
 };
 
-} // namespace rasterizer
+} // namespace sr
 
 #include "vector3.inl"
 

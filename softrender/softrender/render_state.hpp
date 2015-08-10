@@ -113,6 +113,6 @@ struct RenderState
 };
 
 
-} // namespace rasterizer
+} // namespace sr
 
 #endif // !_SOFTRENDER_RENDER_STATE_H_

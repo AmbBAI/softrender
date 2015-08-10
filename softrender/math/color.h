@@ -111,7 +111,7 @@ struct Color32
 	static const Color32 black;
 };
 
-} // namespace rasterizer
+} // namespace sr
 
 #include "color.inl"
 

@@ -2,11 +2,11 @@
 #define _SOFTRENDER_VARYING_DATA_H_
 
 #include "base/header.h"
-#include "softrender/vertex.hpp"
 #include "math/vector2.h"
 #include "math/vector3.h"
 #include "math/vector4.h"
 #include "math/matrix4x4.h"
+#include "softrender/srtypes.hpp"
 #include "softrender/buffer.h"
 
 namespace sr
@@ -104,6 +104,6 @@ private:
 	Buffer pixelVaryingDataBuffer;
 };
 
-} // namespace rasterizer
+} // namespace sr
 
 #endif // !_SOFTRENDER_VARYING_DATA_H_

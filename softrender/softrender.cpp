@@ -40,11 +40,6 @@ RenderTexturePtr SoftRender::GetRenderTarget()
 	return renderTarget;
 }
 
-int Orient2D(int x0, int y0, int x1, int y1, int x2, int y2)
-{
-	return (x1 - x0) * (y2 - y1) - (y1 - y0) * (x2 - x1);
-}
-
 void SoftRender::Submit(int startIndex/* = 0*/, int primitiveCount/* = 0*/)
 {
 	assert(camera != nullptr);
@@ -111,7 +106,7 @@ void SoftRender::Submit(int startIndex/* = 0*/, int primitiveCount/* = 0*/)
 			projection.v1 = Projection::CalculateViewProjection(triangle.v1.position, width, height);
 			projection.v2 = Projection::CalculateViewProjection(triangle.v2.position, width, height);
 
-			int ret = Orient2D(projection.v0.x, projection.v0.y, projection.v2.x, projection.v2.y, projection.v1.x, projection.v1.y);
+			int ret = Projection::Orient2D(projection.v0, projection.v2, projection.v1);
 			switch (renderState.cull)
 			{
 			case RenderState::CullType_Front:

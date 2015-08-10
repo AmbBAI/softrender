@@ -201,6 +201,6 @@ struct Shader : IShader
 	}
 };
 
-} // namespace rasterizer
+} // namespace sr
 
 #endif //! _SOFTRENDER_SHADER_HPP_

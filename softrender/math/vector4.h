@@ -47,7 +47,7 @@ struct Vector4
 
 };
 
-} // namespace rasterizer
+} // namespace sr
 
 #include "vector4.inl"
 

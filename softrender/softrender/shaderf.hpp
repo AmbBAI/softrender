@@ -62,6 +62,6 @@ struct ShaderF
 
 };
 
-} // namespace rasterizer
+} // namespace sr
 
 #endif //! _SOFTRENDER_SHADERF_H_

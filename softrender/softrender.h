@@ -18,7 +18,7 @@
 #include "softrender/render_data.hpp"
 #include "softrender/varying_data.h"
 #include "softrender/clipper.hpp"
-#include "softrender/vertex.hpp"
+#include "softrender/srtypes.hpp"
 #include "softrender/light.hpp"
 #include "softrender/shader.hpp"
 #include "softrender/shaderf.hpp"

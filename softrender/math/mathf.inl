@@ -303,6 +303,6 @@ float Mathf::Terp(float a, float b, float c, float x, float y, float z)
 }
 
 
-} // namespace rasterizer
+} // namespace sr
 
 #endif // !_MATH_MATHF_INLINE_

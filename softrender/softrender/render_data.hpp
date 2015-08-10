@@ -2,11 +2,11 @@
 #define _SOFTRENDER_RENDER_DATA_HPP_
 
 #include "base/header.h"
-#include "softrender/vertex.hpp"
 #include "math/vector2.h"
 #include "math/vector3.h"
 #include "math/vector4.h"
 #include "math/matrix4x4.h"
+#include "softrender/srtypes.hpp"
 #include "softrender/buffer.h"
 
 namespace sr
@@ -117,6 +117,6 @@ private:
 	int indexCount = 0;
 };
 
-} // namespace rasterizer
+} // namespace sr
 
 #endif // !_SOFTRENDER_RENDER_DATA_HPP_

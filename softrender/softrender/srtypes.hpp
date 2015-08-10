@@ -1,5 +1,5 @@
-#ifndef _SOFTRENDER_VERTEX_HPP_
-#define _SOFTRENDER_VERTEX_HPP_
+#ifndef _SOFTRENDER_SRTYPES_HPP_
+#define _SOFTRENDER_SRTYPES_HPP_
 
 #include "base/header.h"
 #include "math/vector2.h"
@@ -30,6 +30,16 @@ struct Projection
 		point.z = position.z * invW;
 		point.invW = invW;
 		return point;
+	}
+
+	static int Orient2D(int x0, int y0, int x1, int y1, int x2, int y2)
+	{
+		return (x1 - x0) * (y2 - y1) - (y1 - y0) * (x2 - x1);
+	}
+
+	static int Orient2D(const Projection& p0, const Projection& p1, const Projection& p2)
+	{
+		return Orient2D(p0.x, p0.y, p1.x, p1.y, p2.x, p2.y);
 	}
 };
 
@@ -137,4 +147,4 @@ struct Quad
 
 }
 
-#endif //! _SOFTRENDER_VERTEX_HPP_
+#endif //! _SOFTRENDER_SRTYPES_HPP_

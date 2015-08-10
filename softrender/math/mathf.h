@@ -99,7 +99,7 @@ public:
 	static inline float Atan2(float y, float x);
 };
 
-} // namespace rasterizer
+} // namespace sr
 
 
 #include "mathf.inl"

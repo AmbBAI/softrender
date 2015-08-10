@@ -4,6 +4,7 @@
 #include "base/header.h"
 #include "math/mathf.h"
 #include "math/color.h"
+#include "softrender/srtypes.hpp"
 
 namespace sr
 {
@@ -106,9 +107,9 @@ public:
 		int dy12 = p2.y - p1.y;
 		int dy20 = p0.y - p2.y;
 
-		int startW0 = Orient2D(p1.x, p1.y, p0.x, p0.y, minX, minY);
-		int startW1 = Orient2D(p2.x, p2.y, p1.x, p1.y, minX, minY);
-		int startW2 = Orient2D(p0.x, p0.y, p2.x, p2.y, minX, minY);
+		int startW0 = Projection::Orient2D(p1.x, p1.y, p0.x, p0.y, minX, minY);
+		int startW1 = Projection::Orient2D(p2.x, p2.y, p1.x, p1.y, minX, minY);
+		int startW2 = Projection::Orient2D(p0.x, p0.y, p2.x, p2.y, minX, minY);
 
 		if (dy01 < 0 || (dy01 == 0 && dx01 < 0)) startW0 += 1;
 		if (dy12 < 0 || (dy12 == 0 && dx12 < 0)) startW1 += 1;

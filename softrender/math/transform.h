@@ -31,6 +31,6 @@ struct Transform
 	void GetAxis(Vector3& xAxis, Vector3& yAxis, Vector3& zAxis) const;
 };
 
-} // namespace rasterizer
+} // namespace sr
 
 #endif //!_MATH_TRANSFORM_H_
