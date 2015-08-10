@@ -1,5 +1,5 @@
-#ifndef _RASTERIZER_TEXTURE_SAMPLER_HPP_
-#define _RASTERIZER_TEXTURE_SAMPLER_HPP_
+#ifndef _SOFTRENDER_TEXTURE_SAMPLER_HPP_
+#define _SOFTRENDER_TEXTURE_SAMPLER_HPP_
 
 #include "base/header.h"
 #include "math/vector3.h"
@@ -127,4 +127,4 @@ struct ProjectionSampler
 
 }
 
-#endif //! _RASTERIZER_TEXTURE_SAMPLER_HPP_
+#endif //! _SOFTRENDER_TEXTURE_SAMPLER_HPP_

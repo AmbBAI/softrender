@@ -1,5 +1,5 @@
-#ifndef _RASTERIZER_RENDER_DATA_HPP_
-#define _RASTERIZER_RENDER_DATA_HPP_
+#ifndef _SOFTRENDER_RENDER_DATA_HPP_
+#define _SOFTRENDER_RENDER_DATA_HPP_
 
 #include "base/header.h"
 #include "softrender/vertex.hpp"
@@ -119,4 +119,4 @@ private:
 
 } // namespace rasterizer
 
-#endif // !_RASTERIZER_RENDER_DATA_HPP_
+#endif // !_SOFTRENDER_RENDER_DATA_HPP_

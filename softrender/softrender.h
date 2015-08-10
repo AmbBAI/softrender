@@ -1,5 +1,5 @@
-#ifndef _RASTERIZER_H_
-#define _RASTERIZER_H_
+#ifndef _SOFTRENDER_H_
+#define _SOFTRENDER_H_
 
 #include "base/header.h"
 #include "base/application.h"
@@ -22,29 +22,10 @@
 #include "softrender/light.hpp"
 #include "softrender/shader.hpp"
 #include "softrender/shaderf.hpp"
+#include "softrender/rasterizer.hpp"
 
 namespace sr
 {
-
-struct RasterizerInfo
-{
-	int x, y;
-	float depth;
-	float wx, wy, wz;
-};
-
-struct Rasterizer2x2Info
-{
-	int x, y;
-	uint8_t maskCode;
-#if _MATH_SIMD_INTRINSIC_
-	SIMD_ALIGN float depth[4];
-	SIMD_ALIGN float wx[4], wy[4], wz[4];
-#else
-	float depth[4];
-	float wx[4], wy[4], wz[4];
-#endif
-};
 
 struct SoftRender
 {
@@ -57,9 +38,6 @@ struct SoftRender
 	static CameraPtr camera;
     static LightPtr light;
 
-	template<typename Type>
-	using Render2x2Func = std::function<void(const Type&, const Rasterizer2x2Info&)>;
-
 	static void Initialize(int width, int height);
 	static void SetRenderTarget(RenderTexturePtr target);
 	static RenderTexturePtr GetRenderTarget();
@@ -68,10 +46,6 @@ struct SoftRender
 	static void Clear(bool clearDepth, bool clearColor, const Color& backgroundColor, float depth = 1.0f);
 	static void Submit(int startIndex = 0, int primitiveCount = 0);
 	static void Present();
-
-	static void DrawLine(int x0, int x1, int y0, int y1, const Color32& color);
-	template<typename DrawDataType>
-	static void RasterizerTriangle(Triangle<Projection> projection, Render2x2Func<DrawDataType> renderFunc, const DrawDataType& renderData);
 
 private:
 	static bool InitShaderLightParams(ShaderPtr shader, const LightPtr& light);
@@ -86,8 +60,9 @@ private:
 	static BitmapPtr colorBuffer;
 	static BitmapPtr depthBuffer;
 
+	static Rasterizer rasterizer;
 };
 
 }
 
-#endif // !_RASTERIZER_H_
+#endif // !_SOFTRENDER_H_

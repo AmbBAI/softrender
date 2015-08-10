@@ -1,5 +1,5 @@
-#ifndef _RASTERIZER_VERTEX_HPP_
-#define _RASTERIZER_VERTEX_HPP_
+#ifndef _SOFTRENDER_VERTEX_HPP_
+#define _SOFTRENDER_VERTEX_HPP_
 
 #include "base/header.h"
 #include "math/vector2.h"
@@ -137,4 +137,4 @@ struct Quad
 
 }
 
-#endif //! _RASTERIZER_VERTEX_HPP_
+#endif //! _SOFTRENDER_VERTEX_HPP_

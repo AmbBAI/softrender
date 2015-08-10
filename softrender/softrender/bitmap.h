@@ -1,5 +1,5 @@
-#ifndef _RASTERIZER_BITMAP_H_
-#define _RASTERIZER_BITMAP_H_
+#ifndef _SOFTRENDER_BITMAP_H_
+#define _SOFTRENDER_BITMAP_H_
 
 #include "base/header.h"
 #include "math/color.h"
@@ -66,4 +66,4 @@ private:
 
 }
 
-#endif //! _RASTERIZER_BITMAP_H_
+#endif //! _SOFTRENDER_BITMAP_H_

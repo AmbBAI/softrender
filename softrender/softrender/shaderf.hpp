@@ -1,5 +1,5 @@
-#ifndef _RASTERIZER_SHADERF_H_
-#define _RASTERIZER_SHADERF_H_
+#ifndef _SOFTRENDER_SHADERF_H_
+#define _SOFTRENDER_SHADERF_H_
 
 #include "base/header.h"
 #include "math/color.h"
@@ -64,4 +64,4 @@ struct ShaderF
 
 } // namespace rasterizer
 
-#endif //! _RASTERIZER_SHADERF_H_
+#endif //! _SOFTRENDER_SHADERF_H_

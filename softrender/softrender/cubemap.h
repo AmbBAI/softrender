@@ -1,5 +1,5 @@
-#ifndef _RASTERIZER_CUBEMAP_H_
-#define _RASTERIZER_CUBEMAP_H_
+#ifndef _SOFTRENDER_CUBEMAP_H_
+#define _SOFTRENDER_CUBEMAP_H_
 
 #include "base/header.h"
 #include "softrender/texture2d.h"
@@ -39,4 +39,4 @@ private:
 
 }
 
-#endif //! _RASTERIZER_CUBEMAP_H_
+#endif //! _SOFTRENDER_CUBEMAP_H_

@@ -1,5 +1,5 @@
-#ifndef _RASTERIZER_VARYING_DATA_H_
-#define _RASTERIZER_VARYING_DATA_H_
+#ifndef _SOFTRENDER_VARYING_DATA_H_
+#define _SOFTRENDER_VARYING_DATA_H_
 
 #include "base/header.h"
 #include "softrender/vertex.hpp"
@@ -106,4 +106,4 @@ private:
 
 } // namespace rasterizer
 
-#endif // !_RASTERIZER_VARYING_DATA_H_
+#endif // !_SOFTRENDER_VARYING_DATA_H_

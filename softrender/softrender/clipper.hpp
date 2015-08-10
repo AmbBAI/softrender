@@ -1,5 +1,5 @@
-#ifndef _RASTERIZER_CLIPPER_HPP_
-#define _RASTERIZER_CLIPPER_HPP_
+#ifndef _SOFTRENDER_CLIPPER_HPP_
+#define _SOFTRENDER_CLIPPER_HPP_
 
 #include "base/header.h"
 #include "math/vector3.h"
@@ -184,4 +184,4 @@ struct Clipper
 
 }
 
-#endif //! _RASTERIZER_CLIPPER_HPP_
+#endif //! _SOFTRENDER_CLIPPER_HPP_

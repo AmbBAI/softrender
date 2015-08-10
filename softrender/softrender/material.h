@@ -1,5 +1,5 @@
-#ifndef _RASTERIZER_MATERIAL_HPP_
-#define _RASTERIZER_MATERIAL_HPP_
+#ifndef _SOFTRENDER_MATERIAL_HPP_
+#define _SOFTRENDER_MATERIAL_HPP_
 
 #include "base/header.h"
 #include "math/color.h"
@@ -41,4 +41,4 @@ struct Material
 
 }
 
-#endif //!_RASTERIZER_MATERIAL_HPP_
+#endif //!_SOFTRENDER_MATERIAL_HPP_

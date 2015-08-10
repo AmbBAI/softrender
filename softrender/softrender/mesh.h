@@ -1,5 +1,5 @@
-#ifndef _RASTERIZER_MESH_H_
-#define _RASTERIZER_MESH_H_
+#ifndef _SOFTRENDER_MESH_H_
+#define _SOFTRENDER_MESH_H_
 
 #include "base/header.h"
 #include "math/vector2.h"
@@ -38,4 +38,4 @@ struct Mesh
 
 }
 
-#endif //!_RASTERIZER_MESH_H_
+#endif //!_SOFTRENDER_MESH_H_

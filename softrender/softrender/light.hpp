@@ -1,5 +1,5 @@
-#ifndef _RASTERIZER_LIGHT_HPP_
-#define _RASTERIZER_LIGHT_HPP_
+#ifndef _SOFTRENDER_LIGHT_HPP_
+#define _SOFTRENDER_LIGHT_HPP_
 
 #include "base/header.h"
 #include "math/color.h"
@@ -101,4 +101,4 @@ struct Light
 
 }
 
-#endif //!_RASTERIZER_LIGHT_HPP_
+#endif //!_SOFTRENDER_LIGHT_HPP_

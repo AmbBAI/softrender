@@ -1,5 +1,5 @@
-#ifndef _RASTERIZER_TEXTURE2D_H_
-#define _RASTERIZER_TEXTURE2D_H_
+#ifndef _SOFTRENDER_TEXTURE2D_H_
+#define _SOFTRENDER_TEXTURE2D_H_
 
 #include "base/header.h"
 #include "softrender/bitmap.h"
@@ -78,4 +78,4 @@ protected:
 
 }
 
-#endif //! _RASTERIZER_TEXTURE2D_H_
+#endif //! _SOFTRENDER_TEXTURE2D_H_

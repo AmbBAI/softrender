@@ -1,5 +1,5 @@
-#ifndef _RASTERIZER_RENDER_STATE_H_
-#define _RASTERIZER_RENDER_STATE_H_
+#ifndef _SOFTRENDER_RENDER_STATE_H_
+#define _SOFTRENDER_RENDER_STATE_H_
 
 #include "base/header.h"
 #include "math/color.h"
@@ -115,4 +115,4 @@ struct RenderState
 
 } // namespace rasterizer
 
-#endif // !_RASTERIZER_RENDER_STATE_H_
+#endif // !_SOFTRENDER_RENDER_STATE_H_
