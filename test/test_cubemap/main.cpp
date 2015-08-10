@@ -59,10 +59,7 @@ struct SkyShader : Shader<Vertex, VaryingData>
 
 	Color frag(const VaryingData& input) override
 	{
-		Vector3 viewDir = (_WorldSpaceCameraPos - input.worldPos).Normalize();
-		Color reflectCol = TexCUBE(cubeMap, -viewDir);
-
-		return reflectCol;
+		return TexCUBE(cubeMap, (input.worldPos - _WorldSpaceCameraPos).Normalize());
 	}
 };
 
@@ -72,13 +69,17 @@ struct ObjShader : Shader<Vertex, VaryingData>
 
 	Texture2DPtr mainTex;
 	CubemapPtr cubeMap;
+	float reflection = 0.2f;
+	float fresnelPow = 0.4f;
+	float fresnelFalloff = 0.6f;
+
 	Vector2 ddx, ddy;
 
 	VaryingData vert(const Vertex& input) override
 	{
 		VaryingData output;
 		output.position = _MATRIX_MVP.MultiplyPoint(input.position);
-		output.texcoord = input.texcoord;
+		output.texcoord = input.texcoord * Vector2(5.f, 1.f);
 		output.normal = _Object2World.MultiplyVector(input.normal);
 		output.worldPos = _Object2World.MultiplyPoint3x4(input.position);
 		return output;
@@ -98,8 +99,10 @@ struct ObjShader : Shader<Vertex, VaryingData>
 		Vector3 viewDir = (_WorldSpaceCameraPos - input.worldPos).Normalize();
 		Vector3 reflectDir = Reflect(-viewDir, input.normal).Normalize();
 		Color reflectCol = TexCUBE(cubeMap, reflectDir);
+		float fresnel = Mathf::Pow(1.f - Mathf::Clamp01(Mathf::Abs(Vector3::Dot(viewDir, input.normal))), fresnelFalloff) * fresnelPow;
+		reflectCol *= Mathf::Clamp01(fresnel + reflection);
 
-		color.rgb = color.rgb * ndotl + reflectCol.rgb * 0.2f;
+		color.rgb = color.rgb * ndotl + reflectCol.rgb + reflectCol.rgb * fresnel;
 		return color;
 	}
 };
@@ -109,7 +112,10 @@ void MainLoop()
 	static bool isInitilized = false;
 	static TransformController transCtrl;
 	static CameraPtr camera;
-	static MeshWrapper<Vertex> meshW;
+	static Transform objTrans;
+	static Transform skyTrans;
+	static MeshWrapper<Vertex> objMesh;
+	static MeshWrapper<Vertex> skyMesh;
 	static std::shared_ptr<ObjShader> objShader;
 	static std::shared_ptr<SkyShader> skyShader;
 
@@ -119,7 +125,7 @@ void MainLoop()
 
 		camera = CameraPtr(new Camera());
 		camera->SetPerspective(60.f, 1.33333f, 0.3f, 2000.f);
-		camera->transform.position = Vector3(0.f, 0.f, -2.f);
+		camera->transform.position = Vector3(0.f, 0.f, -3.f);
 		SoftRender::camera = camera;
 
 		MaterialPtr material = MaterialPtr(new Material());
@@ -143,36 +149,47 @@ void MainLoop()
 		skyShader->cubeMap = objShader->cubeMap;
 
 		std::vector<MeshPtr> meshes;
-		Mesh::LoadMesh(meshes, "resources/cubemap/sphere.obj");
-		MeshPtr mesh = meshes[0];
-		meshW.vertices.clear();
-		meshW.indices.clear();
-		int vertexCount = mesh->GetVertexCount();
+		Mesh::LoadMesh(meshes, "resources/knot.obj");
+		objMesh.vertices.clear();
+		objMesh.indices.clear();
+		int vertexCount = meshes[0]->GetVertexCount();
 		for (int i = 0; i < vertexCount; ++i)
 		{
-			meshW.vertices.emplace_back(Vertex{ mesh->vertices[i], mesh->texcoords[i], mesh->normals[i] });
+			objMesh.vertices.emplace_back(Vertex{ meshes[0]->vertices[i], meshes[0]->texcoords[i], meshes[0]->normals[i] });
 		}
-		for (auto idx : mesh->indices) meshW.indices.emplace_back(idx);
+		for (auto idx : meshes[0]->indices) objMesh.indices.emplace_back(idx);
+
+		skyTrans.scale = Vector3::one * 1000.f;
+
+		meshes.clear();
+		Mesh::LoadMesh(meshes, "resources/cubemap/sphere.obj");
+		skyMesh.vertices.clear();
+		skyMesh.indices.clear();
+		vertexCount = meshes[0]->GetVertexCount();
+		for (int i = 0; i < vertexCount; ++i)
+		{
+			skyMesh.vertices.emplace_back(Vertex{ meshes[0]->vertices[i], meshes[0]->texcoords[i], meshes[0]->normals[i] });
+		}
+		for (auto idx : meshes[0]->indices) skyMesh.indices.emplace_back(idx);
+
     }
 
-	transCtrl.MouseRotate(camera->transform);
-	transCtrl.KeyMove(camera->transform, 1.f);
+	transCtrl.MouseRotateAround(camera->transform, objTrans.position);
+	objTrans.Rotate(Vector3(0.f, 2.f, 0.f));
 
 	SoftRender::Clear(true, true, Color(1.f, 0.19f, 0.3f, 0.47f));
 
-	SoftRender::renderData.AssignVertexBuffer(meshW.vertices);
-	SoftRender::renderData.AssignIndexBuffer(meshW.indices);
-	
-	Transform objTrans;
 	SoftRender::modelMatrix = objTrans.localToWorldMatrix();
 	SoftRender::SetShader(objShader);
+	SoftRender::renderData.AssignVertexBuffer(objMesh.vertices);
+	SoftRender::renderData.AssignIndexBuffer(objMesh.indices);
 	SoftRender::renderState.cull = RenderState::CullType_Back;
 	SoftRender::Submit();
 
-	Transform skyTrans;
-	skyTrans.scale = Vector3::one * 1000.f;
 	SoftRender::modelMatrix = skyTrans.localToWorldMatrix();
 	SoftRender::SetShader(skyShader);
+	SoftRender::renderData.AssignVertexBuffer(skyMesh.vertices);
+	SoftRender::renderData.AssignIndexBuffer(skyMesh.indices);
 	SoftRender::renderState.cull = RenderState::CullType_Front;
 	SoftRender::Submit();
 

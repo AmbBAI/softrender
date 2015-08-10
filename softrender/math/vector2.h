@@ -27,6 +27,7 @@ struct Vector2
 	inline Vector2 operator +(const Vector2& v) const { return Vector2(x + v.x, y + v.y); }
 	inline Vector2 operator -(const Vector2& v) const { return Vector2(x - v.x, y - v.y); }
 	inline Vector2 operator *(float f) const { return Vector2(x * f, y * f); }
+	inline Vector2 operator *(const Vector2& v) const { return Vector2(x * v.x, y * v.y); }
 	inline Vector2 operator /(float f) const { return this->operator*(1.f / f); }
 
 	static inline float Dot(const Vector2& a, const Vector2& b);

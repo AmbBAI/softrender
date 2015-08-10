@@ -19,7 +19,7 @@ public:
 			if (isMouseDown)
 			{
 				sr::Vector2 moveDelta = nowMousePos - lastMousePos;
-				trans.Rotate(sr::Vector3(moveDelta.y, moveDelta.x, 0), isLocal);
+				trans.Rotate(sr::Vector3(-moveDelta.y, -moveDelta.x, 0), isLocal);
 				isDirty = true;
 			}
 			lastMousePos = nowMousePos;
@@ -27,6 +27,32 @@ public:
 		}
 		else isMouseDown = false;
 
+		return isDirty;
+	}
+
+	bool MouseRotateAround(sr::Transform& trans, const sr::Vector3& center)
+	{
+		sr::Application* app = sr::Application::GetInstance();
+		sr::Input* input = app->GetInput();
+
+		bool isDirty = false;
+
+		if (input->GetMouseButton(0))
+		{
+			sr::Vector2 nowMousePos = input->GetMousePos();
+			if (isMouseDown)
+			{
+				sr::Vector3 delta = center - trans.position;
+				float deltaLength = delta.Length();
+				sr::Vector2 moveDelta = nowMousePos - lastMousePos;
+				trans.Rotate(sr::Vector3(moveDelta.y, moveDelta.x, 0), true);
+				trans.position = center - trans.forward() * deltaLength;
+				isDirty = true;
+			}
+			lastMousePos = nowMousePos;
+			isMouseDown = true;
+		}
+		else isMouseDown = false;
 		return isDirty;
 	}
 
