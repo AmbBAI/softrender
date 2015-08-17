@@ -32,20 +32,25 @@ void Mesh::LoadMesh(std::vector<MeshPtr>& meshes, const std::vector<tinyobj::sha
     meshes.clear();
     for (auto& s : objMeshes)
     {
-        auto& _p = s.mesh.positions;
-        auto& _n = s.mesh.normals;
-        auto& _i = s.mesh.indices;
-        auto& _tc = s.mesh.texcoords;
-        
         //MeshPtr mesh = std::make_shared<Mesh>();
 		MeshPtr mesh = MeshPtr(new Mesh());
 		mesh->name = s.name;
+		auto& m = s.mesh;
 
-		FOREACH_STEP(_p, i, 3) mesh->vertices.emplace_back(_p[i], _p[i + 1], _p[i + 2]);
-		FOREACH_STEP(_i, i, 1) { assert(_i[i] < UINT16_MAX); mesh->indices.emplace_back((uint16_t)_i[i]); }
-		FOREACH_STEP(_n, i, 3) mesh->normals.emplace_back(_n[i], _n[i + 1], _n[i + 2]);
-		FOREACH_STEP(_tc, i, 2) mesh->texcoords.emplace_back(_tc[i], _tc[i + 1]);
-            
+		auto& _p = m.positions;
+		auto& _n = m.normals;
+		auto& _tc = m.texcoords;
+		int vc = _p.size() / 3;
+		for (int i = 0; i < vc; ++i) mesh->vertices.emplace_back(_p[i * 3], _p[i * 3 + 1], _p[i * 3 + 2]);
+		for (int i = 0; i < vc; ++i) mesh->normals.emplace_back(_n[i * 3], _n[i * 3 + 1], _n[i * 3 + 2]);
+		for (int i = 0; i < vc; ++i) mesh->texcoords.emplace_back(_tc[i * 2], _tc[i * 2 + 1]);
+
+		for (int i = 0; i < (int)m.indices.size(); ++i)
+		{
+			assert(_i[i] < UINT16_MAX);
+			mesh->indices.emplace_back((uint16_t)m.indices[i]);
+		}
+
         if (mesh->normals.size() == mesh->vertices.size()
             && mesh->texcoords.size() == mesh->vertices.size())
         {
@@ -55,7 +60,7 @@ void Mesh::LoadMesh(std::vector<MeshPtr>& meshes, const std::vector<tinyobj::sha
 		int matID = -1;
 		int startIndex = 0;
 		int primitiveCount = 0;
-		FOREACH(s.mesh.material_ids, i)
+		for (int i = 0; i < (int)s.mesh.material_ids.size(); ++i)
         {
 			int id = s.mesh.material_ids[i];
 			//assert(id != -1);

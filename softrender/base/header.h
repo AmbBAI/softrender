@@ -49,10 +49,6 @@
 #endif
 #endif
 
-#define FOREACH_RANGE_STEP(vec, i, s, e, step) for(int i = s; i + step <= e; i += step)
-#define FOREACH_RANGE(vec, i, s, e) FOREACH_RANGE_STEP(vec, i, s, e, 1)
-#define FOREACH_STEP(vec, i, step) FOREACH_RANGE_STEP(vec, i, 0, (int)vec.size(), step)
-#define FOREACH(vec, i) FOREACH_STEP(vec, i, 1)
 #define FlipRGB(bytes) std::swap(*(bytes + 2), *(bytes + 0));
 
 #include "glfw/include/GLFW/glfw3.h"
