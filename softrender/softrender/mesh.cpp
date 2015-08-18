@@ -47,7 +47,7 @@ void Mesh::LoadMesh(std::vector<MeshPtr>& meshes, const std::vector<tinyobj::sha
 
 		for (int i = 0; i < (int)m.indices.size(); ++i)
 		{
-			assert(_i[i] < UINT16_MAX);
+			assert(m.indices[i] < UINT16_MAX);
 			mesh->indices.emplace_back((uint16_t)m.indices[i]);
 		}
 
