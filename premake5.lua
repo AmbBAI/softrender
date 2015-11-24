@@ -68,7 +68,7 @@ solution "softrender"
     }
 
     configuration "windows"
-      defines { "_CRT_SECURE_NO_WARNINGS" }
+      defines { "_CRT_SECURE_NO_WARNINGS", "_SCL_SECURE_NO_WARNINGS" }
       links {"opengl32.lib", "glu32.lib"}
 
     configuration "macosx"
@@ -95,7 +95,7 @@ solution "softrender"
         defines { "_MATH_SIMD_INTRINSIC_" }
 
     configuration "windows"
-      defines { "_CRT_SECURE_NO_WARNINGS" }
+      defines { "_CRT_SECURE_NO_WARNINGS", "_SCL_SECURE_NO_WARNINGS" }
       links {"opengl32.lib", "glu32.lib" }
 
     configuration "macosx"

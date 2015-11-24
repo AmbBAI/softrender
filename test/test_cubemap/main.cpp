@@ -129,7 +129,7 @@ void MainLoop()
 		SoftRender::camera = camera;
 
 		MaterialPtr material = MaterialPtr(new Material());
-		material->diffuseTexture = Texture2D::LoadTexture("resources/teapot/default.png");
+		material->diffuseTexture = Texture2D::LoadTexture("resources/cube/default.png");
 		material->diffuseTexture->GenerateMipmaps();
 
 		objShader = std::make_shared<ObjShader>();
