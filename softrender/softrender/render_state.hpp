@@ -86,7 +86,40 @@ struct RenderState
 		CullType_Off = 0,
 		CullType_Back,
 		CullType_Front,
-	} cull = CullType_Back;
+	};
+	CullType cull = CullType_Back;
+
+	template <typename Type>
+	float _DeterminantOfCullingMatrix(const Type& v0, const Type& v1, const Type& v2) const
+	{
+		return (v1.x - v0.x) * (v2.y - v0.y) * v0.z
+				- (v2.x - v0.x) * (v1.y - v0.y) * v0.z
+				+ (v2.x - v0.x) * v0.y * (v1.z - v0.z)
+				- (v1.x - v0.x) * v0.y * (v2.z - v0.z)
+				+ v0.x * (v1.y - v0.y) * (v2.z - v0.z)
+				- v0.x * (v2.y - v0.y) * (v1.z - v0.z);
+	}
+
+	template <typename Type>
+	bool FaceCulling(const Type& v0, Type& v1, Type& v2) const
+	{
+		float det = _DeterminantOfCullingMatrix(v0.position, v1.position, v2.position);
+		switch (cull)
+		{
+		case RenderState::CullType_Front:
+			if (det <= 0.f) return true;
+			std::swap(v1, v2);
+			return false;
+		case RenderState::CullType_Back:
+			return det >= 0.f;
+		case RenderState::CullType_Off:
+			if (det > 0.f) std::swap(v1, v2);
+			return false;
+		default:
+			return false;
+		}
+	}
+
 	bool ZTest(float zPixel, float zInBuffer) const
 	{
 		switch (zTest)

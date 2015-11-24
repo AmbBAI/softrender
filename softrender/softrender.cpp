@@ -96,8 +96,9 @@ void SoftRender::Submit(int startIndex/* = 0*/, int primitiveCount/* = 0*/)
 		auto v1 = varyingDataBuffer.GetVertexVaryingData(triangleIdx.v1);
 		auto v2 = varyingDataBuffer.GetVertexVaryingData(triangleIdx.v2);
 
+		if (renderState.FaceCulling(v0, v1, v2)) continue;
+
 		varyingDataBuffer.ResetDynamicVaryingData();
-		
 		auto triangles = Clipper::ClipTriangle(v0, v1, v2);
 		for (auto& triangle : triangles)
 		{
@@ -105,26 +106,6 @@ void SoftRender::Submit(int startIndex/* = 0*/, int primitiveCount/* = 0*/)
 			projection.v0 = Projection::CalculateViewProjection(triangle.v0.position, width, height);
 			projection.v1 = Projection::CalculateViewProjection(triangle.v1.position, width, height);
 			projection.v2 = Projection::CalculateViewProjection(triangle.v2.position, width, height);
-
-			int ret = Projection::Orient2D(projection.v0, projection.v2, projection.v1);
-			switch (renderState.cull)
-			{
-			case RenderState::CullType_Front:
-				if (ret >= 0) continue;
-			case RenderState::CullType_Off:
-				if (ret == 0) continue;
-				if (ret < 0)
-				{
-					std::swap(projection.v1, projection.v2);
-					std::swap(triangle.v1, triangle.v2);
-				}
-				break;
-			case RenderState::CullType_Back:
-				if (ret <= 0) continue;
-				break;
-			default:
-				break;
-			}
 
 			if (camera->projectionMode() == Camera::ProjectionMode_Perspective)
 			{

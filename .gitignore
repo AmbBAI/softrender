@@ -168,4 +168,5 @@ UpgradeLog*.XML
 resources/
 build/
 bin/
+lib/
 
