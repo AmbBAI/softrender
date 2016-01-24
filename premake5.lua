@@ -20,7 +20,7 @@ function createTestProject(_name)
 
     links {"common", "softrender", "glfw", "tinyobjloader", "freeimage"}
     configuration "windows"
-      defines { "_CRT_SECURE_NO_WARNINGS" }
+      defines { "_CRT_SECURE_NO_WARNINGS", "_SCL_SECURE_NO_WARNINGS" }
       links { "opengl32.lib" }
 
     configuration "macosx"
@@ -51,6 +51,7 @@ solution "softrender"
   createTestProject("shadow")
   createTestProject("cubemap")
   createTestProject("sponza")
+  createTestProject("matcap")
 
   project "common"
     kind "StaticLib"

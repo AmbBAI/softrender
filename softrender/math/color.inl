@@ -24,12 +24,18 @@ Color Color::operator *(float f) const { return Color(_mm_mul_ps(m, _mm_set1_ps(
 Color Color::operator *(const Color& v) const { return Color(_mm_mul_ps(m, v.m)); }
 #else
 Color Color::operator +(const Color& v) const { return Color(a + v.a, r + v.r, g + v.g, b + v.b); }
+Color Color::operator -(const Color& v) const { return Color(a - v.a, r - v.r, g - v.g, b - v.b); }
 Color Color::operator *(float f) const { return Color(a * f, r * f, g * f, b * f); }
 Color Color::operator *(const Color& v) const { return Color(a * v.a, r * v.r, g * v.g, b * v.b); }
+Color Color::operator /(float f) const { return Color(a / f, r / f, g / f, b / f); }
+Color Color::operator /(const Color& v) const { return Color(a / v.a, r / v.r, g / v.g, b / v.b); }
 #endif
 Color Color::operator += (const Color& v) { return (*this) = (*this) + v; }
+Color Color::operator -= (const Color& v) { return (*this) = (*this) - v; }
 Color Color::operator *= (float f) { return (*this) = (*this) * f; }
 Color Color::operator *= (const Color& v) { return (*this) = (*this) * v; }
+Color Color::operator /= (float f) { return (*this) = (*this) / f; }
+Color Color::operator /= (const Color& v) { return (*this) = (*this) / v; }
 
 Color Color::Lerp(const Color& a, const Color& b, float t)
 {
