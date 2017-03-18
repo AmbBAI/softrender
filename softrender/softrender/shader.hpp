@@ -9,14 +9,6 @@
 namespace sr
 {
 
-struct LightInput
-{
-	Color ambient;
-	Color diffuse;
-	Color specular;
-	float shininess;
-};
-
 struct IShader;
 typedef std::shared_ptr<IShader> ShaderPtr;
 

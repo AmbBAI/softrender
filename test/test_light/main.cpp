@@ -55,7 +55,7 @@ struct ForwardBaseShader : Shader<Vertex, VaryingData>
 	Color frag(const VaryingData& input) override
 	{
 		LightInput lightInput;
-		lightInput.ambient = Color(1.f, 0.18f, 0.18f, 0.18f);
+		lightInput.ambient = Color::white * 0.18f;
 		lightInput.diffuse = Color(1.f, 0.9f, 0.9f, 0.9f);
 		lightInput.specular = Color::white;
 		lightInput.shininess = 10.f;
@@ -158,27 +158,17 @@ void MainLoop()
 		auto shader1 = std::make_shared<ForwardAdditionShader>();
 		forwardAdditionShader = shader1;
 
-		std::vector<MeshPtr> meshes;
-		meshes.push_back(CreatePlane());
-		objectTrans.position.y = 0.f;
 
+		MeshPtr mesh = CreatePlane();
+		mesh->CalculateTangents();
 		meshW.vertices.clear();
 		meshW.indices.clear();
-		for (int meshID = 0; meshID < (int)meshes.size(); ++meshID)
+		int vertexCount = mesh->GetVertexCount();
+		for (int i = 0; i < vertexCount; ++i)
 		{
-			auto& mesh = meshes[meshID];
-			int meshOffset = (int)meshW.vertices.size();
-			int vertexCount = mesh->GetVertexCount();
-			int indexCount = mesh->indices.size();
-			for (int i = 0; i < vertexCount; ++i)
-			{
-				meshW.vertices.emplace_back(Vertex{ mesh->vertices[i], mesh->normals[i] });
-			}
-			for (int i = 0; i < indexCount; ++i)
-			{
-				meshW.indices.emplace_back(mesh->indices[i] + meshOffset);
-			}
+			meshW.vertices.emplace_back(Vertex{ mesh->vertices[i], mesh->normals[i] });
 		}
+		for (auto idx : mesh->indices) meshW.indices.emplace_back((uint16_t)idx);
     }
 
 	SoftRender::Clear(true, true, Color(1.f, 0.19f, 0.3f, 0.47f));

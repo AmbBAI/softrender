@@ -6,24 +6,31 @@
 #include "math/vector3.h"
 #include "math/vector4.h"
 #include "math/mathf.h"
-#include "shader.hpp"
 
 namespace sr
 {
+
+struct LightInput
+{
+	Color ambient;
+	Color diffuse;
+	Color specular;
+	float shininess;
+};
 
 struct ShaderF
 {
 	static ColorRGB LightingLambert(const LightInput& input, const Vector3& normal, const Vector3& lightDir, const ColorRGB& lightColor, float attenuation)
 	{
 		float nDotL = Mathf::Clamp01(normal.Dot(lightDir));
-		return input.ambient.rgb + input.diffuse.rgb * lightColor * (nDotL * attenuation);
+		return input.ambient.rgb * input.diffuse.rgb + input.diffuse.rgb * lightColor * (nDotL * attenuation);
 	}
 
 	static ColorRGB LightingHalfLambert(const LightInput& input, const Vector3& normal, const Vector3& lightDir, const ColorRGB& lightColor, float attenuation)
 	{
 		float nDotL = Mathf::Clamp01(normal.Dot(lightDir));
 		nDotL = nDotL * 0.8f + 0.2f;
-		return input.ambient.rgb + input.diffuse.rgb * lightColor * (nDotL * attenuation);
+		return input.ambient.rgb * input.diffuse.rgb + input.diffuse.rgb * lightColor * (nDotL * attenuation);
 	}
 
 	static ColorRGB LightingBlinnPhong(const LightInput& input, const Vector3& normal, const Vector3& lightDir, const ColorRGB& lightColor, const Vector3& viewDir, float attenuation)
@@ -38,7 +45,7 @@ struct ShaderF
 			specular = Mathf::Pow(specAngle, input.shininess * 4.f);
 		}
 
-		return input.ambient.rgb
+		return input.ambient.rgb * input.diffuse.rgb
 			+ input.diffuse.rgb * lightColor * (lambertian * attenuation)
 			+ input.specular.rgb * lightColor * (specular * attenuation);
 	}
@@ -55,7 +62,7 @@ struct ShaderF
 			specular = Mathf::Pow(specAngle, input.shininess);
 		}
 
-		return input.ambient.rgb
+		return input.ambient.rgb * input.diffuse.rgb
 			+ input.diffuse.rgb * lightColor * (lambertian * attenuation)
 			+ input.specular.rgb * lightColor * (specular * attenuation);
 	}

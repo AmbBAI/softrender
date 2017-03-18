@@ -145,8 +145,7 @@ struct SceneShader : Shader<Vertex, VaryingData>
 		lightAtten *= (1.f - shadow);
 
 		LightInput lightInput;
-		lightInput.ambient = fragColor;
-		lightInput.ambient.rgb *= 0.25f;
+		lightInput.ambient = Color::white * 0.25f;
 		lightInput.diffuse = fragColor;
 		//lightInput.diffuse.rgb *= 0.9f;
 

@@ -22,6 +22,7 @@
 #include "softrender/light.hpp"
 #include "softrender/shader.hpp"
 #include "softrender/shaderf.hpp"
+#include "softrender/pbsf.hpp"
 #include "softrender/rasterizer.hpp"
 
 namespace sr
