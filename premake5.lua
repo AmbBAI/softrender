@@ -51,7 +51,6 @@ solution "softrender"
   createTestProject("shadow")
   createTestProject("cubemap")
   createTestProject("sponza")
-  createTestProject("matcap")
 
   project "common"
     kind "StaticLib"

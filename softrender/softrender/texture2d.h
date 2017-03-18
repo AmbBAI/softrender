@@ -58,10 +58,9 @@ public:
 
 	float SampleProj(const Vector2& uv, float value, float bias/*=0*/) const;
 
-	const BitmapPtr GetBitmap(int miplv) const;
-
 protected:
 	static BitmapPtr UnparkColor(rawptr_t bytes, int width, int height, int pitch, int bpp);
+	const BitmapPtr GetBitmap(int miplv) const;
     
 public:
     AddressMode xAddressMode = AddressMode_Warp;

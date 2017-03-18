@@ -66,39 +66,16 @@ struct Color
 
 	inline Color operator +(const Color& color) const;
 	inline Color operator +=(const Color& color);
-	inline Color operator -(const Color& color) const;
-	inline Color operator -=(const Color& color);
 	inline Color operator *(float f) const;
 	inline Color operator *(const Color& color) const;
 	inline Color operator *=(float f);
 	inline Color operator *=(const Color& color);
-	inline Color operator /(float f) const;
-	inline Color operator /(const Color& color) const;
-	inline Color operator /=(float f);
-	inline Color operator /=(const Color& color);
 
 	inline Color Clamp() const;
 	inline Color Inverse() const;
 
 	static inline Color Lerp(const Color& a, const Color& b, float t);
 	static inline Color Lerp(const Color& a, const Color& b, const Color& c, const Color& d, float t1, float t2);
-
-	static inline Color Min(const Color& a, const Color& b)
-	{
-		return Color(Mathf::Min(a.a, b.a)
-			, Mathf::Min(a.r, b.r)
-			, Mathf::Min(a.g, b.g)
-			, Mathf::Min(a.b, b.b));
-	}
-
-	static inline Color Max(const Color& a, const Color& b)
-	{
-		return Color(Mathf::Max(a.a, b.a)
-			, Mathf::Max(a.r, b.r)
-			, Mathf::Max(a.g, b.g)
-			, Mathf::Max(a.b, b.b));
-	}
-
 
 	inline operator Color32() const;
 	inline operator Vector4() const;
