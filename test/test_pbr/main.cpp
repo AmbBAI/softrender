@@ -51,6 +51,7 @@ struct VaryingData
 
 struct MainShader : Shader<Vertex, VaryingData>
 {
+	CubemapPtr envMap = nullptr;
 	float roughness = 0.5f;
 	float specular = 0.5f;
 
@@ -73,6 +74,8 @@ struct MainShader : Shader<Vertex, VaryingData>
 		pbsInput.normal = input.normal;
 		pbsInput.roughness = roughness;
 		pbsInput.specular = specular;
+		pbsInput.specColor = Color::white.rgb;
+		pbsInput.envMap = envMap;
 
 		Vector3 lightDir;
 		float lightAtten;
@@ -81,7 +84,7 @@ struct MainShader : Shader<Vertex, VaryingData>
 		Color fragColor;
 		Vector3 viewDir = (_WorldSpaceCameraPos - input.worldPos).Normalize();
 
-		fragColor.rgb = PBSF::BRDF(pbsInput, lightDir, viewDir);
+		fragColor.rgb = PBSF::BRDF_IBL_GroundTruth(pbsInput, lightDir, viewDir);
 		return fragColor;
 	}
 };
@@ -113,6 +116,16 @@ void MainLoop()
 		SoftRender::light = light;
 
 		shader = std::make_shared<MainShader>();
+		shader->envMap = CubemapPtr(new Cubemap());
+		for (int i = 0; i < 6; ++i)
+		{
+			char path[32];
+			sprintf(path, "resources/cubemap/%d.jpg", i);
+			Texture2DPtr tex = Texture2D::LoadTexture(path);
+			tex->xAddressMode = Texture2D::AddressMode_Clamp;
+			tex->yAddressMode = Texture2D::AddressMode_Clamp;
+			shader->envMap->SetTexture((Cubemap::CubemapFace)i, tex);
+		}
 
 		std::vector<MeshPtr> meshes;
 		Mesh::LoadMesh(meshes, "resources/cubemap/sphere.obj");
@@ -132,6 +145,13 @@ void MainLoop()
 	SoftRender::Clear(true, true, Color(1.f, 0.19f, 0.3f, 0.47f));
 
 	objectCtrl.MouseRotate(objectTrans, false);
+
+	//objectTrans.position = Vector3(0.f, 0.f, 2.f);
+	//SoftRender::modelMatrix = objectTrans.localToWorldMatrix();
+	//shader->roughness = 0.5f;
+	//shader->specular = 0.f;
+	//SoftRender::SetShader(shader);
+	//SoftRender::Submit();
 
 	for (int i = 0; i < 11; ++i)
 	{

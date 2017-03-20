@@ -92,7 +92,13 @@ struct IShader
 		return ret / 9.f;
 	}
 
-	static Color TexCUBE(CubemapPtr& tex, const Vector3& s)
+	static Color TexCUBE(const CubemapPtr& tex, const Vector3& s)
+	{
+		if (tex == nullptr) return Color::white;
+		return tex->Sample(s);
+	}
+
+	static Color TexCUBE(const CubemapPtr& tex, const Vector3& s, float lod)
 	{
 		if (tex == nullptr) return Color::white;
 		return tex->Sample(s);

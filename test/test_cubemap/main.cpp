@@ -138,7 +138,7 @@ void MainLoop()
 		for (int i = 0; i < 6; ++i)
 		{
 			char path[32];
-			sprintf(path, "resources/cubemap/%d.png", i);
+			sprintf(path, "resources/cubemap/%d.jpg", i);
 			Texture2DPtr tex = Texture2D::LoadTexture(path);
 			tex->xAddressMode = Texture2D::AddressMode_Clamp;
 			tex->yAddressMode = Texture2D::AddressMode_Clamp;
