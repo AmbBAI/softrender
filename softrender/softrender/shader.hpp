@@ -4,7 +4,9 @@
 #include "base/header.h"
 #include "math/vector3.h"
 #include "math/vector4.h"
+#include "math/matrix4x4.h"
 #include "math/mathf.h"
+#include "softrender/varying_data.h"
 
 namespace sr
 {
@@ -92,16 +94,14 @@ struct IShader
 		return ret / 9.f;
 	}
 
-	static Color TexCUBE(const CubemapPtr& tex, const Vector3& s)
+	static Color TexCUBE(const Cubemap& cube, const Vector3& s)
 	{
-		if (tex == nullptr) return Color::white;
-		return tex->Sample(s);
+		return TexCUBE(cube, s, 0.f);
 	}
 
-	static Color TexCUBE(const CubemapPtr& tex, const Vector3& s, float lod)
+	static Color TexCUBE(const Cubemap& cube, const Vector3& s, float lod)
 	{
-		if (tex == nullptr) return Color::white;
-		return tex->Sample(s);
+		return cube.Sample(s, lod);
 	}
 
 	static Matrix4x4 TangentSpaceRotation(const Vector3& tangent, const Vector3& binormal, const Vector3& normal)

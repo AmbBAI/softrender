@@ -1,30 +1,95 @@
 #include "cubemap.h"
+#include "pbsf.hpp"
 
 using namespace sr;
 
-Color Cubemap::Sample(const Vector3& s)
+Color Cubemap::Sample(const Vector3& s, float rougness/* = 0.f*/) const
 {
-	CubemapFace axis;
-	Vector2 texcoord;
-	CalcTexCoord(s, axis, texcoord);
+	switch (mappingType)
+	{
+	case Cubemap::MappingType_6Images:
+		return Sample6Images(s);
+	case Cubemap::MappingType_LatLong:
+		return SampleLatlong(s, RoughnessToLod(rougness));
+	default:
+		return Color::black;
+	}
+}
 
-	Texture2DPtr tex = maps[axis];
+void Cubemap::InitWith6Images(Texture2DPtr imgs[6])
+{
+	for (int i = 0; i < 6; ++i)
+	{
+		images[i] = imgs[i];
+	}
+	mappingType = MappingType_6Images;
+}
+
+void Cubemap::InitWithLatlong(Texture2DPtr tex)
+{
+	latlong = tex;
+	latlong->xAddressMode = Texture2D::AddressMode_Warp;
+	latlong->yAddressMode = Texture2D::AddressMode_Warp;
+	mappingType = MappingType_LatLong;
+}
+
+bool Cubemap::Mapping6ImagesToLatlong(int height)
+{
+	BitmapPtr bitmap = BitmapPtr(new Bitmap(height * 2, height, Bitmap::BitmapType_RGB24));
+	int weight = height * 2;
+	for (int x = 0; x < weight; ++x)
+	{
+		for (int y = 0; y < height; ++y)
+		{
+			float u = float(x) * Mathf::PI * 2.f / weight;
+			float v = float(y) * Mathf::PI / height;
+			Vector3 dir = Vector3::zero;
+			dir.x = -Mathf::Sin(u) * Mathf::Sin(v);
+			dir.y = -Mathf::Cos(v);
+			dir.z = -Mathf::Cos(u) * Mathf::Sin(v);
+			bitmap->SetPixel(x, y, Sample6Images(dir));
+		}
+	}
+	latlong = Texture2D::CreateWithBitmap(bitmap);
+	latlong->xAddressMode = Texture2D::AddressMode_Warp;
+	latlong->yAddressMode = Texture2D::AddressMode_Warp;
+
+	for (int i = 0; i < 6; ++i)
+	{
+		images[i] = nullptr;
+	}
+	mappingType = MappingType_LatLong;
+	return true;
+}
+
+Color Cubemap::Sample6Images(const Vector3& s) const
+{
+	int face;
+	Vector2 texcoord;
+	Direction6ImagesTexcoord(s, face, texcoord);
+
+	Texture2DPtr tex = images[face];
 	if (tex == nullptr) return Color::black;
 	return tex->Sample(texcoord);
 }
 
-//Color TextureCUBE::Sample(const Vector3& s, const Vector3& ddx, const Vector3& ddy)
-//{
-//	CUBEAxis axis;
-//	Vector2 texcoord;
-//	CalcTexCoord(s, axis, texcoord);
-//
-//	TexturePtr tex = cubeMap[axis];
-//	if (tex == nullptr) return Color::black;
-//	return tex->Sample(texcoord.x, texcoord.y);
-//}
+Color Cubemap::SampleLatlong(const Vector3& s, float lod) const
+{
+	if (latlong == nullptr) return Color::black;
 
-void Cubemap::CalcTexCoord(const Vector3& s, CubemapFace& face, Vector2& texcoord)
+	Vector2 texcoord;
+	DirectionToLatlongTexcoord(s, texcoord);
+	return latlong->Sample(texcoord, lod);
+}
+
+void Cubemap::DirectionToLatlongTexcoord(const Vector3& s, Vector2& texcoord) const
+{
+	Vector3 ns = s.Normalize();
+	texcoord.x = Mathf::Atan2(ns.x, ns.z) * Mathf::invPI * 0.5f + 0.5f;
+	texcoord.y = -Mathf::Acos(ns.y) * Mathf::invPI;
+}
+
+void Cubemap::Direction6ImagesTexcoord(const Vector3& s, int& face, Vector2& texcoord) const
 {
 	Vector3 ns = s.Normalize();
 
@@ -73,8 +138,71 @@ void Cubemap::CalcTexCoord(const Vector3& s, CubemapFace& face, Vector2& texcoor
 	}
 }
 
-void Cubemap::SetTexture(CubemapFace face, Texture2DPtr tex)
+bool Cubemap::PrefilterEnvMap(uint32_t mapCount, uint32_t sampleCount) const
 {
-	maps[face] = tex;
+	if (mappingType != MappingType_LatLong)
+	{
+		return false;
+	}
+
+	int height = latlong->GetHeight();
+	int width = latlong->GetWidth();
+	std::vector<BitmapPtr> bitmaps;
+	for (uint32_t i = 0; i < mapCount; ++i)
+	{
+		BitmapPtr bitmap = BitmapPtr(new Bitmap(width, height, Bitmap::BitmapType_RGB24));
+		float roughness = float(i + 1) / mapCount;
+		for (int y = 0; y < height; ++y)
+		{
+			for (int x = 0; x < width; ++x)
+			{
+				float u = float(x) * Mathf::PI * 2.f / width;
+				float v = float(y) * Mathf::PI / height;
+				Vector3 dir = Vector3::zero;
+				dir.x = -Mathf::Sin(u) * Mathf::Sin(v);
+				dir.y = -Mathf::Cos(v);
+				dir.z = -Mathf::Cos(u) * Mathf::Sin(v);
+				Vector3 rgb = PBSF::PrefilterEnvMap(*this, roughness, dir, sampleCount);
+				bitmap->SetPixel(x, y, Color(1.f, rgb.x, rgb.y, rgb.z));
+			}
+		}
+		bitmaps.push_back(bitmap);
+	}
+	latlong->SetMipmaps(bitmaps);
+	return true;
 }
 
+float Cubemap::RoughnessToLod(float rougness) const
+{
+	if (mappingType != MappingType_LatLong)
+	{
+		return 0.f;
+	}
+
+	return rougness * latlong->GetMipmapsCount();
+}
+
+bool Cubemap::Get6Images(Texture2DPtr img[6])
+{
+	if (mappingType != MappingType_6Images)
+	{
+		return false;
+	}
+
+	for (int i = 0; i < 6; ++i)
+	{
+		img[i] = images[i];
+	}
+	return true;
+}
+
+bool Cubemap::GetLagLong(Texture2DPtr& latlong)
+{
+	if (mappingType != Cubemap::MappingType_LatLong)
+	{
+		return false;
+	}
+
+	latlong = this->latlong;
+	return true;
+}

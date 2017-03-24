@@ -211,7 +211,7 @@ bool Texture2D::GenerateMipmaps()
 			}
 		}
 
-		mipmaps.push_back(mipmap);
+		mipmaps.emplace_back(mipmap);
 		source = mipmaps[l];
 		s >>= 1;
 		if (s <= 0) break;
@@ -252,6 +252,16 @@ float Texture2D::SampleProj(const Vector2& uv, float value, float bias/* =0.f*/)
 {
 	static ProjectionSampler projectionSampler;
 	return projectionSampler.Sample<ClampAddresser, ClampAddresser>(*mainTex, uv.x, uv.y, value, bias);
+}
+
+int Texture2D::GetMipmapsCount() const
+{
+	return mipmaps.size();
+}
+
+void Texture2D::SetMipmaps(std::vector<BitmapPtr>& bitmaps)
+{
+	mipmaps = bitmaps;
 }
 
 }

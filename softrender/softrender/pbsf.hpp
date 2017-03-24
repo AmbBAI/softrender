@@ -1,5 +1,5 @@
-#ifndef _SOFTRENDER_PBSF_H_
-#define _SOFTRENDER_PBSF_H_
+#ifndef _SOFTRENDER_PBSF_HPP_
+#define _SOFTRENDER_PBSF_HPP_
 
 #include "base/header.h"
 #include "math/color.h"
@@ -147,13 +147,12 @@ struct PBSF
 		return tangentX * h.x + tangentY * h.y + normal * h.z;
 	}
 
-	static Vector3 SpecularIBL(const CubemapPtr& cube, Vector3 specColor, float roughness, Vector3 n, Vector3 v)
+	static Vector3 SpecularIBL(const Cubemap& cube, Vector3 specColor, float roughness, Vector3 n, Vector3 v, uint32_t sampleCount)
 	{
 		Vector3 specLighting = Vector3::zero;
-		const uint32_t numSamples = 128;
-		for (uint32_t i = 0; i < numSamples; i++)
+		for (uint32_t i = 0; i < sampleCount; i++)
 		{
-			Vector2 xi = Hammersley2d(i, numSamples);
+			Vector2 xi = Hammersley2d(i, sampleCount);
 			Vector3 h = ImportanceSampleGGX(xi, roughness, n);
 			Vector3 l = h * (2.f * v.Dot(h)) - v;
 			float nDotV = Mathf::Clamp01(n.Dot(v));
@@ -170,15 +169,36 @@ struct PBSF
 				specLighting += sampleColor * F * (V * 4.f * nDotL * vDotH / nDotH);
 			}
 		}
-		return specLighting / float(numSamples);
+		return specLighting / float(sampleCount);
 	}
 
 	static ColorRGB BRDF_IBL_GroundTruth(const PBSInput& input, const Vector3& lightDir, const Vector3& viewDir)
 	{
-		return SpecularIBL(input.envMap, input.specColor, input.roughness, input.normal, viewDir);
+		return SpecularIBL(*input.envMap, input.specColor, input.roughness, input.normal, viewDir, 64);
+	}
+
+	static Vector3 PrefilterEnvMap(const Cubemap& cube, float roughness, Vector3 r, uint32_t sampleCount)
+	{
+		Vector3 n = r;
+		Vector3 v = r;
+
+		Vector3 prefilterColor = Vector3::zero;
+		for (uint32_t i = 0; i < sampleCount; i++)
+		{
+			Vector2 xi = Hammersley2d(i, sampleCount);
+			Vector3 h = ImportanceSampleGGX(xi, roughness, n);
+			Vector3 l = h * (2.f * v.Dot(h)) - v;
+
+			float nDotL = n.Dot(l);
+			if (nDotL > 0.f)
+			{
+				prefilterColor += IShader::TexCUBE(cube, l, 0.f).rgb * nDotL;
+			}
+		}
+		return prefilterColor / float(sampleCount);
 	}
 };
 
 } // namespace sr
 
-#endif //! _SOFTRENDER_PBSF_H_
+#endif //! _SOFTRENDER_PBSF_HPP_

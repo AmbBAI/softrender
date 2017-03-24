@@ -58,8 +58,8 @@ public:
 
 	float SampleProj(const Vector2& uv, float value, float bias/*=0*/) const;
 
-protected:
-	static BitmapPtr UnparkColor(rawptr_t bytes, int width, int height, int pitch, int bpp);
+	int GetMipmapsCount() const;
+	void SetMipmaps(std::vector<BitmapPtr>& bitmaps);
 	const BitmapPtr GetBitmap(int miplv) const;
     
 public:

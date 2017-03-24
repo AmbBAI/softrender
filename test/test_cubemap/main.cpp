@@ -135,15 +135,18 @@ void MainLoop()
 		objShader = std::make_shared<ObjShader>();
 		objShader->mainTex = material->diffuseTexture;
 		objShader->cubeMap = CubemapPtr(new Cubemap());
+		Texture2DPtr* images = new Texture2DPtr[6];
 		for (int i = 0; i < 6; ++i)
 		{
 			char path[32];
 			sprintf(path, "resources/cubemap/%d.jpg", i);
-			Texture2DPtr tex = Texture2D::LoadTexture(path);
-			tex->xAddressMode = Texture2D::AddressMode_Clamp;
-			tex->yAddressMode = Texture2D::AddressMode_Clamp;
-			objShader->cubeMap->SetTexture((Cubemap::CubemapFace)i, tex);
+			images[i] = Texture2D::LoadTexture(path);
+			images[i]->xAddressMode = Texture2D::AddressMode_Clamp;
+			images[i]->yAddressMode = Texture2D::AddressMode_Clamp;
 		}
+		objShader->cubeMap->InitWith6Images(images);
+		objShader->cubeMap->Mapping6ImagesToLatlong(1024);
+
 		assert(objShader->varyingDataSize == 48);
 		skyShader = std::make_shared<SkyShader>();
 		skyShader->cubeMap = objShader->cubeMap;

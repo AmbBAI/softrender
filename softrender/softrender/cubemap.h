@@ -15,6 +15,33 @@ typedef std::shared_ptr<Cubemap> CubemapPtr;
 class Cubemap
 {
 public:
+	void InitWith6Images(Texture2DPtr img[6]);
+	void InitWithLatlong(Texture2DPtr tex);
+
+	Color Sample(const Vector3& s, float rougness = 0.f) const;
+
+	bool Mapping6ImagesToLatlong(int height); // weight = height * 2
+	bool PrefilterEnvMap(uint32_t mapCount, uint32_t sampleCount) const;
+
+	bool Get6Images(Texture2DPtr img[6]);
+	bool GetLagLong(Texture2DPtr& latlong);
+
+protected:
+	Color SampleLatlong(const Vector3& s, float lod) const;
+	Color Sample6Images(const Vector3& s) const;
+
+	void DirectionToLatlongTexcoord(const Vector3& s, Vector2& texcoord) const;
+	void Direction6ImagesTexcoord(const Vector3& s, int& face, Vector2& texcoord) const;
+	float RoughnessToLod(float rougness) const;
+
+private:
+	enum MappingType
+	{
+		MappingType_None,
+		MappingType_6Images,
+		MappingType_LatLong,
+	};
+
 	enum CubemapFace
 	{
 		CubemapFace_PositiveX = 0,
@@ -25,16 +52,9 @@ public:
 		CubemapFace_NegativeZ = 5
 	};
 
-	void SetTexture(CubemapFace face, Texture2DPtr tex);
-
-	Color Sample(const Vector3& s);
-	//Color Sample(const Vector3& s, const Vector3& ddx, const Vector3& ddy);
-
-protected:
-	void CalcTexCoord(const Vector3& s, CubemapFace& face, Vector2& texcoord);
-
-private:
-	Texture2DPtr maps[6];
+	MappingType mappingType = MappingType_None;
+	Texture2DPtr images[6];
+	Texture2DPtr latlong;
 };
 
 }

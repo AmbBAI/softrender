@@ -117,14 +117,25 @@ void MainLoop()
 
 		shader = std::make_shared<MainShader>();
 		shader->envMap = CubemapPtr(new Cubemap());
+		Texture2DPtr* images = new Texture2DPtr[6];
 		for (int i = 0; i < 6; ++i)
 		{
 			char path[32];
 			sprintf(path, "resources/cubemap/%d.jpg", i);
-			Texture2DPtr tex = Texture2D::LoadTexture(path);
-			tex->xAddressMode = Texture2D::AddressMode_Clamp;
-			tex->yAddressMode = Texture2D::AddressMode_Clamp;
-			shader->envMap->SetTexture((Cubemap::CubemapFace)i, tex);
+			images[i] = Texture2D::LoadTexture(path);
+			images[i]->xAddressMode = Texture2D::AddressMode_Clamp;
+			images[i]->yAddressMode = Texture2D::AddressMode_Clamp;
+		}
+		shader->envMap->InitWith6Images(images);
+		shader->envMap->Mapping6ImagesToLatlong(1024);
+		shader->envMap->PrefilterEnvMap(10, 64);
+		Texture2DPtr latlong = nullptr;
+		shader->envMap->GetLagLong(latlong);
+		for (int i = 0; i <= latlong->GetMipmapsCount(); ++i)
+		{
+			BitmapPtr bitmap = latlong->GetBitmap(i);
+			std::string path = std::string("resources/cubemap/envmap_mip") + std::to_string(i) + ".jpg";
+			bitmap->SaveToFile(path.c_str());
 		}
 
 		std::vector<MeshPtr> meshes;
@@ -146,25 +157,26 @@ void MainLoop()
 
 	objectCtrl.MouseRotate(objectTrans, false);
 
-	//objectTrans.position = Vector3(0.f, 0.f, 2.f);
-	//SoftRender::modelMatrix = objectTrans.localToWorldMatrix();
-	//shader->roughness = 0.5f;
-	//shader->specular = 0.f;
-	//SoftRender::SetShader(shader);
-	//SoftRender::Submit();
+	objectTrans.position = Vector3(0.f, 0.f, 2.f);
+	objectTrans.scale = Vector3::one * 4.f;
+	SoftRender::modelMatrix = objectTrans.localToWorldMatrix();
+	shader->roughness = 0.1f;
+	shader->specular = 0.f;
+	SoftRender::SetShader(shader);
+	SoftRender::Submit();
 
-	for (int i = 0; i < 11; ++i)
-	{
-		for (int j = 0; j < 11; ++j)
-		{
-			objectTrans.position = Vector3(1.f * (i - 5), 1.f * (j - 5), 2.f);
-			SoftRender::modelMatrix = objectTrans.localToWorldMatrix();
-			shader->roughness = i * 0.1f;
-			shader->specular = j * 0.1f;
-			SoftRender::SetShader(shader);
-			SoftRender::Submit();
-		}
-	}
+	//for (int i = 0; i < 11; ++i)
+	//{
+	//	for (int j = 0; j < 11; ++j)
+	//	{
+	//		objectTrans.position = Vector3(1.f * (i - 5), 1.f * (j - 5), 2.f);
+	//		SoftRender::modelMatrix = objectTrans.localToWorldMatrix();
+	//		shader->roughness = i * 0.1f;
+	//		shader->specular = j * 0.1f;
+	//		SoftRender::SetShader(shader);
+	//		SoftRender::Submit();
+	//	}
+	//}
 
     SoftRender::Present();
 }
