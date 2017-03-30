@@ -134,8 +134,8 @@ struct PBSF
 	{
 		float a = roughness * roughness;
 		float phi = 2.f * Mathf::PI * xi.x;
-		float cosTheta = Mathf::Sqrt((1 - xi.y) / (1.f + (a * a - 1) * xi.y));
-		float sinTheta = Mathf::Sqrt(1 - cosTheta * cosTheta);
+		float cosTheta = Mathf::Sqrt((1.f - xi.y) / (1.f + (a * a - 1.f) * xi.y));
+		float sinTheta = Mathf::Sqrt(1.f - cosTheta * cosTheta);
 		Vector3 h;
 		h.x = sinTheta * Mathf::Cos(phi);
 		h.y = sinTheta * Mathf::Sin(phi);
@@ -154,11 +154,11 @@ struct PBSF
 		{
 			Vector2 xi = Hammersley2d(i, sampleCount);
 			Vector3 h = ImportanceSampleGGX(xi, roughness, n);
-			Vector3 l = h * (2.f * v.Dot(h)) - v;
+			float vDotH = Mathf::Clamp01(v.Dot(h));
+			Vector3 l = h * (2.f * vDotH) - v;
 			float nDotV = Mathf::Clamp01(n.Dot(v));
 			float nDotL = Mathf::Clamp01(n.Dot(l));
 			float nDotH = Mathf::Clamp01(n.Dot(h));
-			float vDotH = Mathf::Clamp01(v.Dot(h));
 			if (nDotL > 0.f)
 			{
 				Vector3 sampleColor = IShader::TexCUBE(cube, l, 0.f).rgb;
@@ -166,7 +166,7 @@ struct PBSF
 				Vector3 F = FresnelTerm(vDotH, specColor);
 				// pdf = D * nDotH / (4 * vDotH)
 				// DVF * (nDotL) / pdf = (V * F * 4 * nDotL * vDotH) / nDotH
-				specLighting += sampleColor * F * (V * 4.f * nDotL * vDotH / nDotH);
+				specLighting += sampleColor * F * (V * 4.f * nDotL * vDotH / (nDotH + Mathf::epsilon));
 			}
 		}
 		return specLighting / float(sampleCount);
@@ -183,6 +183,7 @@ struct PBSF
 		Vector3 v = r;
 
 		Vector3 prefilterColor = Vector3::zero;
+		float totalWeight = Mathf::epsilon;
 		for (uint32_t i = 0; i < sampleCount; i++)
 		{
 			Vector2 xi = Hammersley2d(i, sampleCount);
@@ -193,9 +194,10 @@ struct PBSF
 			if (nDotL > 0.f)
 			{
 				prefilterColor += IShader::TexCUBE(cube, l, 0.f).rgb * nDotL;
+				totalWeight += nDotL;
 			}
 		}
-		return prefilterColor / float(sampleCount);
+		return prefilterColor / totalWeight;
 	}
 };
 

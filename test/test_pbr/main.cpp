@@ -117,24 +117,25 @@ void MainLoop()
 
 		shader = std::make_shared<MainShader>();
 		shader->envMap = CubemapPtr(new Cubemap());
-		Texture2DPtr* images = new Texture2DPtr[6];
-		for (int i = 0; i < 6; ++i)
-		{
-			char path[32];
-			sprintf(path, "resources/cubemap/%d.jpg", i);
-			images[i] = Texture2D::LoadTexture(path);
-			images[i]->xAddressMode = Texture2D::AddressMode_Clamp;
-			images[i]->yAddressMode = Texture2D::AddressMode_Clamp;
-		}
-		shader->envMap->InitWith6Images(images);
-		shader->envMap->Mapping6ImagesToLatlong(1024);
-		shader->envMap->PrefilterEnvMap(10, 64);
-		Texture2DPtr latlong = nullptr;
-		shader->envMap->GetLagLong(latlong);
+		//Texture2DPtr* images = new Texture2DPtr[6];
+		//for (int i = 0; i < 6; ++i)
+		//{
+		//	char path[32];
+		//	sprintf(path, "resources/cubemap/%d.jpg", i);
+		//	images[i] = Texture2D::LoadTexture(path);
+		//	images[i]->xAddressMode = Texture2D::AddressMode_Clamp;
+		//	images[i]->yAddressMode = Texture2D::AddressMode_Clamp;
+		//}
+		//shader->envMap->InitWith6Images(images);
+		//shader->envMap->Mapping6ImagesToLatlong(1024);
+
+		auto latlong = Texture2D::LoadTexture("resources/cubemap/envmap.png");
+		shader->envMap->InitWithLatlong(latlong);
+		shader->envMap->PrefilterEnvMap(10, 1024);
 		for (int i = 0; i <= latlong->GetMipmapsCount(); ++i)
 		{
 			BitmapPtr bitmap = latlong->GetBitmap(i);
-			std::string path = std::string("resources/cubemap/envmap_mip") + std::to_string(i) + ".jpg";
+			std::string path = std::string("resources/cubemap/envmap_mip") + std::to_string(i) + ".png";
 			bitmap->SaveToFile(path.c_str());
 		}
 
