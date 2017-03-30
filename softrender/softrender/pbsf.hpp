@@ -199,6 +199,40 @@ struct PBSF
 		}
 		return prefilterColor / totalWeight;
 	}
+
+	static Vector2 IntergrateBRDF(float roughness, float nDotV, uint32_t sampleCount)
+	{
+		Vector3 v; // n = (0, 0, 1);
+		v.x = Mathf::Sqrt(1.f - nDotV * nDotV);
+		v.y = 0.f;
+		v.z = nDotV;
+
+		float a = 0.f;
+		float b = 0.f;
+		for (uint32_t i = 0; i < sampleCount; ++i)
+		{
+			Vector2 xi = Hammersley2d(i, sampleCount);
+			Vector3 h = ImportanceSampleGGX(xi, roughness, Vector3::front);
+			Vector3 l = h * (2.f * v.Dot(h)) - v;
+
+			float nDotL = Mathf::Clamp01(l.z);
+			float nDotH = Mathf::Clamp01(h.z);
+			float vDotH = Mathf::Clamp01(v.Dot(h));
+			if (nDotL > 0.f)
+			{
+				float V = SmithGGXVisibilityTerm(nDotL, nDotV, roughness);
+				// (V * 4 * nDotL * vDotH) / nDotH
+				float G = V * 4.f * nDotL * vDotH / nDotH;
+				float Fc = Mathf::Pow(1.f - vDotH, 5.f);
+				a += (1.f - Fc) * G;
+				b += Fc * G;
+			}
+		}
+
+		a /= (float)sampleCount;
+		b /= (float)sampleCount;
+		return Vector2(a, b);
+	}
 };
 
 } // namespace sr

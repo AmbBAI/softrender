@@ -131,13 +131,34 @@ void MainLoop()
 
 		auto latlong = Texture2D::LoadTexture("resources/cubemap/envmap.png");
 		shader->envMap->InitWithLatlong(latlong);
-		shader->envMap->PrefilterEnvMap(10, 1024);
-		for (int i = 0; i <= latlong->GetMipmapsCount(); ++i)
+		//shader->envMap->PrefilterEnvMap(10, 1024);
+		//for (int i = 0; i <= latlong->GetMipmapsCount(); ++i)
+		//{
+		//	BitmapPtr bitmap = latlong->GetBitmap(i);
+		//	std::string path = std::string("resources/cubemap/envmap_mip") + std::to_string(i) + ".png";
+		//	bitmap->SaveToFile(path.c_str());
+		//}
+
+		BitmapPtr bitmap = BitmapPtr(new Bitmap(512, 512, Bitmap::BitmapType_RGB24));
+		for (int i = 0; i < 512; ++i)
 		{
-			BitmapPtr bitmap = latlong->GetBitmap(i);
-			std::string path = std::string("resources/cubemap/envmap_mip") + std::to_string(i) + ".png";
-			bitmap->SaveToFile(path.c_str());
+			for (int j = 0; j < 512; ++j)
+			{
+				Vector2 out = PBSF::IntergrateBRDF((float)j / (float)511, (float)i / (float)511, 1024);
+				Color color = Color(1.f, out.x, out.y, 0.f);
+				bitmap->SetPixel(i, j, color);
+			}
 		}
+		bitmap->SaveToFile("resources/cubemap/lut.png");
+
+		std::vector<BitmapPtr> mipmaps;
+		for (int i = 1; i <= 10; ++i)
+		{
+			char path[256];
+			sprintf(path, "resources/cubemap/envmap_mip%d.png", i);
+			mipmaps.push_back(Texture2D::LoadTexture(path)->GetBitmap(0));
+		}
+		latlong->SetMipmaps(mipmaps);
 
 		std::vector<MeshPtr> meshes;
 		Mesh::LoadMesh(meshes, "resources/cubemap/sphere.obj");
