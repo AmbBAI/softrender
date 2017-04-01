@@ -59,7 +59,7 @@ struct SkyShader : Shader<Vertex, VaryingData>
 
 	Color frag(const VaryingData& input) override
 	{
-		return TexCUBE(cubeMap, (input.worldPos - _WorldSpaceCameraPos).Normalize());
+		return TexCUBE(*cubeMap, (input.worldPos - _WorldSpaceCameraPos).Normalize());
 	}
 };
 
@@ -98,7 +98,7 @@ struct ObjShader : Shader<Vertex, VaryingData>
 
 		Vector3 viewDir = (_WorldSpaceCameraPos - input.worldPos).Normalize();
 		Vector3 reflectDir = Reflect(-viewDir, input.normal).Normalize();
-		Color reflectCol = TexCUBE(cubeMap, reflectDir);
+		Color reflectCol = TexCUBE(*cubeMap, reflectDir);
 		float fresnel = Mathf::Pow(1.f - Mathf::Clamp01(Mathf::Abs(Vector3::Dot(viewDir, input.normal))), fresnelFalloff) * fresnelPow;
 		reflectCol *= Mathf::Clamp01(fresnel + reflection);
 
@@ -165,7 +165,7 @@ void MainLoop()
 		skyTrans.scale = Vector3::one * 1000.f;
 
 		meshes.clear();
-		Mesh::LoadMesh(meshes, "resources/cubemap/sphere.obj");
+		Mesh::LoadMesh(meshes, "resources/sphere.obj");
 		skyMesh.vertices.clear();
 		skyMesh.indices.clear();
 		vertexCount = meshes[0]->GetVertexCount();

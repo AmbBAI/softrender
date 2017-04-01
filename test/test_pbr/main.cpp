@@ -53,7 +53,7 @@ struct MainShader : Shader<Vertex, VaryingData>
 {
 	CubemapPtr envMap = nullptr;
 	float roughness = 0.5f;
-	float specular = 0.5f;
+	float metallic = 0.5f;
 
 	VaryingData vert(const Vertex& input) override
 	{
@@ -70,21 +70,28 @@ struct MainShader : Shader<Vertex, VaryingData>
 	Color frag(const VaryingData& input) override
 	{
 		PBSInput pbsInput;
-		pbsInput.albedo = Color::red.rgb;
+		pbsInput.albedo = Color::white.rgb;
 		pbsInput.normal = input.normal;
 		pbsInput.roughness = roughness;
-		pbsInput.specular = specular;
-		pbsInput.specColor = Color::white.rgb;
-		pbsInput.envMap = envMap;
+		pbsInput.metallic = metallic;
+
+		Vector3 diffColor;
+		Vector3 specColor;
+		float reflectivity;
+		pbsInput.PBSSetup(diffColor, specColor, reflectivity);
 
 		Vector3 lightDir;
 		float lightAtten;
 		InitLightArgs(input.worldPos, lightDir, lightAtten);
+		PBSLight pbsLight;
+		pbsLight.color = _LightColor.xyz * lightAtten;
+		pbsLight.dir = lightDir;
 
 		Color fragColor;
 		Vector3 viewDir = (_WorldSpaceCameraPos - input.worldPos).Normalize();
 
-		fragColor.rgb = PBSF::BRDF_IBL_GroundTruth(pbsInput, lightDir, viewDir);
+		pbsInput.ibl = PBSF::ApproximateSpecularIBL(*envMap, specColor, input.normal, viewDir, roughness);
+		fragColor.rgb = PBSF::BRDF1(pbsInput, input.normal, viewDir, pbsLight);
 		return fragColor;
 	}
 };
@@ -115,6 +122,19 @@ void MainLoop()
 		light->Initilize();
 		SoftRender::light = light;
 
+		// Gen IBL lut
+		//BitmapPtr bitmap = BitmapPtr(new Bitmap(512, 512, Bitmap::BitmapType_RGB24));
+		//for (int i = 0; i < 512; ++i)
+		//{
+		//	for (int j = 0; j < 512; ++j)
+		//	{
+		//		Vector2 out = PBSF::IntergrateBRDF((float)j / (float)511, (float)i / (float)511, 1024);
+		//		Color color = Color(1.f, out.x, out.y, 0.f);
+		//		bitmap->SetPixel(i, j, color);
+		//	}
+		//}
+		//bitmap->SaveToFile("resources/cubemap/lut.png");
+
 		shader = std::make_shared<MainShader>();
 		shader->envMap = CubemapPtr(new Cubemap());
 		//Texture2DPtr* images = new Texture2DPtr[6];
@@ -129,39 +149,28 @@ void MainLoop()
 		//shader->envMap->InitWith6Images(images);
 		//shader->envMap->Mapping6ImagesToLatlong(1024);
 
-		auto latlong = Texture2D::LoadTexture("resources/cubemap/envmap.png");
+		auto latlong = Texture2D::LoadTexture("resources/pbr/envmap.png");
 		shader->envMap->InitWithLatlong(latlong);
+		// PrefilterEnvMap
 		//shader->envMap->PrefilterEnvMap(10, 1024);
 		//for (int i = 0; i <= latlong->GetMipmapsCount(); ++i)
 		//{
 		//	BitmapPtr bitmap = latlong->GetBitmap(i);
-		//	std::string path = std::string("resources/cubemap/envmap_mip") + std::to_string(i) + ".png";
+		//	std::string path = std::string("resources/pbr/envmap_mip") + std::to_string(i) + ".png";
 		//	bitmap->SaveToFile(path.c_str());
 		//}
-
-		BitmapPtr bitmap = BitmapPtr(new Bitmap(512, 512, Bitmap::BitmapType_RGB24));
-		for (int i = 0; i < 512; ++i)
-		{
-			for (int j = 0; j < 512; ++j)
-			{
-				Vector2 out = PBSF::IntergrateBRDF((float)j / (float)511, (float)i / (float)511, 1024);
-				Color color = Color(1.f, out.x, out.y, 0.f);
-				bitmap->SetPixel(i, j, color);
-			}
-		}
-		bitmap->SaveToFile("resources/cubemap/lut.png");
 
 		std::vector<BitmapPtr> mipmaps;
 		for (int i = 1; i <= 10; ++i)
 		{
 			char path[256];
-			sprintf(path, "resources/cubemap/envmap_mip%d.png", i);
+			sprintf(path, "resources/pbr/envmap_mip%d.png", i);
 			mipmaps.push_back(Texture2D::LoadTexture(path)->GetBitmap(0));
 		}
 		latlong->SetMipmaps(mipmaps);
 
 		std::vector<MeshPtr> meshes;
-		Mesh::LoadMesh(meshes, "resources/cubemap/sphere.obj");
+		Mesh::LoadMesh(meshes, "resources/sphere.obj");
 		auto mesh = meshes[0];
 		objectMesh.vertices.clear();
 		objectMesh.indices.clear();
@@ -172,33 +181,33 @@ void MainLoop()
 
 		SoftRender::renderData.AssignVertexBuffer(objectMesh.vertices);
 		SoftRender::renderData.AssignIndexBuffer(objectMesh.indices);
-		objectTrans.scale = Vector3::one * 0.4f;
 	}
 
 	SoftRender::Clear(true, true, Color(1.f, 0.19f, 0.3f, 0.47f));
 
 	objectCtrl.MouseRotate(objectTrans, false);
 
-	objectTrans.position = Vector3(0.f, 0.f, 2.f);
-	objectTrans.scale = Vector3::one * 4.f;
-	SoftRender::modelMatrix = objectTrans.localToWorldMatrix();
-	shader->roughness = 0.1f;
-	shader->specular = 0.f;
-	SoftRender::SetShader(shader);
-	SoftRender::Submit();
+	//objectTrans.position = Vector3(0.f, 0.f, 2.f);
+	//objectTrans.scale = Vector3::one * 4.f;
+	//SoftRender::modelMatrix = objectTrans.localToWorldMatrix();
+	//shader->roughness = 0.1f;
+	//shader->specular = 0.f;
+	//SoftRender::SetShader(shader);
+	//SoftRender::Submit();
 
-	//for (int i = 0; i < 11; ++i)
-	//{
-	//	for (int j = 0; j < 11; ++j)
-	//	{
-	//		objectTrans.position = Vector3(1.f * (i - 5), 1.f * (j - 5), 2.f);
-	//		SoftRender::modelMatrix = objectTrans.localToWorldMatrix();
-	//		shader->roughness = i * 0.1f;
-	//		shader->specular = j * 0.1f;
-	//		SoftRender::SetShader(shader);
-	//		SoftRender::Submit();
-	//	}
-	//}
+	for (int i = 0; i < 11; ++i)
+	{
+		for (int j = 0; j < 11; ++j)
+		{
+			objectTrans.position = Vector3(1.f * (i - 5), 1.f * (j - 5), 2.f);
+			objectTrans.scale = Vector3::one * 0.45f;
+			SoftRender::modelMatrix = objectTrans.localToWorldMatrix();
+			shader->roughness = i * 0.1f;
+			shader->metallic = j * 0.1f;
+			SoftRender::SetShader(shader);
+			SoftRender::Submit();
+		}
+	}
 
     SoftRender::Present();
 }

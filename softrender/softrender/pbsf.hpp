@@ -11,14 +11,29 @@
 namespace sr
 {
 
+struct PBSLight
+{
+	Vector3 dir;
+	Vector3 color;
+};
+
 struct PBSInput
 {
 	Vector3 albedo;
 	Vector3 normal;
-	Vector3 specColor;
 	float roughness;
-	float specular;
-	CubemapPtr envMap;
+	float metallic;
+
+	Vector3 ibl;
+
+	void PBSSetup(Vector3& diffColor, Vector3& specColor, float& reflectivity) const
+	{
+		static float dielectricSpec = 0.220916301f;
+		static Vector3 dieletctricSpecRGB = Vector3::one * dielectricSpec;
+		specColor = Mathf::LinearInterp(dieletctricSpecRGB, albedo, metallic);
+		reflectivity = Mathf::Lerp(metallic, 1.f, dielectricSpec);
+		diffColor = albedo * (1.f - reflectivity);
+	}
 };
 
 struct PBSF
@@ -29,6 +44,14 @@ struct PBSF
 		float a2 = a * a;
 		float d = (nDotH * nDotH) * (a2 - 1.f) + 1.f;
 		return a2 / (Mathf::PI * d * d);
+	}
+
+	static float BlinnPhongTerm(float nDotH, float roughness)
+	{
+		float a = roughness * roughness;
+		float a2 = a * a;
+		float specPower = Mathf::Max(2.f / (a2 + 1e-4f) - 2.f, 1e-4f);
+		return 4.f * Mathf::Pow(nDotH, specPower) / (a2 + 1e-4f);
 	}
 
 	// Generic Smith-Schlick visibility term
@@ -63,11 +86,6 @@ struct PBSF
 		return 0.5f / (lambdaV + lambdaL + 1e-5f);
 	}
 
-	static float FresnelTerm(float vDotH, float specular)
-	{
-		return specular + (1 - specular) * Mathf::Pow(1.f - vDotH, 5.f);
-	}
-
 	static Vector3 FresnelTerm(float vDotH, Vector3 specular)
 	{
 		return specular + (Vector3::one - specular) * Mathf::Pow(1.f - vDotH, 5.f);
@@ -81,36 +99,46 @@ struct PBSF
 		return Mathf::Clamp01((1.f + (fD90 - 1.f) * nlPow5) * (1.f + (fD90 - 1.f) * nvPow5));
 	}
 
-	static ColorRGB BRDF(const PBSInput& input, const Vector3& lightDir, const Vector3& viewDir)
+	static Vector3 BRDF1(const PBSInput& input, const Vector3& normal, const Vector3& viewDir, const PBSLight& light)
 	{
-		Vector3 halfdir = (lightDir + viewDir).Normalize();
-		float nDotL = Mathf::Clamp01(input.normal.Dot(lightDir));
-		float nDotV = Mathf::Clamp01(input.normal.Dot(viewDir));
-		float nDotH = Mathf::Clamp01(input.normal.Dot(halfdir));
-		float vDotH = Mathf::Clamp01(viewDir.Dot(halfdir));
-		float lDotH = Mathf::Clamp01(lightDir.Dot(halfdir));
+		Vector3 diffColor;
+		Vector3 specColor;
+		float reflectivity;
+		input.PBSSetup(diffColor, specColor, reflectivity);
+
+		Vector3 halfDir = (light.dir + viewDir).Normalize();
+		float nDotL = Mathf::Clamp01(normal.Dot(light.dir));
+		float nDotV = Mathf::Clamp01(normal.Dot(viewDir));
+		float nDotH = Mathf::Clamp01(normal.Dot(halfDir));
+		float vDotH = Mathf::Clamp01(viewDir.Dot(halfDir));
+		float lDotH = Mathf::Clamp01(light.dir.Dot(halfDir));
 
 		float diffuseTerm = DisneyDiffuseTerm(nDotL, nDotV, lDotH, input.roughness);
 		float D = GGXTerm(nDotH, input.roughness);
 		float V = SmithGGXVisibilityTerm(nDotL, nDotV, input.roughness);
-		float F = FresnelTerm(vDotH, input.specular);
-		return input.albedo * (diffuseTerm * nDotL) + input.specColor * (D * V * F * nDotL * Mathf::PI);
+		Vector3 F = FresnelTerm(vDotH, specColor);
+		return diffColor * (diffuseTerm * nDotL) + light.color * F * (D * V * nDotL * Mathf::PI) + input.ibl;
 		//return Color::white.rgb * (diffuseTerm * nDotL);
 		//return Color::white.rgb * D;
 		//return Color::white.rgb * V;
 		//return Color::white.rgb * F;
 	}
 
-	static ColorRGB BRDF2(const PBSInput& input, const Vector3& lightDir, const Vector3& viewDir)
+	static Vector3 BRDF2(const PBSInput& input, const Vector3& normal, const Vector3& viewDir, const PBSLight& light)
 	{
-		Vector3 floatDir = (lightDir + viewDir).Normalize();
-		float nDotL = Mathf::Clamp01(input.normal.Dot(lightDir));
-		float lDotH = Mathf::Clamp01(lightDir.Dot(floatDir));
-		float nDotH = Mathf::Clamp01(input.normal.Dot(floatDir));
+		Vector3 diffColor;
+		Vector3 specColor;
+		float reflectivity;
+		input.PBSSetup(diffColor, specColor, reflectivity);
+
+		Vector3 halfDir = (light.dir + viewDir).Normalize();
+		float nDotL = Mathf::Clamp01(normal.Dot(light.dir));
+		float lDotH = Mathf::Clamp01(light.dir.Dot(halfDir));
+		float nDotH = Mathf::Clamp01(normal.Dot(halfDir));
 
 		float D = GGXTerm(nDotH, input.roughness);
 		float VF = 1.f / (4.f * lDotH * lDotH * (input.roughness + 0.5f));
-		return input.albedo * nDotL + input.specColor * (D * VF * nDotL * input.specular);
+		return diffColor * nDotL + light.color * (D * VF * nDotL * Mathf::PI);
 	}
 
 	// IBL //
@@ -147,7 +175,7 @@ struct PBSF
 		return tangentX * h.x + tangentY * h.y + normal * h.z;
 	}
 
-	static Vector3 SpecularIBL(const Cubemap& cube, Vector3 specColor, float roughness, Vector3 n, Vector3 v, uint32_t sampleCount)
+	static Vector3 GroundTruthSpecularIBL(const Cubemap& cube, Vector3 specColor, Vector3 n, Vector3 v, float roughness, uint32_t sampleCount)
 	{
 		Vector3 specLighting = Vector3::zero;
 		for (uint32_t i = 0; i < sampleCount; i++)
@@ -170,11 +198,6 @@ struct PBSF
 			}
 		}
 		return specLighting / float(sampleCount);
-	}
-
-	static ColorRGB BRDF_IBL_GroundTruth(const PBSInput& input, const Vector3& lightDir, const Vector3& viewDir)
-	{
-		return SpecularIBL(*input.envMap, input.specColor, input.roughness, input.normal, viewDir, 64);
 	}
 
 	static Vector3 PrefilterEnvMap(const Cubemap& cube, float roughness, Vector3 r, uint32_t sampleCount)
@@ -233,6 +256,18 @@ struct PBSF
 		b /= (float)sampleCount;
 		return Vector2(a, b);
 	}
+
+	static ColorRGB ApproximateSpecularIBL(const Cubemap& cubemap, const Vector3& specColor, const Vector3& normal, const Vector3& viewDir, float roughness)
+	{
+		float nDotV = Mathf::Clamp01(normal.Dot(viewDir));
+		Vector3 r = normal * (2.f * nDotV) - viewDir;
+		static Texture2DPtr iblLUT = Texture2D::LoadTexture("resources/pbr/lut.png");
+
+		Vector3 prefilterColor = cubemap.Sample(r, roughness).rgb;
+		Vector3 envBRDF = iblLUT->Sample(Vector2(roughness, nDotV), 0.f).rgb;
+		return prefilterColor * (specColor * envBRDF.x + Vector3::one * envBRDF.y);
+	}
+
 };
 
 } // namespace sr
