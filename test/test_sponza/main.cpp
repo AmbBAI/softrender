@@ -121,23 +121,23 @@ struct SceneShader : Shader<Vertex, VaryingData>
 	{
 		if (alphaMaskTex != nullptr)
 		{
-			float alpha = Tex2D(alphaMaskTex, input.texcoord).r;
+			float alpha = Tex2D(*alphaMaskTex, input.texcoord).r;
 			if (Clip(alpha - 0.2f)) return Color::white;
 		}
 
 		Color fragColor = Color::white;
-		if (mainTex != nullptr) fragColor = Tex2D(mainTex, input.texcoord, ddx, ddy);
+		if (mainTex != nullptr) fragColor = Tex2D(*mainTex, input.texcoord, ddx, ddy);
 
 		Vector3 normal = input.normal;
 		if (normalTex != nullptr)
 		{
 			Matrix4x4 tbn = TangentSpaceRotation(input.tangent, input.bitangent, input.normal);
-			normal = UnpackNormal(Tex2D(normalTex, input.texcoord, ddx, ddy), tbn);
+			normal = UnpackNormal(Tex2D(*normalTex, input.texcoord, ddx, ddy), tbn);
 		}
 
 		Vector4 proj = lightVPM.MultiplyPoint(input.worldPos);
 		Vector2 smuv = Vector2((proj.x / proj.w + 1.f) / 2.f, (proj.y / proj.w + 1.f) / 2.f);
-		float shadow = Tex2DProjInterpolated(shadowMap, smuv, proj.z / proj.w, 0.0025f);
+		float shadow = Tex2DProjInterpolated(*shadowMap, smuv, proj.z / proj.w, 0.0025f);
 
 		Vector3 lightDir;
 		float lightAtten;
@@ -151,7 +151,7 @@ struct SceneShader : Shader<Vertex, VaryingData>
 
 		if (specularTex != nullptr)
 		{
-			Color specColor = Tex2D(specularTex, input.texcoord);
+			Color specColor = Tex2D(*specularTex, input.texcoord);
 			lightInput.specular = specColor;
 			lightInput.shininess = shininess;
 

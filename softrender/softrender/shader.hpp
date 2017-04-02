@@ -60,35 +60,31 @@ struct IShader
 		return Mathf::Max(0.f, 0.5f * Mathf::Log2(delta));
 	}
 
-	static Color Tex2D(const Texture2DPtr& tex, const Vector2& uv, float lod = 0.f)
+	static Color Tex2D(const Texture2D& tex, const Vector2& uv, float lod = 0.f)
 	{
-		if (tex == nullptr) return Color::white;
-		return tex->Sample(uv, lod);
+		return tex.Sample(uv, lod);
 	}
 
-	static Color Tex2D(const Texture2DPtr& tex, const Vector2& uv, const Vector2& ddx, const Vector2& ddy)
+	static Color Tex2D(const Texture2D& tex, const Vector2& uv, const Vector2& ddx, const Vector2& ddy)
 	{
-		if (tex == nullptr) return Color::white;
-		return tex->Sample(uv, ddx, ddy);
+		return tex.Sample(uv, ddx, ddy);
 	}
 
-	static float Tex2DProj(const Texture2DPtr& tex, const Vector2& uv, float depth, float bias)
+	static float Tex2DProj(const Texture2D& tex, const Vector2& uv, float depth, float bias)
 	{
-		if (tex == nullptr) return 0.f;
-		return tex->SampleProj(uv, depth, bias);
+		return tex.SampleProj(uv, depth, bias);
 	}
 
-	static float Tex2DProjInterpolated(const Texture2DPtr& tex, const Vector2& uv, float depth, float bias)
+	static float Tex2DProjInterpolated(const Texture2D& tex, const Vector2& uv, float depth, float bias)
 	{
-		if (tex == nullptr) return 0.f;
-		float invW = 1.f / tex->GetWidth();
-		float invH = 1.f / tex->GetHeight();
+		float invW = 1.f / tex.GetWidth();
+		float invH = 1.f / tex.GetHeight();
 		float ret = 0.f;
 		for (int xoff = -1; xoff <= 1; ++xoff)
 		{
 			for (int yoff = -1; yoff <= 1; ++yoff)
 			{
-				ret += tex->SampleProj(uv + Vector2(xoff * invW, yoff * invH), depth, bias);
+				ret += tex.SampleProj(uv + Vector2(xoff * invW, yoff * invH), depth, bias);
 			}
 		}
 		return ret / 9.f;

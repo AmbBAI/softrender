@@ -74,10 +74,10 @@ struct ObjShader : Shader<Vertex, VaryingData>
 
 	Color frag(const VaryingData& input) override
 	{
-		Color color = Tex2D(mainTex, input.texcoord, ddx, ddy);
+		Color color = Tex2D(*mainTex, input.texcoord, ddx, ddy);
 
 		Matrix4x4 tbn = TangentSpaceRotation(input.tangent, input.bitangent, input.normal);
-		Vector3 normal = UnpackNormal(Tex2D(normalTex, input.texcoord, ddx, ddy), tbn);
+		Vector3 normal = UnpackNormal(Tex2D(*normalTex, input.texcoord, ddx, ddy), tbn);
 		
 		color.rgb *= Mathf::Max(0.f, lightDir.Dot(normal));
 		return color;

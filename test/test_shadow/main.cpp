@@ -85,7 +85,7 @@ struct ObjShader : Shader<Vertex, VaryingData>
 
 		Vector4 proj = lightVPM.MultiplyPoint(input.worldPos);
 		Vector2 smuv = Vector2((proj.x / proj.w + 1.f) / 2.f, (proj.y / proj.w + 1.f) / 2.f);
-		float shadow = Tex2DProjInterpolated(shadowMap, smuv, proj.z / proj.w, 0.005f);
+		float shadow = Tex2DProjInterpolated(*shadowMap, smuv, proj.z / proj.w, 0.005f);
 
 		Vector3 lightDir;
 		float lightAtten;

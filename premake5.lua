@@ -52,7 +52,8 @@ solution "softrender"
   createTestProject("cubemap")
   createTestProject("sponza")
   createTestProject("pbr")
-
+  createTestProject("pbr2")
+  
   project "common"
     kind "StaticLib"
     targetdir "lib/"

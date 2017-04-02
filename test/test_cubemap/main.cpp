@@ -93,7 +93,7 @@ struct ObjShader : Shader<Vertex, VaryingData>
 
 	Color frag(const VaryingData& input) override
 	{
-		Color color = Tex2D(mainTex, input.texcoord, ddx, ddy);
+		Color color = Tex2D(*mainTex, input.texcoord, ddx, ddy);
 		float ndotl = Mathf::Max(0.f, input.normal.Dot(lightDir));
 
 		Vector3 viewDir = (_WorldSpaceCameraPos - input.worldPos).Normalize();
