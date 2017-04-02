@@ -131,9 +131,9 @@ void MainLoop()
 		SoftRender::light = light;
 
 		shader = std::make_shared<MainShader>();
-		shader->albedoMap = Texture2D::LoadTexture("resources/pbr/shield_diffuse.png");
-		shader->normalMap = Texture2D::LoadTexture("resources/pbr/shiled_normal.png");
-		shader->paramMap = Texture2D::LoadTexture("resources/pbr/shield_param.png");
+		shader->albedoMap = Texture2D::LoadTexture("resources/pbr/knife_albedo.png");
+		shader->normalMap = Texture2D::LoadTexture("resources/pbr/knife_normal.png");
+		shader->paramMap = Texture2D::LoadTexture("resources/pbr/knife_param.png");
 
 		shader->envMap = CubemapPtr(new Cubemap());
 		auto latlong = Texture2D::LoadTexture("resources/pbr/envmap.png");
@@ -148,7 +148,7 @@ void MainLoop()
 		shader->envMap->InitWithLatlong(latlong);
 
 		std::vector<MeshPtr> meshes;
-		Mesh::LoadMesh(meshes, "resources/pbr/shield.obj");
+		Mesh::LoadMesh(meshes, "resources/pbr/knife.obj");
 		auto mesh = meshes[0];
 		objectMesh.vertices.clear();
 		objectMesh.indices.clear();
@@ -167,7 +167,7 @@ void MainLoop()
 	objectCtrl.MouseRotate(objectTrans, false);
 
 	objectTrans.position = Vector3(0.f, 0.f, 2.f);
-	objectTrans.scale = Vector3::one * 0.1f;
+	objectTrans.scale = Vector3::one * 2.f;
 	SoftRender::modelMatrix = objectTrans.localToWorldMatrix();
 	SoftRender::SetShader(shader);
 	SoftRender::Submit();
