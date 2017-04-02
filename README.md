@@ -3,22 +3,24 @@ A very simple rasterizer by C++
 
 ### Build
 Make solution file with [premake](http://premake.github.io/)  
-  
-`premake5 vs2013` for Windows VS2013  
+
+`premake5 vs2015` for Windows VS2013  
 Copy `FreeImage.dll` to your workspace
-  
+
 `./premake5 xcode4` for MacOSX XCode  
-  
+
 [Resources Download](http://graphics.cs.williams.edu/data/meshes.xml)
 
 ![](https://github.com/AmbBAI/rasterizer/raw/master/screenshot0.png)
 
 ![](https://github.com/AmbBAI/rasterizer/raw/master/screenshot1.png)
-  
+
 ![](https://github.com/AmbBAI/rasterizer/raw/master/screenshot.png)
 
+![](https://github.com/AmbBAI/rasterizer/raw/master/screenshot2.png)
 
 ### Reference
+
 - [Wiki: Bresenham's_line_algorithm](http://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm)
 - [Wiki: Xiaolin_Wu's_line_algorithm](http://en.wikipedia.org/wiki/Xiaolin_Wu%27s_line_algorithm)
 - [Triangle rasterization in practice](https://fgiesen.wordpress.com/2013/02/08/triangle-rasterization-in-practice/)
@@ -37,3 +39,7 @@ Copy `FreeImage.dll` to your workspace
 - [3D游戏编程大师技巧](http://book.douban.com/subject/1321769/)
 - [Github: SALVIA](https://github.com/wuye9036/SALVIA)
 - ...
+##### pbr
+- [epic pbs notes](http://blog.selfshadow.com/publications/s2013-shading-course/karis/s2013_pbs_epic_notes_v2.pdf)
+- [KlayGE PBR](http://www.klayge.org/tag/pbr)
+

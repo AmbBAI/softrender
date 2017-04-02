@@ -104,8 +104,8 @@ struct SceneShader : Shader<Vertex, VaryingData>
 		VaryingData output;
 		output.position = _MATRIX_MVP.MultiplyPoint(input.position);
 		output.texcoord = input.texcoord;
-		output.normal = _Object2World.MultiplyVector(input.normal);
-		output.tangent = _Object2World.MultiplyVector(input.tangent.xyz);
+		output.normal = _Object2World.MultiplyVector(input.normal).Normalize();
+		output.tangent = _Object2World.MultiplyVector(input.tangent.xyz).Normalize();
 		output.bitangent = output.normal.Cross(output.tangent) * input.tangent.w;
 		output.worldPos = _Object2World.MultiplyPoint3x4(input.position);
 		return output;
