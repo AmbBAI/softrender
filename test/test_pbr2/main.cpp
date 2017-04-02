@@ -80,11 +80,7 @@ struct MainShader : Shader<Vertex, VaryingData>
 		Vector3 param = Tex2D(*paramMap, input.texcoord).rgb;
 		pbsInput.roughness = param.x;
 		pbsInput.metallic = param.y;
-
-		Vector3 diffColor;
-		Vector3 specColor;
-		float reflectivity;
-		pbsInput.PBSSetup(diffColor, specColor, reflectivity);
+		pbsInput.PBSSetup();
 
 		Vector3 lightDir;
 		float lightAtten;
@@ -95,9 +91,10 @@ struct MainShader : Shader<Vertex, VaryingData>
 
 		Vector3 viewDir = (_WorldSpaceCameraPos - input.worldPos).Normalize();
 
-		Color fragColor = Color::white * 0.1f;
-		pbsInput.ibl = PBSF::ApproximateSpecularIBL(*envMap, specColor, pbsInput.normal, viewDir, pbsInput.roughness);
-		fragColor.rgb += PBSF::BRDF1(pbsInput, pbsInput.normal, viewDir, pbsLight);
+		Color fragColor = Color::white * 0.15f;
+		//fragColor.rgb += PBSF::BRDF1(pbsInput, pbsInput.normal, viewDir, pbsLight);
+		fragColor.rgb += PBSF::ApproximateSpecularIBL(*envMap, pbsInput.specColor, pbsInput.normal, viewDir, pbsInput.roughness);
+		//fragColor.rgb = pbsInput.specColor;
 		return fragColor;
 	}
 };

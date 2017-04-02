@@ -86,7 +86,7 @@ void Cubemap::DirectionToLatlongTexcoord(const Vector3& s, Vector2& texcoord) co
 {
 	Vector3 ns = s.Normalize();
 	texcoord.x = Mathf::Atan2(ns.x, ns.z) * Mathf::invPI * 0.5f + 0.5f;
-	texcoord.y = -Mathf::Acos(ns.y) * Mathf::invPI;
+	texcoord.y = -Mathf::Acos(Mathf::Clamp(ns.y, -1.f, 1.f)) * Mathf::invPI;
 }
 
 void Cubemap::Direction6ImagesTexcoord(const Vector3& s, int& face, Vector2& texcoord) const

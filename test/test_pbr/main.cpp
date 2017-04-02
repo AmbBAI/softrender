@@ -30,8 +30,6 @@ struct VaryingData
 	Vector4 position;
 	Vector2 texcoord;
 	Vector3 normal;
-	Vector3 tangent;
-	Vector3 bitangent;
 	Vector3 worldPos;
 
 	static std::vector<VaryingDataElement> GetDecl()
@@ -40,9 +38,7 @@ struct VaryingData
 			{ 0, VaryingDataDeclUsage_SVPOSITION, VaryingDataDeclFormat_Vector4 },
 			{ 16, VaryingDataDeclUsage_TEXCOORD, VaryingDataDeclFormat_Vector2 },
 			{ 24, VaryingDataDeclUsage_TEXCOORD, VaryingDataDeclFormat_Vector3 },
-			{ 36, VaryingDataDeclUsage_TEXCOORD, VaryingDataDeclFormat_Vector3 },
-			{ 48, VaryingDataDeclUsage_TEXCOORD, VaryingDataDeclFormat_Vector3 },
-			{ 60, VaryingDataDeclUsage_POSITION, VaryingDataDeclFormat_Vector3 }
+			{ 36, VaryingDataDeclUsage_POSITION, VaryingDataDeclFormat_Vector3 }
 		};
 
 		return decl;
@@ -61,8 +57,6 @@ struct MainShader : Shader<Vertex, VaryingData>
 		output.position = _MATRIX_MVP.MultiplyPoint(input.position);
 		output.texcoord = input.texcoord;
 		output.normal = _Object2World.MultiplyVector(input.normal).Normalize();
-		output.tangent = _Object2World.MultiplyVector(input.tangent.xyz);
-		output.bitangent = output.normal.Cross(output.tangent) * input.tangent.w;
 		output.worldPos = _Object2World.MultiplyPoint3x4(input.position);
 		return output;
 	}
@@ -74,11 +68,7 @@ struct MainShader : Shader<Vertex, VaryingData>
 		pbsInput.normal = input.normal;
 		pbsInput.roughness = roughness;
 		pbsInput.metallic = metallic;
-
-		Vector3 diffColor;
-		Vector3 specColor;
-		float reflectivity;
-		pbsInput.PBSSetup(diffColor, specColor, reflectivity);
+		pbsInput.PBSSetup();
 
 		Vector3 lightDir;
 		float lightAtten;
@@ -87,11 +77,11 @@ struct MainShader : Shader<Vertex, VaryingData>
 		pbsLight.color = _LightColor.xyz * lightAtten;
 		pbsLight.dir = lightDir;
 
-		Color fragColor;
 		Vector3 viewDir = (_WorldSpaceCameraPos - input.worldPos).Normalize();
 
-		pbsInput.ibl = PBSF::ApproximateSpecularIBL(*envMap, specColor, pbsInput.normal, viewDir, pbsInput.roughness);
-		fragColor.rgb = PBSF::BRDF1(pbsInput, pbsInput.normal, viewDir, pbsLight);
+		Color fragColor = Color::white * 0.15f;
+		fragColor.rgb += PBSF::BRDF1(pbsInput, pbsInput.normal, viewDir, pbsLight);
+		fragColor.rgb += PBSF::ApproximateSpecularIBL(*envMap, pbsInput.specColor, pbsInput.normal, viewDir, pbsInput.roughness);
 		return fragColor;
 	}
 };

@@ -24,9 +24,11 @@ struct PBSInput
 	float roughness;
 	float metallic;
 
-	Vector3 ibl;
+	Vector3 diffColor;
+	Vector3 specColor;
+	float reflectivity;
 
-	void PBSSetup(Vector3& diffColor, Vector3& specColor, float& reflectivity) const
+	void PBSSetup()
 	{
 		static float dielectricSpec = 0.220916301f;
 		static Vector3 dieletctricSpecRGB = Vector3::one * dielectricSpec;
@@ -101,11 +103,6 @@ struct PBSF
 
 	static Vector3 BRDF1(const PBSInput& input, const Vector3& normal, const Vector3& viewDir, const PBSLight& light)
 	{
-		Vector3 diffColor;
-		Vector3 specColor;
-		float reflectivity;
-		input.PBSSetup(diffColor, specColor, reflectivity);
-
 		Vector3 halfDir = (light.dir + viewDir).Normalize();
 		float nDotL = Mathf::Clamp01(normal.Dot(light.dir));
 		float nDotV = Mathf::Clamp01(normal.Dot(viewDir));
@@ -116,8 +113,8 @@ struct PBSF
 		float diffuseTerm = DisneyDiffuseTerm(nDotL, nDotV, lDotH, input.roughness);
 		float D = GGXTerm(nDotH, input.roughness);
 		float V = SmithGGXVisibilityTerm(nDotL, nDotV, input.roughness);
-		Vector3 F = FresnelTerm(vDotH, specColor);
-		return diffColor * (diffuseTerm * nDotL) + light.color * F * (D * V * nDotL * Mathf::PI) + input.ibl;
+		Vector3 F = FresnelTerm(vDotH, input.specColor);
+		return input.diffColor * (diffuseTerm * nDotL) + light.color * F * (D * V * nDotL * Mathf::PI);
 		//return Color::white.rgb * (diffuseTerm * nDotL);
 		//return Color::white.rgb * D;
 		//return Color::white.rgb * V;
@@ -126,11 +123,6 @@ struct PBSF
 
 	static Vector3 BRDF2(const PBSInput& input, const Vector3& normal, const Vector3& viewDir, const PBSLight& light)
 	{
-		Vector3 diffColor;
-		Vector3 specColor;
-		float reflectivity;
-		input.PBSSetup(diffColor, specColor, reflectivity);
-
 		Vector3 halfDir = (light.dir + viewDir).Normalize();
 		float nDotL = Mathf::Clamp01(normal.Dot(light.dir));
 		float lDotH = Mathf::Clamp01(light.dir.Dot(halfDir));
@@ -138,7 +130,7 @@ struct PBSF
 
 		float D = GGXTerm(nDotH, input.roughness);
 		float VF = 1.f / (4.f * lDotH * lDotH * (input.roughness + 0.5f));
-		return diffColor * nDotL + light.color * (D * VF * nDotL * Mathf::PI);
+		return input.diffColor * nDotL + light.color * (D * VF * nDotL * Mathf::PI);
 	}
 
 	// IBL //
@@ -264,6 +256,7 @@ struct PBSF
 		static Texture2DPtr iblLUT = Texture2D::LoadTexture("resources/pbr/lut.png");
 
 		Vector3 prefilterColor = cubemap.Sample(r, roughness).rgb;
+
 		Vector3 envBRDF = iblLUT->Sample(Vector2(roughness, nDotV), 0.f).rgb;
 		return prefilterColor * (specColor * envBRDF.x + Vector3::one * envBRDF.y);
 	}
