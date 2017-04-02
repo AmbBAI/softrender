@@ -33,7 +33,9 @@ project "glfw"
     files {
         "thirdpart/glfw/src/win32*.c",
         "thirdpart/glfw/src/wgl_context.c",
-        "thirdpart/glfw/src/winmm_joystick.c",
+        "thirdpart/glfw/src/egl_context.c",
+        "thirdpart/glfw/src/osmesa_context.c",
+        "thirdpart/glfw/src/vulkan.c",
     }
 
   configuration "macosx"

@@ -190,8 +190,8 @@ void MainLoop()
 	//objectTrans.position = Vector3(0.f, 0.f, 2.f);
 	//objectTrans.scale = Vector3::one * 4.f;
 	//SoftRender::modelMatrix = objectTrans.localToWorldMatrix();
-	//shader->roughness = 0.1f;
-	//shader->specular = 0.f;
+	//shader->roughness = 0.5f;
+	//shader->metallic = 0.5f;
 	//SoftRender::SetShader(shader);
 	//SoftRender::Submit();
 
