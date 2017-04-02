@@ -88,7 +88,7 @@ struct PBSF
 		return 0.5f / (lambdaV + lambdaL + 1e-5f);
 	}
 
-	static Vector3 FresnelTerm(float vDotH, Vector3 specular)
+	static Vector3 FresnelTerm(float vDotH, const Vector3& specular)
 	{
 		return specular + (Vector3::one - specular) * Mathf::Pow(1.f - vDotH, 5.f);
 	}
@@ -98,7 +98,7 @@ struct PBSF
 		float nlPow5 = Mathf::Pow(1.f - nDotL, 5.f);
 		float nvPow5 = Mathf::Pow(1.f - nDotV, 5.f);
 		float fD90 = 0.5f + 2.f * lDotH * lDotH * roughness;
-		return Mathf::Clamp01((1.f + (fD90 - 1.f) * nlPow5) * (1.f + (fD90 - 1.f) * nvPow5));
+		return (1.f + (fD90 - 1.f) * nlPow5) * (1.f + (fD90 - 1.f) * nvPow5);
 	}
 
 	static Vector3 BRDF1(const PBSInput& input, const Vector3& normal, const Vector3& viewDir, const PBSLight& light)
@@ -114,11 +114,7 @@ struct PBSF
 		float D = GGXTerm(nDotH, input.roughness);
 		float V = SmithGGXVisibilityTerm(nDotL, nDotV, input.roughness);
 		Vector3 F = FresnelTerm(vDotH, input.specColor);
-		return input.diffColor * (diffuseTerm * nDotL) + light.color * F * (D * V * nDotL * Mathf::PI);
-		//return Color::white.rgb * (diffuseTerm * nDotL);
-		//return Color::white.rgb * D;
-		//return Color::white.rgb * V;
-		//return Color::white.rgb * F;
+		return input.diffColor * (diffuseTerm * nDotL) + light.color * F * (D * V * Mathf::PI * nDotL);
 	}
 
 	static Vector3 BRDF2(const PBSInput& input, const Vector3& normal, const Vector3& viewDir, const PBSLight& light)
@@ -182,7 +178,7 @@ struct PBSF
 			if (nDotL > 0.f)
 			{
 				Vector3 sampleColor = IShader::TexCUBE(cube, l, 0.f).rgb;
-				float V = SmithGGXVisibilityTerm(nDotV, nDotV, roughness);
+				float V = SmithGGXVisibilityTerm(nDotL, nDotV, roughness);
 				Vector3 F = FresnelTerm(vDotH, specColor);
 				// pdf = D * nDotH / (4 * vDotH)
 				// DVF * (nDotL) / pdf = (V * F * 4 * nDotL * vDotH) / nDotH

@@ -29,9 +29,9 @@ struct VaryingData
 {
 	Vector4 position;
 	Vector2 texcoord;
-	Vector3 normal;
-	Vector3 tangent;
-	Vector3 bitangent;
+	Vector3 tspace0;
+	Vector3 tspace1;
+	Vector3 tspace2;
 	Vector3 worldPos;
 
 	static std::vector<VaryingDataElement> GetDecl()
@@ -62,9 +62,13 @@ struct MainShader : Shader<Vertex, VaryingData>
 		VaryingData output;
 		output.position = _MATRIX_MVP.MultiplyPoint(input.position);
 		output.texcoord = input.texcoord;
-		output.normal = _Object2World.MultiplyVector(input.normal).Normalize();
-		output.tangent = _Object2World.MultiplyVector(input.tangent.xyz);
-		output.bitangent = output.normal.Cross(output.tangent) * input.tangent.w;
+		Vector3 normal = _Object2World.MultiplyVector(input.normal).Normalize();
+		Vector3 tangent = _Object2World.MultiplyVector(input.tangent.xyz).Normalize();
+		Vector3 bitangent = normal.Cross(tangent) * input.tangent.w;
+		output.tspace0 = Vector3(tangent.x, bitangent.x, normal.x);
+		output.tspace1 = Vector3(tangent.y, bitangent.y, normal.y);
+		output.tspace2 = Vector3(tangent.z, bitangent.z, normal.z);
+
 		output.worldPos = _Object2World.MultiplyPoint3x4(input.position);
 		return output;
 	}
@@ -74,8 +78,10 @@ struct MainShader : Shader<Vertex, VaryingData>
 		PBSInput pbsInput;
 		pbsInput.albedo = Tex2D(*albedoMap, input.texcoord).rgb;
 
-		Matrix4x4 tbn = TangentSpaceRotation(input.tangent, input.bitangent, input.normal);
-		pbsInput.normal = UnpackNormal(Tex2D(*normalMap, input.texcoord), tbn);
+		Vector3 normal = UnpackNormal(Tex2D(*normalMap, input.texcoord));
+		pbsInput.normal.x = input.tspace0.Dot(normal);
+		pbsInput.normal.y = input.tspace1.Dot(normal);
+		pbsInput.normal.z = input.tspace2.Dot(normal);
 
 		Vector3 param = Tex2D(*paramMap, input.texcoord).rgb;
 		pbsInput.roughness = param.x;
@@ -91,10 +97,9 @@ struct MainShader : Shader<Vertex, VaryingData>
 
 		Vector3 viewDir = (_WorldSpaceCameraPos - input.worldPos).Normalize();
 
-		Color fragColor = Color::white * 0.15f;
-		//fragColor.rgb += PBSF::BRDF1(pbsInput, pbsInput.normal, viewDir, pbsLight);
+		Color fragColor = Color::white * 0.1f;
+		fragColor.rgb += PBSF::BRDF1(pbsInput, pbsInput.normal, viewDir, pbsLight);
 		fragColor.rgb += PBSF::ApproximateSpecularIBL(*envMap, pbsInput.specColor, pbsInput.normal, viewDir, pbsInput.roughness);
-		//fragColor.rgb = pbsInput.specColor;
 		return fragColor;
 	}
 };
@@ -114,7 +119,7 @@ void MainLoop()
 		isInitilized = true;
 
 		auto camera = CameraPtr(new Camera());
-		camera->SetPerspective(30.f, 1.f, 0.3f, 2000.f);
+		camera->SetPerspective(30.f, 1.f, 0.3f, 1000.f);
 		//camera->SetOrthographic(-3.f, 3.f, -3.f, 3.f, 0.f, 20.f);
 		camera->transform.position = Vector3(0.f, 0.f, -20.f);
 		SoftRender::camera = camera;
@@ -154,7 +159,7 @@ void MainLoop()
 
 		SoftRender::renderData.AssignVertexBuffer(objectMesh.vertices);
 		SoftRender::renderData.AssignIndexBuffer(objectMesh.indices);
-		objectTrans.rotation = Quaternion(Vector3(0.f, -90.f, 0.f));
+		objectTrans.rotation = Quaternion(Vector3(0.f, -110.f, -20.f));
 	}
 
 	SoftRender::Clear(true, true, Color(1.f, 0.19f, 0.3f, 0.47f));

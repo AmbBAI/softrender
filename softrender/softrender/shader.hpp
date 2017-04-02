@@ -105,6 +105,11 @@ struct IShader
 		return Matrix4x4::TBN(tangent, binormal, normal);
 	}
 
+	static Vector3 UnpackNormal(const Color& color)
+	{
+		return Vector3(color.r * 2.f - 1.f, color.g * 2.f - 1.f, color.b * 2.f - 1.f);
+	}
+
 	static Vector3 UnpackNormal(const Color& color, const Matrix4x4& tbn)
 	{
 		Vector3 normal = Vector3(color.r * 2.f - 1.f, color.g * 2.f - 1.f, color.b * 2.f - 1.f);

@@ -79,7 +79,7 @@ struct MainShader : Shader<Vertex, VaryingData>
 
 		Vector3 viewDir = (_WorldSpaceCameraPos - input.worldPos).Normalize();
 
-		Color fragColor = Color::white * 0.15f;
+		Color fragColor = Color::white * 0.1f;
 		fragColor.rgb += PBSF::BRDF1(pbsInput, pbsInput.normal, viewDir, pbsLight);
 		fragColor.rgb += PBSF::ApproximateSpecularIBL(*envMap, pbsInput.specColor, pbsInput.normal, viewDir, pbsInput.roughness);
 		return fragColor;
