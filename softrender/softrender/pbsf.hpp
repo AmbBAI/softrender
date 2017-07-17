@@ -245,7 +245,7 @@ struct PBSF
 		return Vector2(a, b);
 	}
 
-	static ColorRGB ApproximateSpecularIBL(const Cubemap& cubemap, const Vector3& specColor, const Vector3& normal, const Vector3& viewDir, float roughness)
+	static Vector3 ApproximateSpecularIBL(const Cubemap& cubemap, const Vector3& specColor, const Vector3& normal, const Vector3& viewDir, float roughness)
 	{
 		float nDotV = Mathf::Clamp01(normal.Dot(viewDir));
 		Vector3 r = normal * (2.f * nDotV) - viewDir;

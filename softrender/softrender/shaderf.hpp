@@ -20,20 +20,20 @@ struct LightInput
 
 struct ShaderF
 {
-	static ColorRGB LightingLambert(const LightInput& input, const Vector3& normal, const Vector3& lightDir, const ColorRGB& lightColor, float attenuation)
+	static Vector3 LightingLambert(const LightInput& input, const Vector3& normal, const Vector3& lightDir, const Vector3& lightColor, float attenuation)
 	{
 		float nDotL = Mathf::Clamp01(normal.Dot(lightDir));
 		return input.ambient.rgb * input.diffuse.rgb + input.diffuse.rgb * lightColor * (nDotL * attenuation);
 	}
 
-	static ColorRGB LightingHalfLambert(const LightInput& input, const Vector3& normal, const Vector3& lightDir, const ColorRGB& lightColor, float attenuation)
+	static Vector3 LightingHalfLambert(const LightInput& input, const Vector3& normal, const Vector3& lightDir, const Vector3& lightColor, float attenuation)
 	{
 		float nDotL = Mathf::Clamp01(normal.Dot(lightDir));
 		nDotL = nDotL * 0.8f + 0.2f;
 		return input.ambient.rgb * input.diffuse.rgb + input.diffuse.rgb * lightColor * (nDotL * attenuation);
 	}
 
-	static ColorRGB LightingBlinnPhong(const LightInput& input, const Vector3& normal, const Vector3& lightDir, const ColorRGB& lightColor, const Vector3& viewDir, float attenuation)
+	static Vector3 LightingBlinnPhong(const LightInput& input, const Vector3& normal, const Vector3& lightDir, const Vector3& lightColor, const Vector3& viewDir, float attenuation)
 	{
 		float lambertian = Mathf::Clamp01(normal.Dot(lightDir));
 		float specular = 0.f;
@@ -50,7 +50,7 @@ struct ShaderF
 			+ input.specular.rgb * lightColor * (specular * attenuation);
 	}
 
-	static ColorRGB LightingPhong(const LightInput& input, const Vector3& normal, const Vector3& lightDir, const ColorRGB& lightColor, const Vector3& viewDir, float attenuation)
+	static Vector3 LightingPhong(const LightInput& input, const Vector3& normal, const Vector3& lightDir, const Vector3& lightColor, const Vector3& viewDir, float attenuation)
 	{
 		float lambertian = Mathf::Clamp01(normal.Dot(lightDir));
 		float specular = 0.f;

@@ -204,9 +204,13 @@ bool Texture2D::GenerateMipmaps()
 				int x0 = x * 2;
 				int x1 = x0 + 1;
 				Color c0 = source->GetPixel(x0, y0);
+				c0.rgb *= c0.a;
 				Color c1 = source->GetPixel(x1, y0);
+				c1.rgb *= c1.a;
 				Color c2 = source->GetPixel(x0, y1);
+				c2.rgb *= c2.a;
 				Color c3 = source->GetPixel(x1, y1);
+				c3.rgb *= c3.a;
 				mipmap->SetPixel(x, y, Color::Lerp(c0, c1, c2, c3, 0.5f, 0.5f));
 			}
 		}

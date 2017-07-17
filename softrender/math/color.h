@@ -9,26 +9,6 @@
 namespace sr
 {
 
-struct ColorRGB
-{
-	float r, g, b;
-
-	ColorRGB() = default;
-	ColorRGB(float _r, float _g, float _b)
-		: r(_r), g(_g), b(_b) {}
-	ColorRGB(const Vector3& rgb)
-		: ColorRGB(rgb.x, rgb.y, rgb.z) {}
-
-	inline ColorRGB operator +(const ColorRGB& color) const;
-	inline ColorRGB operator +=(const ColorRGB& color);
-	inline ColorRGB operator *(float f) const;
-	inline ColorRGB operator *(const ColorRGB& color) const;
-	inline ColorRGB operator *=(float f);
-	inline ColorRGB operator *=(const ColorRGB& color);
-
-	inline operator Vector3() const;
-};
-
 struct Color32;
 struct Color
 {
@@ -36,50 +16,51 @@ struct Color
 	{
 		struct
 		{
-            union
-            {
-                struct { float r, g, b; };
-				ColorRGB rgb;
-            };
-            float a;
+			union
+			{
+				struct { float r, g, b; };
+				Vector3 rgb;
+			};
+			float a;
 		};
-#if _NOCRASH_
-		__m128 m;
-#endif
 	};
-	
+
 	Color() = default;
 	Color(float _a, float _r, float _g, float _b)
-#if _NOCRASH_
-		: Color(_mm_setr_ps(_r, _g, _b, _a)) {}
-#else
 		: a(_a), r(_r), g(_g), b(_b) {}
-#endif
-    
+
+	Color(const Vector3& rgb, float a)
+		: Color(a, rgb.x, rgb.y, rgb.z) {}
+
 	Color(const Vector4& rgba)
 		: Color(rgba.w, rgba.x, rgba.y, rgba.z) {}
 
-#if _NOCRASH_
-	Color(__m128 _m)
-		: m(_m) {}
-#endif
-
 	inline Color operator +(const Color& color) const;
 	inline Color operator +=(const Color& color);
+	inline Color operator +(float f) const;
+	inline Color operator +=(float f);
 	inline Color operator *(float f) const;
 	inline Color operator *(const Color& color) const;
 	inline Color operator *=(float f);
 	inline Color operator *=(const Color& color);
 
 	inline Color Clamp() const;
-	inline Color Inverse() const;
 
 	static inline Color Lerp(const Color& a, const Color& b, float t);
 	static inline Color Lerp(const Color& a, const Color& b, const Color& c, const Color& d, float t1, float t2);
 
+	static inline Color GammaToLinearSpace(const Color& c);
+	static inline Color GammaToLinearSpaceFast(const Color& c);
+	static inline Color LinearToGammaSpace(const Color& c);
+	static inline Color LinearToGammaSpaceFast(const Color& c);
+
+	static inline float GammaToLinearSpaceExact(float value);
+	static inline float LinearToGammaSpaceExact(float value);
+
 	inline operator Color32() const;
 	inline operator Vector4() const;
 
+	static const Color clear;
 	static const Color white;
 	static const Color black;
 	static const Color red;
@@ -87,13 +68,12 @@ struct Color
 	static const Color blue;
 };
 
-
 struct Color32
 {
 	union
 	{
 		uint32_t rgba;
-		struct 
+		struct
 		{
 			uint8_t r, g, b, a;
 		};
@@ -101,9 +81,9 @@ struct Color32
 
 	Color32() = default;
 	Color32(uint32_t _rgba)
-        : rgba(_rgba) {}    
+		: rgba(_rgba) {}
 	Color32(uint8_t _a, uint8_t _r, uint8_t _g, uint8_t _b)
-        : a(_a), r(_r), g(_g), b(_b){}
+		: a(_a), r(_r), g(_g), b(_b) {}
 
 	inline operator Color() const;
 

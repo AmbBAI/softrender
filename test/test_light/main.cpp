@@ -185,8 +185,8 @@ void MainLoop()
 
 	SoftRender::light = lightBlue;
 	SoftRender::renderState.alphaBlend = true;
-	SoftRender::renderState.srcFactor = RenderState::BlendFactor_One;
-	SoftRender::renderState.dstFactor = RenderState::BlendFactor_One;
+	SoftRender::renderState.blender.SetColorBlendMode(Blender::BlendMode_One, Blender::BlendMode_One);
+	SoftRender::renderState.blender.SetAlphaBlendMode(Blender::BlendMode_One, Blender::BlendMode_One);
 	SoftRender::SetShader(forwardAdditionShader);
 	SoftRender::Submit();
 
