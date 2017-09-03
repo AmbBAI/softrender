@@ -11,7 +11,7 @@ project "tinyobjloader"
 
   configuration "windows"
       defines { "_CRT_SECURE_NO_WARNINGS" }
-  
+
 project "glfw"
   kind "StaticLib"
   targetdir ("lib/")
@@ -42,8 +42,10 @@ project "glfw"
     defines { "_GLFW_COCOA", "_GLFW_NSGL" }
     files {
         "thirdpart/glfw/src/cocoa*.m",
-        "thirdpart/glfw/src/mach_time.c",
-        "thirdpart/glfw/src/posix_tls.c",
+        "thirdpart/glfw/src/cocoa*.c",
+        "thirdpart/glfw/src/posix_thread.c",
         "thirdpart/glfw/src/nsgl_context.m",
-        "thirdpart/glfw/src/iokit_joystick.m",
+        "thirdpart/glfw/src/egl_context.c",
+        "thirdpart/glfw/src/osmesa_context.c",
+        "thirdpart/glfw/src/vulkan.c",
     }

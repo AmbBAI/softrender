@@ -38,7 +38,7 @@ struct Vertex
 	}
 };
 
-struct VaryingData
+struct V2F
 {
 	Vector4 position;
 	Vector2 texcoord;
@@ -48,7 +48,7 @@ struct VaryingData
 	Vector3 worldPos;
 };
 
-struct MainShader : Shader<Vertex, VaryingData>
+struct MainShader : Shader<Vertex, V2F>
 {
 	CubemapPtr envMap = nullptr;
 
@@ -56,9 +56,9 @@ struct MainShader : Shader<Vertex, VaryingData>
 	Texture2DPtr normalMap;
 	Texture2DPtr paramMap;
 
-	VaryingData vert(const Vertex& input) override
+	V2F vert(const Vertex& input) override
 	{
-		VaryingData output;
+		V2F output;
 		output.position = _MATRIX_MVP.MultiplyPoint(input.position);
 		output.texcoord = input.texcoord;
 		Vector3 normal = _Object2World.MultiplyVector(input.normal).Normalize();
@@ -72,7 +72,7 @@ struct MainShader : Shader<Vertex, VaryingData>
 		return output;
 	}
 
-	void frag(const VaryingData& input) override
+	void frag(const V2F& input) override
 	{
 		PBSInput pbsInput;
 		pbsInput.albedo = Tex2D(*albedoMap, input.texcoord).rgb;

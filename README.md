@@ -2,14 +2,10 @@
 A very simple rasterizer by C++
 
 ### Build
-Make solution file with [premake](http://premake.github.io/)  
+Make solution file with [premake](http://premake.github.io/)
 
-`premake5 vs2015` for Windows VS2013  
-Copy `FreeImage.dll` to your workspace
-
-`./premake5 xcode4` for MacOSX XCode  
-
-[Resources Download](http://graphics.cs.williams.edu/data/meshes.xml)
+`premake5 vs2015` for Windows VS2013
+`./premake5 xcode4` for MacOSX XCode
 
 ![](https://github.com/AmbBAI/rasterizer/raw/master/screenshot0.png)
 

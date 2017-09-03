@@ -140,10 +140,20 @@ sr::MeshPtr LoadMesh(const char* path)
 				uint16_t realIndex = (uint16_t)indexTable.size();
 				int vi = std::get<0>(meshIndex) * 3;
 				mesh->vertices.emplace_back(attrib.vertices[vi], attrib.vertices[vi + 1], attrib.vertices[vi + 2]);
-				int ni = std::get<1>(meshIndex) * 3;
-				mesh->normals.emplace_back(attrib.normals[ni], attrib.normals[ni + 1], attrib.normals[ni + 2]);
-				int ti = std::get<2>(meshIndex) * 2;
-				mesh->texcoords.emplace_back(attrib.texcoords[ti], attrib.texcoords[ti + 1]);
+
+				uint16_t ni_ = std::get<1>(meshIndex);
+				if (ni_ != (uint16_t)-1)
+				{
+					int ni = ni_ * 3;
+					mesh->normals.emplace_back(attrib.normals[ni], attrib.normals[ni + 1], attrib.normals[ni + 2]);
+				}
+
+				uint16_t ti_ = std::get<1>(meshIndex);
+				if (ti_ != (uint16_t)-1)
+				{
+					int ti = ti_ * 2;
+					mesh->texcoords.emplace_back(attrib.texcoords[ti], attrib.texcoords[ti + 1]);
+				}
 				mesh->indices.emplace_back(realIndex);
 				indexTable[meshIndex] = realIndex;
 			}

@@ -48,6 +48,7 @@ solution "softrender"
   createTestProject("image")
   createTestProject("plane")
   createTestProject("pbr")
+  createTestProject("deferred")
 
   project "common"
     kind "StaticLib"
