@@ -16,8 +16,6 @@ struct Matrix4x4
 	Matrix4x4(float* _m);
 	Matrix4x4(const Vector3& p, const Quaternion& q, const Vector3& s);
 
-	float Get(int r, int c);
-
 	void Identity();
 	bool IsIdentity();
 

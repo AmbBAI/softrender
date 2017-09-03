@@ -5,9 +5,7 @@
 #include "math/vector2.h"
 #include "math/vector3.h"
 #include "math/vector4.h"
-#include "softrender/material.h"
-
-#include "tinyobjloader/tiny_obj_loader.h"
+#include "math/color.h"
 
 namespace sr
 {
@@ -18,13 +16,19 @@ typedef std::shared_ptr<Mesh> MeshPtr;
 struct Mesh
 {
 	Mesh() = default;
-	
-	static bool LoadMesh(std::vector<MeshPtr>& meshes, const char* file);
-    static void LoadMesh(std::vector<MeshPtr>& meshes, const std::vector<tinyobj::shape_t>& shapes, const std::vector<MaterialPtr>& materials);
 
 	void RecalculateNormals();
 	void CalculateTangents();
 	int GetVertexCount() { return (int)vertices.size(); }
+
+	enum VertexElement
+	{
+		VertexElement_Position,
+		VertexElement_Normal,
+		VertexElement_Tangent,
+		VertexElement_Texcoord,
+		VertexElement_Color
+	};
 
 	std::string name;
 	std::vector<Vector3> vertices;
@@ -33,7 +37,6 @@ struct Mesh
 	std::vector<Vector3> normals;
 	std::vector<Vector4> tangents;
 	std::vector<Vector2> texcoords;
-	std::vector<std::tuple<MaterialPtr, int, int> > materials;
 };
 
 }

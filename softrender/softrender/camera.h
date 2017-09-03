@@ -5,6 +5,7 @@
 #include "math/vector3.h"
 #include "math/transform.h"
 #include "math/matrix4x4.h"
+#include "softrender/mesh.h"
 
 namespace sr
 {
@@ -28,17 +29,20 @@ public:
 	bool SetPerspective(float fov, float aspect, float zNear, float zFar);
 	bool SetOrthographic(float left, float right, float bottom, float top, float zNear, float zFar);
 	Matrix4x4 projectionMatrix() const;
-        
-	float GetLinearDepth(float projectionZ) const { return zNear / (projectionZ * (zNear - zFar) + zFar); }
+	Matrix4x4 GetFullScreenQuadMatrix() const;
+
+	float GetLinearDepth(float projectionZ) const { return zNear_ / (projectionZ * (zNear_ - zFar_) + zFar_); }
 
 	ProjectionMode projectionMode() { return projectionMode_; }
+	float zFar() { return zFar_; }
+	float zNear() { return zNear_; }
 
 protected:
 	ProjectionMode projectionMode_;
 	Matrix4x4 projectionMatrix_;
 
-	float zNear = 0;
-	float zFar = 0;
+	float zNear_ = 0;
+	float zFar_ = 0;
 };
 
 }

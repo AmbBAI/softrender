@@ -16,7 +16,6 @@ typedef std::shared_ptr<IShader> ShaderPtr;
 
 struct IShader
 {
-	std::vector<VaryingDataElement> varyingDataDecl;
 	int varyingDataSize;
 	rawptr_t varyingData = nullptr;
 
@@ -26,7 +25,8 @@ struct IShader
 	//uniform
 	Matrix4x4 _MATRIX_MVP;
 	Matrix4x4 _MATRIX_MV;
-	Matrix4x4 _MATRIX_V;
+	Matrix4x4 _WorldToCamera;
+	Matrix4x4 _CameraToWorld;
 	Matrix4x4 _MATRIX_P;
 	Matrix4x4 _MATRIX_VP;
 	Matrix4x4 _Object2World;
@@ -35,11 +35,11 @@ struct IShader
 	// uniform camera
 	Vector3 _WorldSpaceCameraPos;
 	Vector4 _ScreenParams;
-	Vector3 _ZBufferParams;
+	Vector4 _ZBufferParams;
 
 	// light
 	Vector4 _WorldSpaceLightPos;
-	Vector4 _LightColor;
+	Color _LightColor;
 	Vector4 _LightAtten; // atten0, atten1, atten2, range
 	Vector3 _SpotLightDir;
 	Vector3 _SpotLightParams; // cos(phi/2), cos(theta/2), falloff
@@ -49,8 +49,13 @@ struct IShader
 	//Vector4 _CosTime;
 	//Vector4 _DeltaTime;
 
+	Color SV_Target0;
+	Color SV_Target1;
+	Color SV_Target2;
+	Color SV_Target3;
+
 	virtual void _VSMain(const rawptr_t input) = 0;
-	virtual Color _PSMain() = 0;
+	virtual void _PSMain() = 0;
 	virtual void _PassQuad(const rawptr_t quadVaryingData[4]) {}
 
 	template<typename Type>
@@ -70,24 +75,22 @@ struct IShader
 		return tex.Sample(uv, ddx, ddy);
 	}
 
-	static float Tex2DProj(const Texture2D& tex, const Vector2& uv, float depth, float bias)
+	static float SampleShadowMap(const Texture2D& tex, const Vector2& uv, float depth, float bias)
 	{
-		return tex.SampleProj(uv, depth, bias);
+		return tex.Sample(uv).a + bias < depth ? 1.f : 0.f;
 	}
 
-	static float Tex2DProjInterpolated(const Texture2D& tex, const Vector2& uv, float depth, float bias)
+	static float SampleShadowMapPCF(const Texture2D& tex, const Vector2& uv, float depth, float bias, float blurSize, int blurIterations)
 	{
-		float invW = 1.f / tex.GetWidth();
-		float invH = 1.f / tex.GetHeight();
 		float ret = 0.f;
-		for (int xoff = -1; xoff <= 1; ++xoff)
+		for (int xoff = -blurIterations; xoff <= blurIterations; ++xoff)
 		{
-			for (int yoff = -1; yoff <= 1; ++yoff)
+			for (int yoff = -blurIterations; yoff <= blurIterations; ++yoff)
 			{
-				ret += tex.SampleProj(uv + Vector2(xoff * invW, yoff * invH), depth, bias);
+				ret += SampleShadowMap(tex, uv + Vector2(xoff * blurSize, yoff * blurSize), depth, bias);
 			}
 		}
-		return ret / 9.f;
+		return ret / ((blurIterations * 2 + 1) * (blurIterations * 2 + 1));
 	}
 
 	static Color TexCUBE(const Cubemap& cube, const Vector3& s)
@@ -126,29 +129,26 @@ struct IShader
 		return isClipped = (x < 0.f);
 	}
 
-	void InitLightArgs(const Vector3& worldPos, Vector3& lightDir, float& lightAtten)
+	void InitLightArgs(const Vector3& worldPos, Vector3& lightDir, Color& lightColor)
 	{
+		lightColor = _LightColor;
 		if (Mathf::Approximately(_WorldSpaceLightPos.w, 0.f))
 		{
 			lightDir = -_WorldSpaceLightPos.xyz;
-			lightAtten = 1.f;
+			lightColor *= 1.f;
 		}
 		else
 		{
 			lightDir = _WorldSpaceLightPos.xyz - worldPos;
 			float distance = lightDir.Length();
 			lightDir /= distance;
-			if (_LightAtten.w < distance)
-				lightAtten = 0.f;
-			else
+
+			lightColor *= 1.f / (_LightAtten.x + _LightAtten.y * distance + _LightAtten.z * distance * distance);
+			if (_SpotLightParams.x >= 0.f)
 			{
-				lightAtten = 1.f / (_LightAtten.x + _LightAtten.y * distance + _LightAtten.z * distance * distance);
-				if (_SpotLightParams.x >= 0.f)
-				{
-					float spotLightFactor = ((-_SpotLightDir).Dot(lightDir) - _SpotLightParams.x) / (_SpotLightParams.y - _SpotLightParams.x);
-					spotLightFactor = Mathf::Clamp01(Mathf::Pow(spotLightFactor, _SpotLightParams.z));
-					lightAtten *= spotLightFactor;
-				}
+				float spotLightFactor = ((-_SpotLightDir).Dot(lightDir) - _SpotLightParams.x) / (_SpotLightParams.y - _SpotLightParams.x);
+				spotLightFactor = Mathf::Clamp01(Mathf::Pow(spotLightFactor, _SpotLightParams.z));
+				lightColor *= spotLightFactor;
 			}
 		}
 	}
@@ -159,7 +159,6 @@ struct Shader : IShader
 {
 	Shader()
 	{
-		varyingDataDecl = VaryingDataType::GetDecl();
 		varyingDataSize = sizeof(VaryingDataType);
 	}
 
@@ -178,9 +177,9 @@ struct Shader : IShader
 		});
 	}
 
-	Color _PSMain() override
+	void _PSMain() override
 	{
-		return frag(*(VaryingDataType*)(varyingData));
+		frag(*(VaryingDataType*)(varyingData));
 	}
 
 	virtual VaryingDataType vert(const VSInputType& input)
@@ -194,9 +193,9 @@ struct Shader : IShader
 	{
 	}
 
-	virtual Color frag(const VaryingDataType& input)
+	virtual void frag(const VaryingDataType& input)
 	{
-		return Color::white;
+		SV_Target0 = Color::clear;
 	}
 };
 

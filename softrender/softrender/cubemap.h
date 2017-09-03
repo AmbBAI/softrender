@@ -20,7 +20,7 @@ public:
 
 	Color Sample(const Vector3& s, float rougness = 0.f) const;
 
-	bool Mapping6ImagesToLatlong(int height); // weight = height * 2
+	bool Mapping6ImagesToLatlong(int height, Bitmap::BitmapType type); // weight = height * 2
 	bool PrefilterEnvMap(uint32_t mapCount, uint32_t sampleCount) const;
 
 	bool Get6Images(Texture2DPtr img[6]);

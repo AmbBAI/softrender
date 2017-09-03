@@ -12,57 +12,6 @@
 namespace sr
 {
 
-enum VaryingDataDeclUsage
-{
-	VaryingDataDeclUsage_SVPOSITION,
-	VaryingDataDeclUsage_POSITION,
-	VaryingDataDeclUsage_NORMAL,
-	VaryingDataDeclUsage_COLOR,
-	VaryingDataDeclUsage_TEXCOORD,
-};
-
-enum VaryingDataDeclFormat
-{
-	VaryingDataDeclFormat_Float,
-	VaryingDataDeclFormat_Vector2,
-	VaryingDataDeclFormat_Vector3,
-	VaryingDataDeclFormat_Vector4,
-};
-
-struct VaryingDataElement
-{
-	int offset;
-	VaryingDataDeclUsage usage;
-	VaryingDataDeclFormat format;
-};
-
-struct VaryingDataDecl
-{
-	std::vector<VaryingDataElement> decl;
-	int size;
-	int positionOffset = -1;
-
-	static int GetFormatSize(VaryingDataDeclFormat format)
-	{
-		switch (format)
-		{
-		case VaryingDataDeclFormat_Float:
-			return 4;
-		case VaryingDataDeclFormat_Vector2:
-			return 8;
-		case VaryingDataDeclFormat_Vector3:
-			return 12;
-		case VaryingDataDeclFormat_Vector4:
-			return 16;
-		default:
-			return 0;
-		}
-	}
-
-	void LinearInterp(rawptr_t output, const rawptr_t a, const rawptr_t b, float t) const;
-	void TriangleInterp(rawptr_t output, const rawptr_t a, const rawptr_t b, const rawptr_t c, float x, float y, float z) const;
-};
-
 class VaryingDataBuffer;
 struct VertexVaryingData
 {
@@ -76,7 +25,10 @@ struct VertexVaryingData
 	VertexVaryingData() = default;
 	explicit VertexVaryingData(VaryingDataBuffer* _varyingDataBuffer) : varyingDataBuffer(_varyingDataBuffer) {}
 	static VertexVaryingData LinearInterp(const VertexVaryingData& a, const VertexVaryingData& b, float t);
-	static rawptr_t TriangleInterp(const VertexVaryingData& v0, const VertexVaryingData& v1, const VertexVaryingData& v2, float x, float y, float z);
+	static rawptr_t TriangleInterp(int slot, const VertexVaryingData& v0, const VertexVaryingData& v1, const VertexVaryingData& v2, float x, float y, float z);
+
+	static void LinearInterpValue(rawptr_t output, const rawptr_t a, const rawptr_t b, int size, float t);
+	static void TriangleInterpValue(rawptr_t output, const rawptr_t a, const rawptr_t b, const rawptr_t c, int size, float x, float y, float z);
 };
 
 class VaryingDataBuffer
@@ -84,21 +36,21 @@ class VaryingDataBuffer
 public:
 	VaryingDataBuffer() = default;
 
+	void InitVaryingDataBuffer(int varyingDataSize);
 	void InitVerticesVaryingData(int vertexCount);
 	VertexVaryingData& GetVertexVaryingData(int index);
 	void InitDynamicVaryingData();
 	rawptr_t CreateDynamicVaryingData();
 	void ResetDynamicVaryingData();
-	void InitPixelVaryingData();
-	rawptr_t CreatePixelVaryingData();
-	void ResetPixelVaryingData();
+	void InitPixelVaryingData(int slot);
+	VertexVaryingData& GetPixelVaryingData(int slot);
 
-	bool SetVaryingDataDecl(const std::vector<VaryingDataElement>& layout, int size);
-	const VaryingDataDecl& GetVaryingDataDecl() { return varyingDataDecl; }
+	int GetVaryingDataSize() const;
 
 private:
-	VaryingDataDecl varyingDataDecl;
+	int varyingDataSize = 0;
 	std::vector<VertexVaryingData> vertexVaryingData;
+	std::vector<VertexVaryingData> pixelVaryingData;
 	Buffer vertexVaryingDataBuffer;
 	Buffer dynamicVaryingDataBuffer;
 	Buffer pixelVaryingDataBuffer;

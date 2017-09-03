@@ -25,9 +25,9 @@ struct Light
     
 	Transform transform;
     float range = 10.f;
-    float atten0 = 0.f;
+    float atten0 = 1.f;
     float atten1 = 0.f;
-    float atten2 = 1.f;
+    float atten2 = 25.f;
     float falloff = 1.f;
     float theta = 30.f;
     float phi = 45.f;
@@ -44,22 +44,31 @@ struct Light
         }
     }
 
-	CameraPtr BuildShadowMapVirtualCamera(const Matrix4x4& cameraVPIM, const std::vector<Vector3>& vertexWorldPos)
+	Matrix4x4 GetProjectionToWorldSpaceMatrix(const CameraPtr& camera)
 	{
-		Matrix4x4 lightVM = transform.worldToLocalMatrix();
+		return transform.worldToLocalMatrix() * (camera->projectionMatrix() * camera->viewMatrix()).Inverse();
+	}
 
-		Vector3 sceneMin, sceneMax;
-		for (int i = 0; i < (int)vertexWorldPos.size(); ++i)
+	void GetSceneBoundsInLightSpace(std::vector<Vector3>& worldPoints, Vector3& sceneMin, Vector3& sceneMax)
+	{
+		Matrix4x4 worldToLightSpace = transform.worldToLocalMatrix();
+		for (int i = 0; i < (int)worldPoints.size(); ++i)
 		{
-			Vector3 lightSpacePos = lightVM.MultiplyPoint3x4(vertexWorldPos[i]);
-			if (i == 0) sceneMin = sceneMax = lightSpacePos;
+			Vector3 lightSpacePos = worldToLightSpace.MultiplyPoint3x4(worldPoints[i]);
+			if (i == 0)
+			{
+				sceneMin = sceneMax = lightSpacePos;
+			}
 			else
 			{
 				sceneMin = Vector3::Min(sceneMin, lightSpacePos);
 				sceneMax = Vector3::Max(sceneMax, lightSpacePos);
 			}
 		}
+	}
 
+	void GetFrustumBoundsInLightSpace(const Matrix4x4& cameraProjectionToLightSpace, Vector3& frustumMin, Vector3& frustumMax)
+	{
 		static Vector3 frustumCornerProjection[8] =
 		{
 			Vector3(-1.f, -1.f, 0.f), Vector3(-1.f, -1.f, 1.f),
@@ -68,20 +77,23 @@ struct Light
 			Vector3(1.f, 1.f, 0.f), Vector3(1.f, 1.f, 1.f)
 		};
 
-		Vector3 frustumMin, frustumMax;
 		for (int i = 0; i < 8; ++i)
 		{
-			Vector4 fcWorldPos = cameraVPIM.MultiplyPoint(frustumCornerProjection[i]);
-			Vector3 fcLightPos = lightVM.MultiplyPoint3x4(fcWorldPos.xyz / fcWorldPos.w);
-			if (i == 0) frustumMin = frustumMax = fcLightPos;
+			Vector4 lightSpacePosHC = cameraProjectionToLightSpace.MultiplyPoint(frustumCornerProjection[i]);
+			Vector3 lightSpacePos = lightSpacePosHC.xyz / lightSpacePosHC.w;
+			if (i == 0) frustumMin = frustumMax = lightSpacePos;
 			else
 			{
-				frustumMin = Vector3::Min(frustumMin, fcLightPos);
-				frustumMax = Vector3::Max(frustumMax, fcLightPos);
+				frustumMin = Vector3::Min(frustumMin, lightSpacePos);
+				frustumMax = Vector3::Max(frustumMax, lightSpacePos);
 			}
 		}
+	}
 
-		float zNear = sceneMin.z, zFar = sceneMax.z;
+	CameraPtr BuildShadowMapCamera(const Vector3& frustumMin, const Vector3& frustumMax, const Vector3& sceneMin, const Vector3& sceneMax)
+	{
+		float zNear = sceneMin.z;
+		float zFar = Mathf::Min(sceneMax.z, frustumMax.z);
 		float left = Mathf::Max(frustumMin.x, sceneMin.x);
 		float right = Mathf::Min(frustumMax.x, sceneMax.x);
 		float bottom = Mathf::Max(frustumMin.y, sceneMin.y);

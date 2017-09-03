@@ -98,6 +98,11 @@ public:
 	static inline float Acos(float f);
 	static inline float Atan(float f);
 	static inline float Atan2(float y, float x);
+
+	static uint32_t randomSeed;
+	static inline float Random01();
+	static inline float Random(float min, float max);
+	static inline int Random(int min, int max);
 };
 
 } // namespace sr

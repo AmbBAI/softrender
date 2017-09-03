@@ -13,6 +13,9 @@ const float Mathf::invPI = 1.f / (float)M_PI;
 const float Mathf::deg2rad = (float)M_PI / 180.0f;
 const float Mathf::rad2deg = 180.0f / (float)M_PI;
 
+uint32_t Mathf::randomSeed = 0;
+
+const Color Color::clear = Color(0.f, 0.f, 0.f, 0.f);
 const Color Color::white = Color(1.f, 1.f, 1.f, 1.f);
 const Color Color::black = Color(1.f, 0.f, 0.f, 0.f);
 const Color Color::red = Color(1.f, 1.f, 0.f, 0.f);

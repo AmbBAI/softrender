@@ -10,9 +10,9 @@
 
 #include "softrender/camera.h"
 #include "softrender/mesh.h"
-#include "softrender/material.h"
 #include "softrender/texture2d.h"
 #include "softrender/cubemap.h"
+#include "softrender/stencil.hpp"
 #include "softrender/render_texture.h"
 #include "softrender/render_state.hpp"
 #include "softrender/render_data.hpp"
@@ -34,17 +34,17 @@ struct SoftRender
 	static RenderData renderData;
 
 	static Matrix4x4 modelMatrix;
-	//static Matrix4x4 viewMatrix;
-	//static Matrix4x4 projectionMatrix;
 	static CameraPtr camera;
     static LightPtr light;
 
 	static void Initialize(int width, int height);
 	static void SetRenderTarget(RenderTexturePtr target);
 	static RenderTexturePtr GetRenderTarget();
+	static void ClearStencilBuffer(uint8_t stencil);
+	static StencilBufferPtr GetStencilBuffer();
 	static void SetShader(ShaderPtr shader);
 
-	static void Clear(bool clearDepth, bool clearColor, const Color& backgroundColor, float depth = 1.0f);
+	static void Clear(bool clearColor, bool clearDepth, const Color& backgroundColor, float depth = 1.0f);
 	static void Submit(int startIndex = 0, int primitiveCount = 0);
 	static void Present();
 
@@ -52,6 +52,7 @@ private:
 	static bool InitShaderLightParams(ShaderPtr shader, const LightPtr& light);
 	static void RasterizerRenderFunc(const VertexVaryingData& data, const RasterizerInfo& info);
 	static void Rasterizer2x2RenderFunc(const Triangle<VertexVaryingData>& data,  const Rasterizer2x2Info& info);
+	static const Color& ShaderGBufferOutput(ShaderPtr& shader, int index);
 
 	static VaryingDataBuffer varyingDataBuffer;
 	static ShaderPtr shader;
@@ -60,6 +61,7 @@ private:
 	static RenderTexturePtr renderTarget;
 	static BitmapPtr colorBuffer;
 	static BitmapPtr depthBuffer;
+	static StencilBufferPtr stencilBuffer;
 
 	static Rasterizer rasterizer;
 };

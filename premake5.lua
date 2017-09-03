@@ -47,13 +47,8 @@ solution "softrender"
   createTestProject("hello")
   createTestProject("image")
   createTestProject("plane")
-  createTestProject("light");
-  createTestProject("shadow")
-  createTestProject("cubemap")
-  createTestProject("sponza")
   createTestProject("pbr")
-  createTestProject("pbr2")
-  
+
   project "common"
     kind "StaticLib"
     targetdir "lib/"

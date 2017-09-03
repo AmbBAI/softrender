@@ -22,17 +22,17 @@ public:
 		BitmapType_RGBA32,
 
 		BitmapType_AlphaFloat,
-		
-		//BitmapType_DXT1,
-		//BitmapType_Normal,
-
+		BitmapType_RGBFloat,
+		BitmapType_RGBAFloat,
 	};
 
 	Bitmap(int width, int height, BitmapType type);
 	virtual ~Bitmap();
 
 	static BitmapPtr LoadFromFile(const char* file);
+	static BitmapPtr LoadFromFile(const std::string& file);
 	bool SaveToFile(const char* file);
+	bool SaveToFile(const std::string& file);
 
 	Color GetPixel(int x, int y) const;
 	void SetPixel(int x, int y, const Color& color);
@@ -49,13 +49,17 @@ protected:
 	uint8_t GetPixel_Alpha8(int x, int y) const;
 	void SetPixel_Alpha8(int x, int y, uint8_t val);
 	Color32 GetPixel_RGB24(int x, int y) const;
-	void SetPixel_RGB24(int x, int y, Color32 color);
+	void SetPixel_RGB24(int x, int y, const Color32& color);
 	Color32 GetPixel_RGBA32(int x, int y) const;
-	void SetPixel_RGBA32(int x, int y, Color32 color);
+	void SetPixel_RGBA32(int x, int y, const Color32& color);
 	float GetPixel_AlphaFloat(int x, int y) const;
 	void SetPixel_AlphaFloat(int x, int y, float val);
+	Color GetPixel_RGBF(int x, int y) const;
+	void SetPixel_RGBF(int x, int y, const Color& color);
+	Color GetPixel_RGBAF(int x, int y) const;
+	void SetPixel_RGBAF(int x, int y, const Color& color);
 
-private:
+protected:
 	BitmapType type = BitmapType_Unknown;
 	int width = 0;
 	int height = 0;

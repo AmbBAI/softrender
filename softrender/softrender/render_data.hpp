@@ -8,6 +8,7 @@
 #include "math/matrix4x4.h"
 #include "softrender/srtypes.hpp"
 #include "softrender/buffer.h"
+#include "softrender/mesh.h"
 
 namespace sr
 {
@@ -15,14 +16,87 @@ namespace sr
 class RenderData
 {
 public:
-	enum PrimitiveType
+	template<typename VertexType>
+	bool AssetVerticesIndicesBuffer(const Mesh& mesh)
 	{
-		PrimitiveType_Point,
-		PrimitiveType_Line,
-		PrimitiveType_LineStrip,
-		PrimitiveType_Triangle,
-		PrimitiveType_TriangleStrip,
-	};
+		uint32_t vertexTypeSize = sizeof(VertexType);
+		auto& elements = VertexType::elements();
+		uint32_t vertexElementsSize = 0;
+		for (auto element : elements)
+		{
+			switch (element)
+			{
+			case Mesh::VertexElement_Position:
+				vertexElementsSize += sizeof(Vector3);
+				break;
+			case Mesh::VertexElement_Normal:
+				vertexElementsSize += sizeof(Vector3);
+				assert (mesh.normals.size() == mesh.vertices.size());
+				break;
+			case Mesh::VertexElement_Tangent:
+				vertexElementsSize += sizeof(Vector4);
+				assert(mesh.tangents.size() == mesh.vertices.size());
+				break;
+			case Mesh::VertexElement_Color:
+				vertexElementsSize += sizeof(Color);
+				assert(mesh.colors.size() == mesh.vertices.size());
+				break;
+			case Mesh::VertexElement_Texcoord:
+				vertexElementsSize += sizeof(Vector2);
+				assert(mesh.texcoords.size() == mesh.vertices.size());
+				break;
+			default:
+				break;
+			}
+		}
+		assert(vertexElementsSize == vertexTypeSize);
+		if (vertexElementsSize != vertexTypeSize)
+		{
+			return false;
+		}
+
+		std::vector<VertexType> vertexBuffer;
+		for (uint32_t i = 0; i < mesh.vertices.size(); ++i)
+		{
+			VertexType v;
+			rawptr_t p = (rawptr_t)&v;
+			for (Mesh::VertexElement element : elements)
+			{
+				switch (element)
+				{
+				case Mesh::VertexElement_Position:
+					*(Vector3*)p = mesh.vertices[i];
+					p += sizeof(Vector3);
+					break;
+				case Mesh::VertexElement_Normal:
+					*(Vector3*)p = mesh.normals[i];
+					p += sizeof(Vector3);
+					break;
+				case Mesh::VertexElement_Tangent:
+					*(Vector4*)p = mesh.tangents[i];
+					p += sizeof(Vector4);
+					break;
+				case Mesh::VertexElement_Color:
+					*(Color*)p = mesh.colors[i];
+					p += sizeof(Color);
+					break;
+				case Mesh::VertexElement_Texcoord:
+					*(Vector2*)p = mesh.texcoords[i];
+					p += sizeof(Vector2);
+					break;
+				default:
+					break;
+				}
+			}
+			vertexBuffer.push_back(v);
+		}
+		if (!AssignVertexBuffer(vertexBuffer))
+		{
+			return false;
+		}
+		AssignIndexBuffer(mesh.indices);
+		return true;
+	}
 
 	template<typename VertexType>
 	bool AssignVertexBuffer(const std::vector<VertexType>& vertices)
@@ -48,12 +122,11 @@ public:
 		return (VertexType*)vertexBuffer[index];
 	}
 
-	bool AssignIndexBuffer(const std::vector<uint16_t>& indices, PrimitiveType type = PrimitiveType_Triangle)
+	bool AssignIndexBuffer(const std::vector<uint16_t>& indices)
 	{
 		int count = (int)indices.size();
 		indexBuffer.Assign(indices);
 		indexCount = count;
-		primitiveType = type;
 		return true;
 	}
 
@@ -64,51 +137,22 @@ public:
 
 	int GetPrimitiveCount()
 	{
-		switch (primitiveType)
-		{
-		case PrimitiveType_Point:
-			return indexCount;
-		case PrimitiveType_Line:
-			return indexCount / 2;
-		case PrimitiveType_LineStrip:
-			return indexCount - 1;
-		case PrimitiveType_Triangle:
-			return indexCount / 3;
-		case PrimitiveType_TriangleStrip:
-			return indexCount - 2;
-		default:
-			return 0;
-		}
+		return indexCount / 3;
 	}
-
-	// TODO GetPointPrimitive(int id, u16& point);
-	// TODO GetLinePrimitive(int id, Line<u16>& line);
 
 	bool GetTrianglePrimitive(int id, Triangle<uint16_t>& triangle)
 	{
-		switch (primitiveType)
-		{
-		case PrimitiveType_Triangle:
-		{
-		   int offset = id * 3;
-		   if (offset + 3 > indexCount) return false;
-		   auto itor = indexBuffer.itor;
-		   itor.Seek(offset);
-		   triangle.v0 = *(uint16_t*)itor.Get();
-		   triangle.v1 = *(uint16_t*)itor.Get();
-		   triangle.v2 = *(uint16_t*)itor.Get();
-		   return true;
-		}
-		case PrimitiveType_TriangleStrip:
-			// TODO
-			return true;
-		}
-		return false;
+		int offset = id * 3;
+		if (offset + 3 > indexCount) return false;
+		auto itor = indexBuffer.itor;
+		itor.Seek(offset);
+		triangle.v0 = *(uint16_t*)itor.Get();
+		triangle.v1 = *(uint16_t*)itor.Get();
+		triangle.v2 = *(uint16_t*)itor.Get();
+		return true;
 	}
 
 private:
-	PrimitiveType primitiveType = PrimitiveType_Triangle;
-
 	Buffer vertexBuffer;
 	int vertexCount = 0;
 	int vertexSize = 0;

@@ -36,6 +36,7 @@ public:
 
 	static Texture2DPtr CreateWithBitmap(BitmapPtr& bitmap);
     static Texture2DPtr LoadTexture(const char* file);
+	static Texture2DPtr LoadTexture(const std::string& file);
 	static std::map<std::string, Texture2DPtr> texturePool;
 
 protected:
@@ -50,18 +51,19 @@ public:
 
 	void ConvertBumpToNormal(float strength = 10.f);
 	bool GenerateMipmaps();
-	//void CompressTexture();
 
 	float CalcLOD(const Vector2& ddx, const Vector2& ddy) const;
 	const Color Sample(const Vector2& uv, float lod = 0.f) const;
 	const Color Sample(const Vector2& uv, const Vector2& ddx, const Vector2& ddy) const { return Sample(uv, CalcLOD(ddx, ddy)); }
 
-	float SampleProj(const Vector2& uv, float value, float bias/*=0*/) const;
-
 	int GetMipmapsCount() const;
 	void SetMipmaps(std::vector<BitmapPtr>& bitmaps);
 	const BitmapPtr GetBitmap(int miplv) const;
     
+public:
+	inline int FixMipLevel(int miplv) const;
+	const Bitmap& GetBitmapFast(int miplv) const;
+
 public:
     AddressMode xAddressMode = AddressMode_Warp;
 	AddressMode yAddressMode = AddressMode_Warp;

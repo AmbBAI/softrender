@@ -1,6 +1,7 @@
 #ifndef _MATH_MATHF_INLINE_
 #define _MATH_MATHF_INLINE_
 
+
 namespace sr
 {
 
@@ -302,6 +303,31 @@ float Mathf::Terp(float a, float b, float c, float x, float y, float z)
 	return a * x + b * y + c * z;
 }
 
+
+int Mathf::Random(int min, int max)
+{
+	int r = max - min;
+	do
+	{
+		int rand = Mathf::FloorToInt(Random01() * r);
+		if (rand != r)
+		{
+			return rand + min;
+		}
+	} while (true);
+}
+
+float Mathf::Random(float min, float max)
+{
+	return Random01() * (max - min) + min;
+}
+
+float Mathf::Random01()
+{
+	static float invRandomMax = 1.0f / 4294967296;
+	randomSeed = 214013 * randomSeed + 2531011;
+	return randomSeed * invRandomMax;
+}
 
 } // namespace sr
 

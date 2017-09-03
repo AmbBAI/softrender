@@ -111,9 +111,9 @@ public:
 		int startW1 = Projection::Orient2D(p2.x, p2.y, p1.x, p1.y, minX, minY);
 		int startW2 = Projection::Orient2D(p0.x, p0.y, p2.x, p2.y, minX, minY);
 
-		if (dy01 < 0 || (dy01 == 0 && dx01 < 0)) startW0 += 1;
-		if (dy12 < 0 || (dy12 == 0 && dx12 < 0)) startW1 += 1;
-		if (dy20 < 0 || (dy20 == 0 && dx20 < 0)) startW2 += 1;
+		if (!(dy01 > 0 || (dy01 == 0 && dx01 < 0))) startW0 -= 1;
+		if (!(dy12 > 0 || (dy12 == 0 && dx12 < 0))) startW1 -= 1;
+		if (!(dy20 > 0 || (dy20 == 0 && dx20 < 0))) startW2 -= 1;
 
 		Rasterizer2x2Info info;
 #if _MATH_SIMD_INTRINSIC_
@@ -149,10 +149,10 @@ public:
 				__m128i mi_or_w = _mm_or_si128(_mm_or_si128(mi_w0, mi_w1), mi_w2);
 				SIMD_ALIGN static int or_w[4];
 				_mm_store_si128((__m128i*)or_w, mi_or_w);
-				if (or_w[0] > 0) info.maskCode |= 0x1;
-				if (or_w[1] > 0) info.maskCode |= 0x2;
-				if (or_w[2] > 0) info.maskCode |= 0x4;
-				if (or_w[3] > 0) info.maskCode |= 0x8;
+				if (or_w[0] >= 0) info.maskCode |= 0x1;
+				if (or_w[1] >= 0) info.maskCode |= 0x2;
+				if (or_w[2] >= 0) info.maskCode |= 0x4;
+				if (or_w[3] >= 0) info.maskCode |= 0x8;
 				if (x + 1 >= maxX) info.maskCode &= ~0xA;
 				if (y + 1 >= maxY) info.maskCode &= ~0xC;
 
@@ -180,7 +180,7 @@ public:
 					i_w0[i] = w0 + i_w0_delta[i];
 					i_w1[i] = w1 + i_w1_delta[i];
 					i_w2[i] = w2 + i_w2_delta[i];
-					if ((i_w0[i] | i_w1[i] | i_w2[i]) > 0) info.maskCode |= (1 << i);
+					if ((i_w0[i] | i_w1[i] | i_w2[i]) >= 0) info.maskCode |= (1 << i);
 				}
 				if (x + 1 >= maxX) info.maskCode &= ~0xA;
 				if (y + 1 >= maxY) info.maskCode &= ~0xC;

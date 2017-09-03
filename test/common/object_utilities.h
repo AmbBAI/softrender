@@ -3,15 +3,10 @@
 
 #include "softrender.h"
 
-template<typename Type>
-struct MeshWrapper
-{
-	std::string name;
-	std::vector<Type> vertices;
-	std::vector<uint16_t> indices;
-	std::vector<std::tuple<sr::MaterialPtr, int, int> > materials;
-};
-
+sr::MeshPtr CreateQuad();
 sr::MeshPtr CreatePlane();
+sr::MeshPtr CreateCube();
+
+sr::MeshPtr LoadMesh(const char* path);
 
 #endif // !_OBJECT_UTILITIES_H_

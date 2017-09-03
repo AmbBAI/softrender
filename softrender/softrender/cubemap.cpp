@@ -33,9 +33,9 @@ void Cubemap::InitWithLatlong(Texture2DPtr tex)
 	mappingType = MappingType_LatLong;
 }
 
-bool Cubemap::Mapping6ImagesToLatlong(int height)
+bool Cubemap::Mapping6ImagesToLatlong(int height, Bitmap::BitmapType type)
 {
-	BitmapPtr bitmap = BitmapPtr(new Bitmap(height * 2, height, Bitmap::BitmapType_RGB24));
+	BitmapPtr bitmap = BitmapPtr(new Bitmap(height * 2, height, type));
 	int weight = height * 2;
 	for (int x = 0; x < weight; ++x)
 	{
@@ -147,10 +147,15 @@ bool Cubemap::PrefilterEnvMap(uint32_t mapCount, uint32_t sampleCount) const
 
 	int height = latlong->GetHeight();
 	int width = latlong->GetWidth();
+	Bitmap::BitmapType type = latlong->GetBitmap(0)->GetType();
 	std::vector<BitmapPtr> bitmaps;
 	for (uint32_t i = 0; i < mapCount; ++i)
 	{
-		BitmapPtr bitmap = BitmapPtr(new Bitmap(width, height, Bitmap::BitmapType_RGB24));
+		height >>= 1;
+		if (height < 1) height = 1;
+		width = height * 2;
+
+		BitmapPtr bitmap = BitmapPtr(new Bitmap(width, height, type));
 		float roughness = float(i + 1) / mapCount;
 		for (int y = 0; y < height; ++y)
 		{
@@ -163,7 +168,7 @@ bool Cubemap::PrefilterEnvMap(uint32_t mapCount, uint32_t sampleCount) const
 				dir.y = -Mathf::Cos(v);
 				dir.z = -Mathf::Cos(u) * Mathf::Sin(v);
 				Vector3 rgb = PBSF::PrefilterEnvMap(*this, roughness, dir, sampleCount);
-				bitmap->SetPixel(x, y, Color(1.f, rgb.x, rgb.y, rgb.z));
+				bitmap->SetPixel(x, y, Color(rgb, 1.f));
 			}
 		}
 		bitmaps.push_back(bitmap);

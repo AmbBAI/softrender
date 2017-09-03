@@ -31,6 +31,7 @@ struct PBSInput
 	void PBSSetup()
 	{
 		static float dielectricSpec = 0.220916301f;
+		//static float dielectricSpec = 0.04f;
 		static Vector3 dieletctricSpecRGB = Vector3::one * dielectricSpec;
 		specColor = Mathf::LinearInterp(dieletctricSpecRGB, albedo, metallic);
 		reflectivity = Mathf::Lerp(metallic, 1.f, dielectricSpec);
@@ -45,7 +46,7 @@ struct PBSF
 		float a = roughness * roughness;
 		float a2 = a * a;
 		float d = (nDotH * nDotH) * (a2 - 1.f) + 1.f;
-		return a2 / (Mathf::PI * d * d);
+		return a2 / (Mathf::PI * d * d + +1e-5f);
 	}
 
 	static float BlinnPhongTerm(float nDotH, float roughness)
@@ -249,12 +250,13 @@ struct PBSF
 	{
 		float nDotV = Mathf::Clamp01(normal.Dot(viewDir));
 		Vector3 r = normal * (2.f * nDotV) - viewDir;
-		static Texture2DPtr iblLUT = Texture2D::LoadTexture("resources/pbr/lut.png");
+		static Texture2DPtr iblLUT = Texture2D::LoadTexture("resources/lut.png");
 
-		Vector3 prefilterColor = cubemap.Sample(r, roughness).rgb;
+		Color prefilterColor = cubemap.Sample(r, roughness);
+		// prefilterColor = Color::GammaToLinearSpace(prefilterColor);
 
 		Vector3 envBRDF = iblLUT->Sample(Vector2(roughness, nDotV), 0.f).rgb;
-		return prefilterColor * (specColor * envBRDF.x + Vector3::one * envBRDF.y);
+		return prefilterColor.rgb * (specColor * envBRDF.x + Vector3::one * envBRDF.y);
 	}
 
 };

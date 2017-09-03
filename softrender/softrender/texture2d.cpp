@@ -65,6 +65,10 @@ Texture2DPtr Texture2D::CreateWithBitmap(BitmapPtr& bitmap)
 	return tex;
 }
 
+Texture2DPtr Texture2D::LoadTexture(const std::string& file)
+{
+	return LoadTexture(file.c_str());
+}
 
 std::map<std::string, Texture2DPtr> Texture2D::texturePool;
 Texture2DPtr Texture2D::LoadTexture(const char* file)
@@ -127,17 +131,6 @@ void Texture2D::ConvertBumpToNormal(float strength/* = 10.f*/)
 			color.g = (normal.y + 1.0f) / 2.0f;
 			color.b = (normal.z + 1.0f) / 2.0f;
 			mainTex->SetPixel(x, y, color);
-
-			//float invZ = 1.f / (normal.z + 1.);
-			//float px = normal.x * invZ;
-			//float py = normal.y * invZ;
-			//// float d = 2. / (1 + px * px + py * py);
-			//// normal.x = px * d;
-			//// normal.y = py * d;
-			//// normal.z = d - 1;
-
-			//*(bytes + (offset << 1)) = (u8)(px * 255.f);
-			//*(bytes + (offset << 1 | 1)) = (u8)(py * 255.f);
 		}
 	}
 }
@@ -147,33 +140,31 @@ const Color Texture2D::Sample(const Vector2& uv, float lod/* = 0.f*/) const
 	switch (filterMode) {
 	case FilterMode_Point:
         {
-            int miplv = Mathf::RoundToInt(lod);
+            int miplv = FixMipLevel(Mathf::RoundToInt(lod));
             
-            const BitmapPtr bmp = GetBitmap(miplv);
-            assert(bmp != nullptr);
-            return sampleFunc[0][xAddressMode][xAddressMode](*bmp, uv.x, uv.y);
+			const Bitmap& bmp = GetBitmapFast(miplv);
+            return sampleFunc[0][xAddressMode][xAddressMode](bmp, uv.x, uv.y);
         }
 	case FilterMode_Bilinear:
         {
-            int miplv = Mathf::RoundToInt(lod);
-            
-			const BitmapPtr bmp = GetBitmap(miplv);
-			assert(bmp != nullptr);
-            return sampleFunc[1][xAddressMode][xAddressMode](*bmp, uv.x, uv.y);
+            int miplv = FixMipLevel(Mathf::RoundToInt(lod));
+			const Bitmap& bmp = GetBitmapFast(miplv);
+            return sampleFunc[1][xAddressMode][xAddressMode](bmp, uv.x, uv.y);
         }
 	case FilterMode_Trilinear:
         {
-            int miplv1 = Mathf::FloorToInt(lod);
-            int miplv2 = miplv1 + 1;
+            int miplv1 = FixMipLevel(Mathf::FloorToInt(lod));
+            int miplv2 = FixMipLevel(miplv1 + 1);
             float frac = lod - miplv1;
             
-			const BitmapPtr bmp1 = GetBitmap(miplv1);
-            assert(bmp1 != nullptr);
-            Color color1 = sampleFunc[1][xAddressMode][xAddressMode](*bmp1, uv.x, uv.y);
-            
-			const BitmapPtr bmp2 = GetBitmap(miplv2);
-            if (bmp2 == bmp1) return color1;
-            Color color2 = sampleFunc[1][xAddressMode][xAddressMode](*bmp2, uv.x, uv.y);
+			const Bitmap& bmp1 = GetBitmapFast(miplv1);
+            Color color1 = sampleFunc[1][xAddressMode][xAddressMode](bmp1, uv.x, uv.y);            
+			if (miplv1 == miplv2)
+			{
+				return color1;
+			}
+			const Bitmap& bmp2 = GetBitmapFast(miplv2);
+            Color color2 = sampleFunc[1][xAddressMode][xAddressMode](bmp2, uv.x, uv.y);
             return Color::Lerp(color1, color2, frac);
         }
 	}
@@ -204,13 +195,9 @@ bool Texture2D::GenerateMipmaps()
 				int x0 = x * 2;
 				int x1 = x0 + 1;
 				Color c0 = source->GetPixel(x0, y0);
-				c0.rgb *= c0.a;
 				Color c1 = source->GetPixel(x1, y0);
-				c1.rgb *= c1.a;
 				Color c2 = source->GetPixel(x0, y1);
-				c2.rgb *= c2.a;
 				Color c3 = source->GetPixel(x1, y1);
-				c3.rgb *= c3.a;
 				mipmap->SetPixel(x, y, Color::Lerp(c0, c1, c2, c3, 0.5f, 0.5f));
 			}
 		}
@@ -225,23 +212,27 @@ bool Texture2D::GenerateMipmaps()
 
 const BitmapPtr Texture2D::GetBitmap(int miplv) const
 {
-    if (miplv < 0) miplv = 0;
-	if (mipmaps.size() <= 0) miplv = 0;
+	miplv = FixMipLevel(miplv);
 	if (miplv == 0) return mainTex;
 	else
 	{
-		miplv = Mathf::Clamp(miplv, 0, (int)mipmaps.size());
 		return mipmaps[miplv - 1];
 	}
 }
 
-//void Texture2D::CompressTexture()
-//{
-//	if (mainTex->GetType() == Bitmap::BitmapType_RGB888)
-//	{
-//		mainTex = mainTex->CompressToDXT1();
-//	}
-//}
+int Texture2D::FixMipLevel(int miplv) const
+{
+	return Mathf::Clamp(miplv, 0, (int)mipmaps.size());
+}
+
+const Bitmap& Texture2D::GetBitmapFast(int miplv) const
+{
+	if (miplv == 0) return *mainTex;
+	else
+	{
+		return *mipmaps[miplv - 1];
+	}
+}
 
 float Texture2D::CalcLOD(const Vector2& ddx, const Vector2& ddy) const
 {
@@ -250,12 +241,6 @@ float Texture2D::CalcLOD(const Vector2& ddx, const Vector2& ddy) const
 	float h2 = (float)height * height;
 	float delta = Mathf::Max(ddx.Dot(ddx) * w2, ddy.Dot(ddy) * h2);
 	return Mathf::Max(0.f, 0.5f * Mathf::Log2(delta));
-}
-
-float Texture2D::SampleProj(const Vector2& uv, float value, float bias/* =0.f*/) const
-{
-	static ProjectionSampler projectionSampler;
-	return projectionSampler.Sample<ClampAddresser, ClampAddresser>(*mainTex, uv.x, uv.y, value, bias);
 }
 
 int Texture2D::GetMipmapsCount() const

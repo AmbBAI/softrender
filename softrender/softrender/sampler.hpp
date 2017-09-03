@@ -98,33 +98,6 @@ struct LinearSampler
 	}
 };
 
-struct ProjectionSampler
-{
-	template<typename XAddresserType, typename YAddresserType>
-	static float Sample(const Bitmap& bitmap, float u, float v, float value, float bias)
-	{
-		int width = bitmap.GetWidth();
-		int height = bitmap.GetHeight();
-
-		float fx = XAddresserType::CalcAddress(u, width);
-		int x0 = Mathf::FloorToInt(fx);
-		float fy = YAddresserType::CalcAddress(v, height);
-		int y0 = Mathf::FloorToInt(fy);
-		float xFrac = fx - x0;
-		float yFrac = fy - y0;
-		x0 = XAddresserType::FixAddress(x0, width);
-		y0 = YAddresserType::FixAddress(y0, height);
-		int x1 = XAddresserType::FixAddress(x0 + 1, width);
-		int y1 = YAddresserType::FixAddress(y0 + 1, height);
-
-		float a = bitmap.GetAlpha(x0, y0) + bias < value ? 1.f : 0.f;
-		float b = bitmap.GetAlpha(x1, y0) + bias < value ? 1.f : 0.f;
-		float c = bitmap.GetAlpha(x0, y1) + bias < value ? 1.f : 0.f;
-		float d = bitmap.GetAlpha(x1, y1) + bias < value ? 1.f : 0.f;
-		return Mathf::BLerp(a, b, c, d, xFrac, yFrac);
-	}
-};
-
 }
 
 #endif //! _SOFTRENDER_TEXTURE_SAMPLER_HPP_

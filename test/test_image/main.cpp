@@ -31,7 +31,7 @@ void MainLoop()
 
 	if (tex == nullptr)
 	{
-		tex = Texture2D::LoadTexture("resources/crytek-sponza/textures/background.tga");
+		tex = Texture2D::LoadTexture("resources/bric.tga");
 		tex->filterMode = Texture2D::FilterMode_Bilinear;
 		tex->xAddressMode = Texture2D::AddressMode_Clamp;
 		tex->yAddressMode = Texture2D::AddressMode_Clamp;

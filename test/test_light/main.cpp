@@ -21,38 +21,38 @@ struct Vertex
 {
 	Vector3 position;
 	Vector3 normal;
+
+	static const std::vector<Mesh::VertexElement>& elements()
+	{
+		static std::vector<Mesh::VertexElement> _elements
+		{
+			Mesh::VertexElement_Position,
+			Mesh::VertexElement_Normal,
+		};
+
+		return _elements;
+	}
 };
 
-struct VaryingData
+struct V2F
 {
 	Vector4 position;
 	Vector3 normal;
 	Vector3 worldPos;
-
-	static std::vector<VaryingDataElement> GetDecl()
-	{
-		static std::vector<VaryingDataElement> decl = {
-			{ 0, VaryingDataDeclUsage_SVPOSITION, VaryingDataDeclFormat_Vector4 },
-			{ 16, VaryingDataDeclUsage_TEXCOORD, VaryingDataDeclFormat_Vector3 },
-			{ 28, VaryingDataDeclUsage_POSITION, VaryingDataDeclFormat_Vector3 }
-		};
-
-		return decl;
-	}
 };
 
-struct ForwardBaseShader : Shader<Vertex, VaryingData>
+struct ForwardBaseShader : Shader<Vertex, V2F>
 {
-	VaryingData vert(const Vertex& input) override
+	V2F vert(const Vertex& input) override
 	{
-		VaryingData output;
+		V2F output;
 		output.position = _MATRIX_MVP.MultiplyPoint(input.position);
 		output.normal = _Object2World.MultiplyVector(input.normal).Normalize();
 		output.worldPos = _Object2World.MultiplyPoint3x4(input.position);
 		return output;
 	}
 
-	Color frag(const VaryingData& input) override
+	void frag(const V2F& input) override
 	{
 		LightInput lightInput;
 		lightInput.ambient = Color::white * 0.18f;
@@ -63,28 +63,27 @@ struct ForwardBaseShader : Shader<Vertex, VaryingData>
 		Color fragColor;
 
 		Vector3 lightDir;
-		float lightAtten;
-		InitLightArgs(input.worldPos, lightDir, lightAtten);
+		Color lightColor;
+		InitLightArgs(input.worldPos, lightDir, lightColor);
 
 		Vector3 viewDir = (_WorldSpaceCameraPos - input.worldPos).Normalize();
-		fragColor.rgb = ShaderF::LightingPhong(lightInput, input.normal, lightDir, _LightColor.xyz, viewDir, lightAtten);
-
-		return fragColor;
+		fragColor.rgb = ShaderF::LightingPhong(lightInput, input.normal, lightDir, lightColor.rgb, viewDir);
+		SV_Target0 = fragColor;
 	}
 };
 
-struct ForwardAdditionShader : Shader<Vertex, VaryingData>
+struct ForwardAdditionShader : Shader<Vertex, V2F>
 {
-	VaryingData vert(const Vertex& input) override
+	V2F vert(const Vertex& input) override
 	{
-		VaryingData output;
+		V2F output;
 		output.position = _MATRIX_MVP.MultiplyPoint(input.position);
 		output.normal = _Object2World.MultiplyVector(input.normal).Normalize();
 		output.worldPos = _Object2World.MultiplyPoint3x4(input.position);
 		return output;
 	}
 
-	Color frag(const VaryingData& input) override
+	void frag(const V2F& input) override
 	{
 		LightInput lightInput;
 		lightInput.ambient = Color::black;
@@ -95,12 +94,12 @@ struct ForwardAdditionShader : Shader<Vertex, VaryingData>
 		Color fragColor;
 
 		Vector3 lightDir;
-		float lightAtten;
-		InitLightArgs(input.worldPos, lightDir, lightAtten);
+		Color lightColor;
+		InitLightArgs(input.worldPos, lightDir, lightColor);
 
 		Vector3 viewDir = (_WorldSpaceCameraPos - input.worldPos).Normalize();
-		fragColor.rgb = ShaderF::LightingPhong(lightInput, input.normal, lightDir, _LightColor.xyz, viewDir, lightAtten);
-		return fragColor;
+		fragColor.rgb = ShaderF::LightingPhong(lightInput, input.normal, lightDir, lightColor.rgb, viewDir);
+		SV_Target0 = fragColor;
 	}
 };
 
@@ -110,11 +109,11 @@ void MainLoop()
 	static Transform objectTrans;
 	static Transform cameraTrans;
 	static TransformController objectCtrl;
-	static MeshWrapper<Vertex> meshW;
 	static ShaderPtr forwardBaseShader;
 	static ShaderPtr forwardAdditionShader;
 	static LightPtr lightRed;
 	static LightPtr lightBlue;
+	static MeshPtr mesh;
 
 	if (!isInitilized)
     {
@@ -159,24 +158,15 @@ void MainLoop()
 		forwardAdditionShader = shader1;
 
 
-		MeshPtr mesh = CreatePlane();
+		mesh = CreatePlane();
 		mesh->CalculateTangents();
-		meshW.vertices.clear();
-		meshW.indices.clear();
-		int vertexCount = mesh->GetVertexCount();
-		for (int i = 0; i < vertexCount; ++i)
-		{
-			meshW.vertices.emplace_back(Vertex{ mesh->vertices[i], mesh->normals[i] });
-		}
-		for (auto idx : mesh->indices) meshW.indices.emplace_back((uint16_t)idx);
-    }
+	}
 
 	SoftRender::Clear(true, true, Color(1.f, 0.19f, 0.3f, 0.47f));
 
 	objectCtrl.MouseRotate(objectTrans, false);
 	SoftRender::modelMatrix = objectTrans.localToWorldMatrix();
-	SoftRender::renderData.AssignVertexBuffer(meshW.vertices);
-	SoftRender::renderData.AssignIndexBuffer(meshW.indices);
+	SoftRender::renderData.AssetVerticesIndicesBuffer<Vertex>(*mesh);
 
 	SoftRender::light = lightRed;
 	SoftRender::renderState.alphaBlend = false;

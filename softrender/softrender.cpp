@@ -10,9 +10,8 @@ RenderTexturePtr SoftRender::defaultRenderTarget = nullptr;
 RenderTexturePtr SoftRender::renderTarget = nullptr;
 BitmapPtr SoftRender::colorBuffer = nullptr;
 BitmapPtr SoftRender::depthBuffer = nullptr;
+StencilBufferPtr SoftRender::stencilBuffer = nullptr;
 Matrix4x4 SoftRender::modelMatrix;
-//Matrix4x4 Rasterizer::viewMatrix;
-//Matrix4x4 Rasterizer::projectionMatrix;
 RenderState SoftRender::renderState;
 RenderData SoftRender::renderData;
 VaryingDataBuffer SoftRender::varyingDataBuffer;
@@ -40,6 +39,20 @@ RenderTexturePtr SoftRender::GetRenderTarget()
 	return renderTarget;
 }
 
+void SoftRender::ClearStencilBuffer(uint8_t stencil)
+{
+	if (stencilBuffer == nullptr)
+	{
+		stencilBuffer = std::make_shared<StencilBuffer>(renderTarget->GetWidth(), renderTarget->GetHeight());
+	}
+	stencilBuffer->Fill(stencil);
+}
+
+StencilBufferPtr SoftRender::GetStencilBuffer()
+{
+	return stencilBuffer;
+}
+
 void SoftRender::Submit(int startIndex/* = 0*/, int primitiveCount/* = 0*/)
 {
 	assert(camera != nullptr);
@@ -47,22 +60,24 @@ void SoftRender::Submit(int startIndex/* = 0*/, int primitiveCount/* = 0*/)
 	int width = renderTarget->GetWidth();
 	int height = renderTarget->GetHeight();
 
-	//shader->_MATRIX_V = viewMatrix;
-	//shader->_MATRIX_P = projectionMatrix;
-	shader->_MATRIX_V = camera->viewMatrix();
+	shader->_WorldToCamera = camera->viewMatrix();
+	shader->_CameraToWorld = camera->transform.localToWorldMatrix();
+
 	shader->_MATRIX_P = camera->projectionMatrix();
-	shader->_MATRIX_VP = shader->_MATRIX_P.Multiply(shader->_MATRIX_V);
+	shader->_MATRIX_VP = shader->_MATRIX_P.Multiply(shader->_WorldToCamera);
 	shader->_Object2World = modelMatrix;
 	shader->_World2Object = modelMatrix.Inverse();
-	shader->_MATRIX_MV = shader->_MATRIX_V.Multiply(modelMatrix);
+	shader->_MATRIX_MV = shader->_WorldToCamera.Multiply(modelMatrix);
 	shader->_MATRIX_MVP = shader->_MATRIX_VP.Multiply(modelMatrix);
 
 	shader->_WorldSpaceCameraPos = camera->transform.position;
 	shader->_ScreenParams = Vector4((float)width, (float)height, 1.f + 1.f / (float)width, 1.f + 1.f / (float)height);
+	shader->_ZBufferParams = Vector4(camera->zFar(), camera->zNear(), 0.f, 0.f);
 
 	InitShaderLightParams(shader, light);
 
 	rasterizer.Initlize(width, height);
+	varyingDataBuffer.InitVaryingDataBuffer(shader->varyingDataSize);
 
 	int vertexCount = renderData.GetVertexCount();
 	varyingDataBuffer.InitVerticesVaryingData(vertexCount);
@@ -73,13 +88,12 @@ void SoftRender::Submit(int startIndex/* = 0*/, int primitiveCount/* = 0*/)
 		rawptr_t vertexData = renderData.GetVertexData<uint8_t>(i);
 		shader->_VSMain(vertexData);
 
-		auto decl = varyingDataBuffer.GetVaryingDataDecl();
-		varyingData.position = *Buffer::Value<Vector4>(shader->varyingData, decl.positionOffset);
+		varyingData.position = *Buffer::Value<Vector4>(shader->varyingData, 0);
 		varyingData.clipCode = Clipper::CalculateClipCode(varyingData.position);
 	}
 
 	varyingDataBuffer.InitDynamicVaryingData();
-	varyingDataBuffer.InitPixelVaryingData();
+	varyingDataBuffer.InitPixelVaryingData(4);
 
 	if (primitiveCount <= 0) primitiveCount = renderData.GetPrimitiveCount() - startIndex;
 	for (int i = 0; i < primitiveCount; ++i)
@@ -96,7 +110,7 @@ void SoftRender::Submit(int startIndex/* = 0*/, int primitiveCount/* = 0*/)
 		auto v1 = varyingDataBuffer.GetVertexVaryingData(triangleIdx.v1);
 		auto v2 = varyingDataBuffer.GetVertexVaryingData(triangleIdx.v2);
 
-		if (renderState.FaceCulling(v0, v1, v2)) continue;
+		//if (renderState.FaceCulling(v0, v1, v2)) continue;
 
 		varyingDataBuffer.ResetDynamicVaryingData();
 		auto triangles = Clipper::ClipTriangle(v0, v1, v2);
@@ -106,6 +120,7 @@ void SoftRender::Submit(int startIndex/* = 0*/, int primitiveCount/* = 0*/)
 			projection.v0 = Projection::CalculateViewProjection(triangle.v0.position, width, height);
 			projection.v1 = Projection::CalculateViewProjection(triangle.v1.position, width, height);
 			projection.v2 = Projection::CalculateViewProjection(triangle.v2.position, width, height);
+			if (renderState.FaceCullingSimple(projection, triangle)) continue;
 
 			if (camera->projectionMode() == Camera::ProjectionMode_Perspective)
 			{
@@ -114,7 +129,6 @@ void SoftRender::Submit(int startIndex/* = 0*/, int primitiveCount/* = 0*/)
 				projection.v2.z = camera->GetLinearDepth(projection.v2.z);
 			}
 
-			varyingDataBuffer.ResetPixelVaryingData();
 			rasterizer.RasterizerTriangle<Triangle<VertexVaryingData> >(projection, Rasterizer2x2RenderFunc, triangle);
 		}
 
@@ -153,8 +167,6 @@ void SoftRender::SetShader(ShaderPtr shader)
 {
 	assert(shader != nullptr);
 	SoftRender::shader = shader;
-
-	varyingDataBuffer.SetVaryingDataDecl(shader->varyingDataDecl, shader->varyingDataSize);
 }
 
 void SoftRender::RasterizerRenderFunc(const VertexVaryingData& data, const RasterizerInfo& info)
@@ -164,17 +176,50 @@ void SoftRender::RasterizerRenderFunc(const VertexVaryingData& data, const Raste
 
 	if (!renderState.ZTest(info.depth, depthBuffer->GetAlpha(x, y))) return;
 
+	if (renderState.stencilOn) 
+	{
+		uint8_t stencilContent = stencilBuffer->GetStencil(x, y);
+		if (!renderState.StencilTest(stencilContent)) return;
+		stencilBuffer->SetStencil(x, y, renderState.WriteStencil(stencilContent));
+	}
+
 	shader->varyingData = data.data;
 	shader->isClipped = false;
-	Color color = shader->_PSMain();
+	shader->SV_Target0 = Color::clear;
+	shader->SV_Target1 = Color::clear;
+	shader->SV_Target2 = Color::clear;
+	shader->SV_Target3 = Color::clear;
+	shader->_PSMain();
 	if (!shader->isClipped)
 	{
 		if (renderState.alphaBlend)
 		{
-			Color dst = colorBuffer->GetPixel(x, y);
-			color = renderState.Blend(color, dst);
+			auto buffer = renderTarget->GetColorBuffer();
+			buffer->SetPixel(x, y, renderState.Blend(shader->SV_Target0, buffer->GetPixel(x, y)));
+
+			for (int k = 0; k < 3; ++k)
+			{
+				buffer = renderTarget->GetGBuffer(k);
+				if (buffer)
+				{
+					buffer->SetPixel(x, y, renderState.Blend(ShaderGBufferOutput(shader, k), buffer->GetPixel(x, y)));
+				}
+			}
 		}
-		colorBuffer->SetPixel(x, y, color);
+		else
+		{
+			auto buffer = renderTarget->GetColorBuffer();
+			buffer->SetPixel(x, y, shader->SV_Target0);
+
+			for (int k = 0; k < 3; ++k)
+			{
+				buffer = renderTarget->GetGBuffer(k);
+				if (buffer)
+				{
+					buffer->SetPixel(x, y, ShaderGBufferOutput(shader, k));
+				}
+			}
+		}
 		if (renderState.zWrite) depthBuffer->SetAlpha(x, y, info.depth);
 	}
 }
@@ -187,7 +232,7 @@ void SoftRender::Rasterizer2x2RenderFunc(const Triangle<VertexVaryingData>& data
 	rawptr_t pixelVaryingDataQuad[4];
 	for (int i = 0; i < 4; ++i)
 	{
-		pixelVaryingDataQuad[i] = VertexVaryingData::TriangleInterp(data.v0, data.v1, data.v2, quad.wx[i], quad.wy[i], quad.wz[i]);
+		pixelVaryingDataQuad[i] = VertexVaryingData::TriangleInterp(i, data.v0, data.v1, data.v2, quad.wx[i], quad.wy[i], quad.wz[i]);
 	}
 	shader->_PassQuad(pixelVaryingDataQuad);
 
@@ -200,19 +245,67 @@ void SoftRender::Rasterizer2x2RenderFunc(const Triangle<VertexVaryingData>& data
 
 		if (!renderState.ZTest(quad.depth[i], depthBuffer->GetAlpha(x, y))) continue;
 
+		if (renderState.stencilOn)
+		{
+			uint8_t stencilContent = stencilBuffer->GetStencil(x, y);
+			if (!renderState.StencilTest(stencilContent)) return;
+			stencilBuffer->SetStencil(x, y, renderState.WriteStencil(stencilContent));
+		}
+
 		shader->varyingData = pixelVaryingDataQuad[i];
 		shader->isClipped = false;
-		Color color = shader->_PSMain();
+		shader->SV_Target0 = Color::clear;
+		shader->SV_Target1 = Color::clear;
+		shader->SV_Target2 = Color::clear;
+		shader->SV_Target3 = Color::clear;
+		shader->_PSMain();
 		if (!shader->isClipped)
 		{
 			if (renderState.alphaBlend)
 			{
-				Color dst = colorBuffer->GetPixel(x, y);
-				color = renderState.Blend(color, dst);
+				auto buffer = renderTarget->GetColorBuffer();
+				buffer->SetPixel(x, y, renderState.Blend(shader->SV_Target0, buffer->GetPixel(x, y)));
+
+				for (int k = 0; k < 3; ++k)
+				{
+					buffer = renderTarget->GetGBuffer(k);
+					if (buffer)
+					{
+						buffer->SetPixel(x, y, renderState.Blend(ShaderGBufferOutput(shader, k), buffer->GetPixel(x, y)));
+					}
+				}
 			}
-			colorBuffer->SetPixel(x, y, color);
+			else
+			{
+				auto buffer = renderTarget->GetColorBuffer();
+				buffer->SetPixel(x, y, shader->SV_Target0);
+
+				for (int k = 0; k < 3; ++k)
+				{
+					buffer = renderTarget->GetGBuffer(k);
+					if (buffer)
+					{
+						buffer->SetPixel(x, y, ShaderGBufferOutput(shader, k));
+					}
+				}
+			}
 			if (renderState.zWrite) depthBuffer->SetAlpha(x, y, quad.depth[i]);
 		}
+	}
+}
+
+const Color& SoftRender::ShaderGBufferOutput(ShaderPtr& shader, int index)
+{
+	switch (index)
+	{
+	case 0:
+		return shader->SV_Target1;
+	case 1:
+		return shader->SV_Target2;
+	case 2:
+		return shader->SV_Target3;
+	default:
+		throw std::out_of_range("g-buffer index out of range!");
 	}
 }
 
@@ -249,7 +342,7 @@ bool SoftRender::InitShaderLightParams(ShaderPtr shader, const LightPtr& light)
 	return true;
 }
 
-void SoftRender::Clear(bool clearDepth, bool clearColor, const Color& backgroundColor, float depth /*= 1.0f*/)
+void SoftRender::Clear(bool clearColor, bool clearDepth, const Color& backgroundColor, float depth /*= 1.0f*/)
 {
 	if (clearColor) colorBuffer->Fill(backgroundColor);
 	if (clearDepth) depthBuffer->Fill(Color(depth, 0.f, 0.f, 0.f));

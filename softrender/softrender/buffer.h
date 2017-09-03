@@ -16,8 +16,7 @@ public:
 
 public:
 	bool Initialize(int blockSize, bool isDynamic = false);
-	void Finalize();
-
+	
 	template<typename BlockType>
 	bool Assign(const std::vector<BlockType>& datas);
 

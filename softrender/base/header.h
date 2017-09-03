@@ -49,7 +49,7 @@
 #endif
 #endif
 
-#define FlipRGB(bytes) std::swap(*(bytes + 2), *(bytes + 0));
+#define FLIP_RGB(bytes) std::swap(*(bytes + 2), *(bytes + 0));
 
 #include "glfw/include/GLFW/glfw3.h"
 
