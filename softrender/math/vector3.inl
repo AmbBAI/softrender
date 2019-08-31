@@ -17,9 +17,9 @@ Vector3 Vector3::operator -(const Vector3& v) const { return Vector3(x - v.x, y 
 Vector3 Vector3::operator *(float f) const { return Vector3(x * f, y * f, z * f); }
 Vector3 Vector3::operator *(const Vector3& v) const { return Vector3(x * v.x, y * v.y, z * v.z); }
 Vector3 Vector3::operator /(float f) const { return this->operator*(1.f / f); }
-Vector3 Vector3::operator += (const Vector3& v) { x += v.x; y += v.y, z += v.z; return *this; }
-Vector3 Vector3::operator -= (const Vector3& v) { x -= v.x; y -= v.y, z -= v.z; return *this; }
-Vector3 Vector3::operator *= (float f) { x *= f; y *= f, z *= f; return *this; }
+Vector3 Vector3::operator += (const Vector3& v) { x += v.x; y += v.y; z += v.z; return *this; }
+Vector3 Vector3::operator -= (const Vector3& v) { x -= v.x; y -= v.y; z -= v.z; return *this; }
+Vector3 Vector3::operator *= (float f) { x *= f; y *= f; z *= f; return *this; }
 Vector3 Vector3::operator /= (float f) { return (*this) *= (1.f / f); }
     
 float Vector3::Dot(const Vector3& v) const

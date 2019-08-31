@@ -56,7 +56,7 @@ int Mathf::FloorToInt(float f)
 #ifdef _MATH_SIMD_INTRINSIC_
 	return _mm_cvt_ss2si(_mm_set_ss(f + f - 0.5f)) >> 1;
 #else
-	return (int)(Mathf::Floor(f) + Mathf::epsilon);
+	return (int)Mathf::Floor(f);
 #endif
 }
 float Mathf::Ceil(float f)
@@ -72,7 +72,7 @@ int Mathf::CeilToInt(float f)
 #ifdef _MATH_SIMD_INTRINSIC_
 	return -(_mm_cvt_ss2si(_mm_set_ss(-0.5f - (f + f))) >> 1);
 #else
-	return (int)(Mathf::Ceil(f) + Mathf::epsilon);
+	return (int)Mathf::Ceil(f);
 #endif
 }
 float Mathf::Round(float f)
@@ -88,7 +88,7 @@ int Mathf::RoundToInt(float f)
 #ifdef _MATH_SIMD_INTRINSIC_
 	return _mm_cvt_ss2si( _mm_set_ss(f + f + 0.5f) ) >> 1;
 #else
-	return (int)(Mathf::Round(f) + Mathf::epsilon);
+	return (int)Mathf::Round(f);
 #endif
 }
 
