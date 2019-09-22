@@ -36,12 +36,12 @@ solution "softrender"
 
   configuration "Debug or Debug_SIMD"
     defines { "DEBUG" }
-    flags { "Symbols"}
+    symbols "On"
     targetsuffix "_d"
 
   configuration "Release or Release_SIMD"
     defines { "NDEBUG" }
-    flags { "Optimize"}
+    optimize "On"
 
   group "test"
   createTestProject("hello")

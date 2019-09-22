@@ -148,7 +148,7 @@ sr::MeshPtr LoadMesh(const char* path)
 					mesh->normals.emplace_back(attrib.normals[ni], attrib.normals[ni + 1], attrib.normals[ni + 2]);
 				}
 
-				uint16_t ti_ = std::get<1>(meshIndex);
+				uint16_t ti_ = std::get<2>(meshIndex);
 				if (ti_ != (uint16_t)-1)
 				{
 					int ti = ti_ * 2;

@@ -4,7 +4,7 @@ A very simple rasterizer by C++
 ### Build
 Make solution file with [premake](http://premake.github.io/)
 
-`premake5 vs2015` for Windows VS2013
+`premake5 vs2017` for Windows VS2017
 `./premake5 xcode4` for MacOSX XCode
 
 ![](https://github.com/AmbBAI/rasterizer/raw/master/screenshot0.png)

@@ -250,7 +250,7 @@ struct PBSF
 	{
 		float nDotV = Mathf::Clamp01(normal.Dot(viewDir));
 		Vector3 r = normal * (2.f * nDotV) - viewDir;
-		static Texture2DPtr iblLUT = Texture2D::LoadTexture("resources/lut.png");
+		static Texture2DPtr iblLUT = Texture2D::LoadTexture("resources/pbr/lut.png");
 
 		Color prefilterColor = cubemap.Sample(r, roughness);
 		// prefilterColor = Color::GammaToLinearSpace(prefilterColor);
